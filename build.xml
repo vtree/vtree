@@ -1,0 +1,36 @@
+<project name="Vyre Tree Framework" basedir="." default="build" >
+	<property name="src" location="${basedir}/src"/>
+	<property name="dist"  location="${basedir}/dist"/>
+
+	<target name="build" description="Concatenate all js files">
+		<!-- create directory structure -->
+		<delete dir="${dist}"/>
+		<mkdir dir="${dist}"/>
+		<mkdir dir="${dist}/js"/>
+		<mkdir dir="${dist}/style"/>
+
+		
+		<!-- concat and copy all javascript files -->
+		<concat destfile="${dist}/js/vtree.js"> 
+			<!-- <fileset dir="${basedir}/src/core" includes="*.js">
+				<include name="vtree.utils.js"/>
+				<include name="vtree.utils.js"/>
+			</fileset> -->
+			<filelist dir="${src}/core">
+		        <file name="vtree.utils.js" />
+		        <file name="vtree.manager.js" />
+		        <file name="vtree.tree.js" />
+		        <file name="vtree.node.js" />
+		        <file name="vtree.nodeStore.js" />
+		    </filelist>
+			<fileset dir="${src}/plugins" includes="*.js" excludes="vtree.plugin_template.js"/>
+		</concat>
+		
+		<!-- copy all style files -->
+		<copy todir="${dist}/style">
+		    <fileset dir="${src}/style"/>
+		  </copy>
+	</target>
+	
+
+</project>

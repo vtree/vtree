@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tree id="myDesktop">
+  <nodes>
+    <node>
+      <id>mydesktop_root</id>
+      <label>My desktop</label>
+      <description></description>
+      <icon>/vyre4/images/house.png</icon>
+      <hasChildren>true</hasChildren>
+      <node>
+        <id>edit_profile</id>
+        <label>Edit profile</label>
+        <description></description>
+        <action>/vyre4/realms/profile/edit.st8</action>
+        <icon>/vyre4/images/my_profile.png</icon>
+        <hasChildren>false</hasChildren>
+      </node>
+      <node>
+        <id>inbox</id>
+        <label>Inbox</label>
+        <description></description>
+        <action>/vyre4/core/inbox.st8</action>
+        <icon>/vyre4/images/inbox.png</icon>
+        <hasChildren>false</hasChildren>
+      </node>
+      <node>
+        <id>checked_out_items</id>
+        <label>Checked out items</label>
+        <description></description>
+        <action>/vyre4/content_module/my-pages/my-checked-out-items.st8</action>
+        <icon>/vyre4/images/checked_out_items.png</icon>
+        <hasChildren>false</hasChildren>
+      </node>
+    </node>
+  </nodes>
+</tree>

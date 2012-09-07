@@ -1,0 +1,14 @@
+.tree i.customFolder:before,
+.tree i.customFile:before,
+.tree .open i.customFolder:before,
+.tree .open i.customFile:before {
+content:'' }
+
+.tree i.customFolder {
+background:url(images/folder.png) no-repeat 0 1px }
+
+.tree i.customFile {
+background:url(images/file.png) no-repeat -2px 1px }
+
+.tree .title i.customFolder {
+background:url(images/folder.png) no-repeat 0 2px }
