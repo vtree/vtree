@@ -12,7 +12,6 @@ var generateNode = function(isLeaf, nodes, id){
 	if (isLeaf) {
 		node = {
 			id:"leaf_"+id,
-			path:"leaf_"+id,
 			title: "leaf_"+id,
 			description: "desc",
 			iconClass: "customFolder",
@@ -21,7 +20,6 @@ var generateNode = function(isLeaf, nodes, id){
 	}else{
 		node = {
 			id:"test_"+id,
-			path: "path"+id,
 			title: "title_"+id,
 			description: "desc",
 			iconClass: "customFolder",
@@ -66,27 +64,23 @@ jsonSource = {
 		id:"root",
 		nodes:[{
 			id:"test_1",
-			path: "path1",
 			title: "title_1",
-			description: "desc",
+			description: "title_1",
 			customClass: "title",
-			customHTML: "<span>23 children</span>",
 			data:{
 				href: "test"
 			},
 			hasChildren: true,
 			nodes:[{
 				id:"test_2",
-				path: "path2",
 				title: "title_2",
-				description: "desc",
-				iconClass: "customFolder",
+				description: "title_2",
+				iconClass: "default",
 				hasChildren: true,
 				nodes:[{
 					id:"test_3",
-					path: "path3",
 					title: "title_3",
-					description: "desc",
+					description: "title_3",
 					iconClass: "customFolder",
 					hasChildren: false,
 					nodes:[]
@@ -95,15 +89,17 @@ jsonSource = {
 		},
 		{
 			id:"test_4",
-			path: "path4",
 			title: "title_4",
-			description: "desc",
+			description: "title_4",
 			hasChildren: true,
+			iconPath:{
+				open:"../images/icon_folder_open_16.png",
+				close:"../images/icon_folder_closed_16.png"
+			},
 			nodes:[{
 				id:"test_5",
-				path: "path5",
 				title: "title_5",
-				description: "desc",
+				description: "title_5",
 				iconClass: "customFolder",
 				hasChildren: false,
 			}]
@@ -112,11 +108,12 @@ jsonSource = {
 	}
 }
 
+
 //jsonSource = generateJson(10, 3)
 
 
 var container = jQuery("#treeContainer")
-var container2 = jQuery("#treeContainer2")
+//var container2 = jQuery("#treeContainer2")
 
 
 var settings = {
@@ -127,30 +124,22 @@ var settings = {
 
 // var settings2 = {
 // 	container: container2,
-// 	dataSource: jsonSource = generateJson(10, 4),
-// 	plugins:["checkbox"]
+// 	dataSource: jsonSourc2
 // }
 
 
-
-container.bind("click.node", function(event, tree, node){
-	console.log(node)
-})
-
 //starting timer
-var start = (new Date).getTime();
-
+//var start = (new Date).getTime();
 	var tree = Vtree.create(settings);
 
 //stop timer
-var diff = (new Date).getTime() - start;
-
-console.log("timer:",diff)
-
-var a = Vtree.getTree(container).nodeStore.structure.id2NodeMap
-var b = 0 ; for (var i in a){b++}
-console.log("nb nodes rendered:",b)
-
+// var diff = (new Date).getTime() - start;
+// 
+// console.log("timer:",diff)
+// 
+// var a = Vtree.getTree(container).nodeStore.structure.id2NodeMap
+// var b = 0 ; for (var i in a){b++}
+// console.log("nb nodes rendered:",b)
 
 
 // //starting timer

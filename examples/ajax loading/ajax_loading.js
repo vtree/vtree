@@ -12,7 +12,6 @@ var generateNode = function(isLeaf, nodes, id){
 	if (isLeaf) {
 		node = {
 			id:"leaf_"+id,
-			path:"leaf_"+id,
 			title: "leaf_"+id,
 			description: "desc",
 			iconClass: "customFolder",
@@ -21,7 +20,6 @@ var generateNode = function(isLeaf, nodes, id){
 	}else{
 		node = {
 			id:"test_"+id,
-			path: "path"+id,
 			title: "title_"+id,
 			description: "desc",
 			iconClass: "customFolder",
@@ -66,7 +64,6 @@ jsonSource = {
 		id:"root",
 		nodes:[{
 			id:"test_1",
-			path: "path1",
 			title: "title_1",
 			description: "desc",
 			iconClass: "customFolder",
@@ -77,7 +74,6 @@ jsonSource = {
 		},
 		{
 			id:"test_4",
-			path: "path4",
 			title: "title_4",
 			description: "desc",
 			iconClass: "customFolder",
@@ -95,7 +91,6 @@ childrenJsonSource = {
 		id: "test_1",
 		nodes:[{
 			id:"test_2",
-			path: "path2",
 			title: "title_2",
 			description: "desc",
 			iconClass: "customFolder",
@@ -104,7 +99,6 @@ childrenJsonSource = {
 		},
 		{
 			id:"test_3",
-			path: "path3",
 			title: "title_3",
 			description: "desc",
 			iconClass: "customFolder",
@@ -115,7 +109,6 @@ childrenJsonSource = {
 		id:"test_4",
 		nodes:[{
 			id:"test_5",
-			path: "path5",
 			title: "title_5",
 			description: "desc",
 			iconClass: "customFolder",

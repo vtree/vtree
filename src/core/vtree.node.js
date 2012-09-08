@@ -11,8 +11,6 @@ Vtree.plugins.defaults.core.node = {
 		defaults:{
 			id                  : 0,
 			el                  : null,
-			path                : "",
-			fullPath            : "",
 			tree                : null,
 			isOpen              : false,
 			title               : "",
@@ -25,7 +23,7 @@ Vtree.plugins.defaults.core.node = {
 			parents             : [],
 			children            : [],
 			iconClass           : "",
-			iconPath            : "",
+			iconPath            : {open:"", close:""},
 			isSynchro           : false,
 			customHTML			: ""
 		},
@@ -37,7 +35,11 @@ Vtree.plugins.defaults.core.node = {
 					this.tree.container.trigger("beforeOpen.node", [this.tree, this])
 					// toggle loading icon
 					this.toggleLoading();
-					this.getEl().addClass("open")
+					
+					var el = this.getEl().addClass("open");
+					if (this.iconPath.open) {
+						el.find("img")[0].src = this.iconPath.open;
+					}
 					if (!this.tree.asynchronous){
 						this.continueOpening()
 					}
@@ -76,7 +78,10 @@ Vtree.plugins.defaults.core.node = {
 					// change the hasVisibleChildren to false 
 					this.hasVisibleChildren = false;
 					// refresh the node
-					this.getEl().removeClass("open")
+					var el = this.getEl().removeClass("open")
+					if (this.iconPath.close) {
+						el.find("img")[0].src = this.iconPath.close;
+					}
 					this.isSynchro = true;
 
 					// fires a "afterClose" event
@@ -110,30 +115,26 @@ Vtree.plugins.defaults.core.node = {
 					.attr("data-treeid", this.tree.id)
 					.addClass(className)
 				
-				if (this.iconClass) {
-					li.children("a")
+				var a = li.children("a")
 						.addClass("title")
-						.append("<i></i><"+titleTag+"></"+titleTag+">")
+						.attr("title", this.description);
+				if (this.iconClass) {
+					a.append("<i></i><"+titleTag+"></"+titleTag+">")
 						.find("i").addClass(this.iconClass)
 						.end()
 						.find(titleTag).html(this.title)
-				}else if (this.iconPath) {
-					li.children("a")
-						.addClass("title")
-						.append("<i><img/></i><"+titleTag+"></"+titleTag+">")
-						.find("img").attr("src", this.iconPath)
+				}else if (this.iconPath.close) {
+					var icon = (this.isOpen)?this.iconPath.open: this.iconPath.close;
+					a.append("<i><img/></i><"+titleTag+"></"+titleTag+">")
+						.find("img").attr("src", icon)
 						.end()
 						.find(titleTag).html(this.title)
 				}else if (this.customClass.indexOf("title") !== -1){
-					li.children("a")
-						.addClass("title")
-						.append("<"+titleTag+"></"+titleTag+">")
+					a.append("<"+titleTag+"></"+titleTag+">")
 						.children()
 						.html(this.title)
 				}else {
-					li.children("a")
-						.addClass("title")
-						.html(this.title)
+					a.html(this.title)
 				}	
 								
 				if (this.customHTML) {
@@ -163,10 +164,8 @@ Vtree.plugins.defaults.core.node = {
 			},
 
 			getEl: function(){
-				if(!this.el){
-					this.el = $('li[data-nodeid='+this.id+']')
-				}
-				return $('li[data-nodeid='+this.id+']')
+				this.el = $('li[data-nodeid='+this.id+'][data-treeid='+this.tree.id+']')
+				return this.el;
 
 			}
 		}

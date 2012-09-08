@@ -3,14 +3,12 @@ var jsonSource = {
 		id: "my Desktop",
 		nodes:[{
 			id:"mydesktop_root",
-			path: "mydesktop_root",
 			title: "my desktop",
 			description: "",
 			icon: "/icon.png",
 			hasChildren: true,
 			nodes:[{
 				id:"edit_profile",
-				path:"edit_profile",
 				title: "Edit profile",
 				description: "edit your profile",
 				icon: "/icon.png",
@@ -18,7 +16,6 @@ var jsonSource = {
 			}]
 		},{
 			id:"inbox",
-			path:"inbox",
 			title: "inbox",
 			description: "",
 			icon: "/icon.png",
