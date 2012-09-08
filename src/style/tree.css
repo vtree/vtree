@@ -29,6 +29,10 @@ position:relative }
 ul.tree li {
 position:relative }
 
+ul.tree li.bold>a.title>em, ul.tree li.bold>a.title>h3 {
+	font-weight: bold;
+}
+
 ul.tree li a,
 ul.tree li label,
 ul.tree li h3 {

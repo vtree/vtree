@@ -3,40 +3,40 @@
 //jsonSource = generateJson(3, 4)
 jsonSource = {
 	tree:{
+		id:"root",
 		nodes:[{
 			id:"test_1",
-			path: "path1",
 			title: "title_1",
 			description: "desc",
-			iconClass: "customFolder",
+			customClass: "title",
+			customHTML: "<span>23 children</span>",
+			data:{
+				href: "test"
+			},
 			hasChildren: true,
 			nodes:[{
 				id:"test_2",
-				path: "path2",
 				title: "title_2",
 				description: "desc",
 				iconClass: "customFolder",
 				hasChildren: true,
 				nodes:[{
 					id:"test_3",
-					path: "path3",
 					title: "title_3",
 					description: "desc",
 					iconClass: "customFolder",
 					hasChildren: false,
+					nodes:[]
 				}]
 			}]
 		},
 		{
 			id:"test_4",
-			path: "path4",
 			title: "title_4",
 			description: "desc",
-			iconClass: "customFolder",
 			hasChildren: true,
 			nodes:[{
 				id:"test_5",
-				path: "path5",
 				title: "title_5",
 				description: "desc",
 				iconClass: "customFolder",
@@ -46,7 +46,6 @@ jsonSource = {
 		]
 	}
 }
-
 var container = jQuery("#treeContainer")
 var settings = {
 	container: container,

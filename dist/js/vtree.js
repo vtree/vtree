@@ -273,8 +273,8 @@ Vtree.utils = {
 				return this.nodeStore.getSiblings(node);
 			},
 
-			getParent: function(mixedNode, level){
-				return this.nodeStore.getParent(mixedNode, level);
+			getParent: function(mixedNode){
+				return this.nodeStore.getParent(mixedNode);
 			},
 
 			getParents: function(mixedNode){
@@ -302,8 +302,6 @@ Vtree.plugins.defaults.core.node = {
 		defaults:{
 			id                  : 0,
 			el                  : null,
-			path                : "",
-			fullPath            : "",
 			tree                : null,
 			isOpen              : false,
 			title               : "",
@@ -316,7 +314,7 @@ Vtree.plugins.defaults.core.node = {
 			parents             : [],
 			children            : [],
 			iconClass           : "",
-			iconPath            : "",
+			iconPath            : {open:"", close:""},
 			isSynchro           : false,
 			customHTML			: ""
 		},
@@ -328,7 +326,11 @@ Vtree.plugins.defaults.core.node = {
 					this.tree.container.trigger("beforeOpen.node", [this.tree, this])
 					// toggle loading icon
 					this.toggleLoading();
-					this.getEl().addClass("open")
+					
+					var el = this.getEl().addClass("open");
+					if (this.iconPath.open) {
+						el.find("img")[0].src = this.iconPath.open;
+					}
 					if (!this.tree.asynchronous){
 						this.continueOpening()
 					}
@@ -367,7 +369,10 @@ Vtree.plugins.defaults.core.node = {
 					// change the hasVisibleChildren to false 
 					this.hasVisibleChildren = false;
 					// refresh the node
-					this.getEl().removeClass("open")
+					var el = this.getEl().removeClass("open")
+					if (this.iconPath.close) {
+						el.find("img")[0].src = this.iconPath.close;
+					}
 					this.isSynchro = true;
 
 					// fires a "afterClose" event
@@ -401,30 +406,26 @@ Vtree.plugins.defaults.core.node = {
 					.attr("data-treeid", this.tree.id)
 					.addClass(className)
 				
-				if (this.iconClass) {
-					li.children("a")
+				var a = li.children("a")
 						.addClass("title")
-						.append("<i></i><"+titleTag+"></"+titleTag+">")
+						.attr("title", this.description);
+				if (this.iconClass) {
+					a.append("<i></i><"+titleTag+"></"+titleTag+">")
 						.find("i").addClass(this.iconClass)
 						.end()
 						.find(titleTag).html(this.title)
-				}else if (this.iconPath) {
-					li.children("a")
-						.addClass("title")
-						.append("<i><img/></i><"+titleTag+"></"+titleTag+">")
-						.find("img").attr("src", this.iconPath)
+				}else if (this.iconPath.close) {
+					var icon = (this.isOpen)?this.iconPath.open: this.iconPath.close;
+					a.append("<i><img/></i><"+titleTag+"></"+titleTag+">")
+						.find("img").attr("src", icon)
 						.end()
 						.find(titleTag).html(this.title)
 				}else if (this.customClass.indexOf("title") !== -1){
-					li.children("a")
-						.addClass("title")
-						.append("<"+titleTag+"></"+titleTag+">")
+					a.append("<"+titleTag+"></"+titleTag+">")
 						.children()
 						.html(this.title)
 				}else {
-					li.children("a")
-						.addClass("title")
-						.html(this.title)
+					a.html(this.title)
 				}	
 								
 				if (this.customHTML) {
@@ -474,8 +475,6 @@ Vtree.plugins.defaults.core.node = {
 			
 		this.rootNode = new Vtree.Node({
 			id: "root",
-			path: "root",
-			fullPath: "",
 			title: "root",
 			description: "root",
 			icon: "",
@@ -490,7 +489,6 @@ Vtree.plugins.defaults.core.node = {
 		
 		this.structure = {
 			id2NodeMap: {},
-			path2NodeMap: {},
 			tree:{}
 		};
 		
@@ -536,7 +534,6 @@ Vtree.plugins.defaults.core.node = {
 						hasVisibleChildren = false,
 						hasRenderedChildren = false;
 					var id = sourceNode.id.replace(" ", "_");
-					var path = sourceNode.path ||  id
 					// check if node should be initially opened
 					if ($.inArray(sourceNode.id, this.tree.initially_open) !== -1) {
 						isOpen = true;
@@ -554,8 +551,6 @@ Vtree.plugins.defaults.core.node = {
 					// build the node instance
 					var settings = $.extend({}, sourceNode, {
 						id: sourceNode.id.replace(" ", "_"),
-						path: path,
-						fullPath: parent.fullPath + "/" + path,
 						parent: parent,
 						parents: parents,
 						children: [],
@@ -573,7 +568,6 @@ Vtree.plugins.defaults.core.node = {
 					var node = new Vtree.Node(settings)
 					// keep it in the nodeStore structure
 					this.structure.id2NodeMap[sourceNode.id] = node
-					this.structure.path2NodeMap[path] = node
 					//keep all siblings in an array to add later all children to the parent
 					siblings.push(node)
 					// if it has children, build children nodes
@@ -597,10 +591,7 @@ Vtree.plugins.defaults.core.node = {
 					node = mixedNode
 				//if mixedNode is an id
 				}else if (typeof this.structure.id2NodeMap[mixedNode] != "undefined") {
-					node = this.structure.id2NodeMap[mixedNode]
-				//if mixedNode is a path
-				}else if(typeof this.structure.path2NodeMap[mixedNode] != "undefined"){
-					node = this.structure.path2NodeMap[mixedNode]
+					node = this.structure.id2NodeMap[mixedNode];
 				}else{
 					throw "node not found: "+ mixedNode
 				}
@@ -718,6 +709,125 @@ Vtree.plugins.defaults.core.node = {
 					}
 					setTimeout(fn, 0);
 					
+				}
+			}
+		}
+	}
+	
+
+})(jQuery);(function ($) {
+
+	Vtree.plugins.bolding = {
+		tree:{
+			defaults:{
+				initially_bold: []
+			},
+			_fn:{
+				_attachEvents: function(){
+					var that  = this;
+					return this._call_prev()
+						.delegate("li","click.node",function(e){
+							var node = that.getNode($(this).attr("data-nodeid"));
+							node.toggleBold();
+							e.stopPropagation();
+						});
+				},
+				getBoldNodes: function(){
+					return this.nodeStore.getBoldNodes()
+				}
+			}
+		},
+		node:{
+			defaults:{
+				isBold:false
+			},
+			_fn:{
+				toggleBold: function() {
+					return (this.isBold)? this.unbold(): this.bold();
+			    },
+				bold: function() {
+					// bolding behaviour: 
+					// bolding a node bolds all his parents until root node but doesn't affect children state
+					// fire bold event                                          
+					this.tree.container.trigger("bold.node", [this.tree, this]);
+					debugger
+					this.isBold = true;
+					this.getEl().addClass('bold');
+					// bold parents
+					for (var i=0, parents = this.parents, len = this.parents.length; i < len; i++) {
+						var parent = parents[i];
+						parent.isBold = true;
+						parent.getEl().addClass("bold");
+					}	
+			    },
+				unbold: function() {
+					// bolding behaviour: 
+					// unbolding a node unbolds all his children but doesn't affect parents state
+					// fire bold event
+					this.tree.container.trigger("unbold.node", [this.tree, this]);
+					
+					this.isBold = false;
+					this.getEl().removeClass('bold');
+					// unbold children
+					_rec_unbold = function(node){
+						if (node.hasChildren) {
+							for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
+								var child = children[i];
+								if (child.isBold) {
+									child.isBold = false;
+									child.getEl().removeClass("bold");
+									_rec_unbold(child);
+								}
+							}
+						}
+					};
+					_rec_unbold(this);
+			    },
+				getHTML: function(){	
+					
+					var li = this._call_prev()
+					if (this.isBold) {
+						li.addClass('bold')
+					}
+					
+					return li;
+				}
+			}
+		},
+		nodeStore:{
+			_fn:{
+				initStructure: function(){
+					this._call_prev();
+					var initially_bold = this.tree.initially_bold;					
+					for (var i=0, len = initially_bold.length; i < len; i++) {
+						var id = initially_bold[i];
+						var node = this.structure.id2NodeMap[id] 
+						var parents = node.parents;
+						if (typeof node != "undefined"){
+							node.isBold = true;
+						}
+						for (var j=0, lengh = parents.length; j < lengh; j++) {							
+							parents[j].isBold = true;
+						}
+					}
+					
+					return true;
+				},
+				getBoldNodes: function(){
+					var _rec_getBoldNodes = function(nodes){
+						var boldNodes = [];
+						for (var i=0, len = nodes.length; i < len; i++) {
+							node = nodes[i];
+							if (node.isBold) {
+								boldNodes.push(node);
+								if (node.hasChildren) {
+									boldNodes = boldNodes.concat(_rec_getBoldNodes(node.children));
+								}
+							}
+						}
+						return boldNodes;
+					}
+					return _rec_getBoldNodes(this.structure.tree.children)
 				}
 			}
 		}
@@ -898,11 +1008,13 @@ Vtree.plugins.defaults.core.node = {
 								// we get the cookie 
 								tree.initially_open = treeCookie.opened;
 								tree.initially_checked = treeCookie.checked;
+								tree.initially_bold = treeCookie.bold;
 							}else{
 								// we create the initial cookie
 								VtreeCookie.trees[tree.id] = {
 									opened: tree.initially_open,
-									checked: tree.initially_checked
+									checked: tree.initially_checked,
+									bold: tree.initially_bold
 								}
 								setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week	
 							}
@@ -912,7 +1024,8 @@ Vtree.plugins.defaults.core.node = {
 							// we create the initial cookie
 							VtreeCookie.trees[tree.id] = {
 								opened: tree.initially_open,
-								checked: tree.initially_checked
+								checked: tree.initially_checked,
+								bold: tree.initially_bold
 							}
 							setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week
 						}
@@ -995,6 +1108,46 @@ Vtree.plugins.defaults.core.node = {
 						setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week
 					})
 					
+					.bind("bold.node", function(e, tree, node){
+						var VtreeCookie = JSON.parse(readCookie("Vtree"));
+						var treeCookie = VtreeCookie.trees[tree.id]
+						
+						if ($.inArray(node.id, treeCookie.bold) == -1){
+							treeCookie.bold.push(node.id)
+						}
+						for (var i=0, len = node.parents.length; i < len; i++) {
+							var parent = node.parents[i];
+							if ($.inArray(parent.id, treeCookie.bold) == -1 && parent.id != "root"){
+								treeCookie.bold.push(parent.id)
+							}
+						}
+						setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week
+					})
+					
+					.bind("unbold.node", function(e, tree, node){
+						var VtreeCookie = JSON.parse(readCookie("Vtree"));
+						var treeCookie = VtreeCookie.trees[tree.id]
+						treeCookie.bold = jQuery.grep(treeCookie.bold, function(value) {
+							var getBoldChildrenIds = function(node){
+								var childrenIds = [];
+								if (node.hasChildren && node.hasVisibleChildren){
+									//check that a child wasn't opened
+									for (var i=0, len = node.children.length; i < len; i++) {
+										var child = node.children[i];
+										if (child.isBold) {
+											childrenIds.push(child.id)
+											childrenIds = childrenIds.concat(getBoldChildrenIds(child))
+										}
+
+									}
+								}
+								return childrenIds
+							};
+
+							return (value != node.id && $.inArray(value, getCheckedChildrenIds(node)) == -1)
+						});
+						setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week
+					})
 					return this._call_prev();
 				},
 				
@@ -1297,7 +1450,6 @@ Vtree.plugins.defaults.core.node = {
 					''+
 					'<xsl:template match="node">' + 
 					'	{"id": "<xsl:value-of select="id"/>",'+
-					'	"path": "<xsl:value-of select="id"/>",'+
 					'	"title": "<xsl:value-of select="label|title"/>",'+
 					'	"description": "<xsl:value-of select="description"/>",'+
 					'	"hasChildren": <xsl:value-of select="hasChildren"/>,'+

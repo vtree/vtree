@@ -30,11 +30,13 @@
 								// we get the cookie 
 								tree.initially_open = treeCookie.opened;
 								tree.initially_checked = treeCookie.checked;
+								tree.initially_bold = treeCookie.bold;
 							}else{
 								// we create the initial cookie
 								VtreeCookie.trees[tree.id] = {
 									opened: tree.initially_open,
-									checked: tree.initially_checked
+									checked: tree.initially_checked,
+									bold: tree.initially_bold
 								}
 								setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week	
 							}
@@ -44,7 +46,8 @@
 							// we create the initial cookie
 							VtreeCookie.trees[tree.id] = {
 								opened: tree.initially_open,
-								checked: tree.initially_checked
+								checked: tree.initially_checked,
+								bold: tree.initially_bold
 							}
 							setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week
 						}
@@ -127,6 +130,46 @@
 						setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week
 					})
 					
+					.bind("bold.node", function(e, tree, node){
+						var VtreeCookie = JSON.parse(readCookie("Vtree"));
+						var treeCookie = VtreeCookie.trees[tree.id]
+						
+						if ($.inArray(node.id, treeCookie.bold) == -1){
+							treeCookie.bold.push(node.id)
+						}
+						for (var i=0, len = node.parents.length; i < len; i++) {
+							var parent = node.parents[i];
+							if ($.inArray(parent.id, treeCookie.bold) == -1 && parent.id != "root"){
+								treeCookie.bold.push(parent.id)
+							}
+						}
+						setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week
+					})
+					
+					.bind("unbold.node", function(e, tree, node){
+						var VtreeCookie = JSON.parse(readCookie("Vtree"));
+						var treeCookie = VtreeCookie.trees[tree.id]
+						treeCookie.bold = jQuery.grep(treeCookie.bold, function(value) {
+							var getBoldChildrenIds = function(node){
+								var childrenIds = [];
+								if (node.hasChildren && node.hasVisibleChildren){
+									//check that a child wasn't opened
+									for (var i=0, len = node.children.length; i < len; i++) {
+										var child = node.children[i];
+										if (child.isBold) {
+											childrenIds.push(child.id)
+											childrenIds = childrenIds.concat(getBoldChildrenIds(child))
+										}
+
+									}
+								}
+								return childrenIds
+							};
+
+							return (value != node.id && $.inArray(value, getCheckedChildrenIds(node)) == -1)
+						});
+						setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week
+					})
 					return this._call_prev();
 				},
 				

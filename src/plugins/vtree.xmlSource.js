@@ -292,7 +292,6 @@
 					''+
 					'<xsl:template match="node">' + 
 					'	{"id": "<xsl:value-of select="id"/>",'+
-					'	"path": "<xsl:value-of select="id"/>",'+
 					'	"title": "<xsl:value-of select="label|title"/>",'+
 					'	"description": "<xsl:value-of select="description"/>",'+
 					'	"hasChildren": <xsl:value-of select="hasChildren"/>,'+

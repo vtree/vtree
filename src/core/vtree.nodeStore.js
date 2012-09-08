@@ -4,8 +4,6 @@
 			
 		this.rootNode = new Vtree.Node({
 			id: "root",
-			path: "root",
-			fullPath: "",
 			title: "root",
 			description: "root",
 			icon: "",
@@ -20,7 +18,6 @@
 		
 		this.structure = {
 			id2NodeMap: {},
-			path2NodeMap: {},
 			tree:{}
 		};
 		
@@ -66,7 +63,6 @@
 						hasVisibleChildren = false,
 						hasRenderedChildren = false;
 					var id = sourceNode.id.replace(" ", "_");
-					var path = sourceNode.path ||  id
 					// check if node should be initially opened
 					if ($.inArray(sourceNode.id, this.tree.initially_open) !== -1) {
 						isOpen = true;
@@ -84,8 +80,6 @@
 					// build the node instance
 					var settings = $.extend({}, sourceNode, {
 						id: sourceNode.id.replace(" ", "_"),
-						path: path,
-						fullPath: parent.fullPath + "/" + path,
 						parent: parent,
 						parents: parents,
 						children: [],
@@ -103,7 +97,6 @@
 					var node = new Vtree.Node(settings)
 					// keep it in the nodeStore structure
 					this.structure.id2NodeMap[sourceNode.id] = node
-					this.structure.path2NodeMap[path] = node
 					//keep all siblings in an array to add later all children to the parent
 					siblings.push(node)
 					// if it has children, build children nodes
@@ -127,10 +120,7 @@
 					node = mixedNode
 				//if mixedNode is an id
 				}else if (typeof this.structure.id2NodeMap[mixedNode] != "undefined") {
-					node = this.structure.id2NodeMap[mixedNode]
-				//if mixedNode is a path
-				}else if(typeof this.structure.path2NodeMap[mixedNode] != "undefined"){
-					node = this.structure.path2NodeMap[mixedNode]
+					node = this.structure.id2NodeMap[mixedNode];
 				}else{
 					throw "node not found: "+ mixedNode
 				}

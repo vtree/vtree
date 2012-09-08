@@ -118,8 +118,8 @@
 				return this.nodeStore.getSiblings(node);
 			},
 
-			getParent: function(mixedNode, level){
-				return this.nodeStore.getParent(mixedNode, level);
+			getParent: function(mixedNode){
+				return this.nodeStore.getParent(mixedNode);
 			},
 
 			getParents: function(mixedNode){
