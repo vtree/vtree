@@ -18,6 +18,12 @@
 			plugins: settings.tree.plugins
 		})
 		
+		this.structure = {
+			id2NodeMap: {},
+			path2NodeMap: {},
+			tree:{}
+		};
+		
 		//load settings passed in param
 		$.extend(true, this, settings)
 		
@@ -28,11 +34,6 @@
 
 	Vtree.plugins.defaults.core.nodeStore = {
 		defaults:{	
-			structure: {
-				id2NodeMap: {},
-				path2NodeMap: {},
-				tree:{}
-			},
 			tree: null
 		},
 		_fn: {
@@ -100,7 +101,6 @@
 						delete settings.nodes
 					}					
 					var node = new Vtree.Node(settings)
-					
 					// keep it in the nodeStore structure
 					this.structure.id2NodeMap[sourceNode.id] = node
 					this.structure.path2NodeMap[path] = node

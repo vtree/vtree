@@ -192,10 +192,10 @@ display:inline-block;
 text-decoration:inherit;
 color:#82abc5 }
 
-.tree i:before {
+.tree i.default:before {
 content:'\66' }
 
-.tree .open > a + a i:before {
+.tree .open > a + a i.default:before {
 content:'\46' }
 
 .tree .title > a + a i:before {

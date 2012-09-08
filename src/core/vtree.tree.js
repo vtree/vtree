@@ -20,6 +20,9 @@
 		_fn: {	
 			build: function(){
 				this.setId();
+				if (!this.container.length) {
+					throw "container is empty. Check that the element is on the page or that you run your code when the document is ready."
+				}
 				// fires a beforeInit event			
 				this.container.trigger("beforeInit.tree", [this])
 				if (!this.asynchronous) {
@@ -47,8 +50,8 @@
 			setId: function(){
 				//give tree an id
 				if (!this.id) {
-					if (typeof this.dataSource.id != "undefined") {
-						this.id = this.dataSource.id.replace(" ", "_")
+					if (typeof this.dataSource.tree.id != "undefined") {
+						this.id = this.dataSource.tree.id.replace(" ", "_")
 					} else{
 						this.id = Vtree._generateTreeId();
 					}	

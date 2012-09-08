@@ -112,11 +112,12 @@ jsonSource = {
 	}
 }
 
+
 //jsonSource = generateJson(10, 3)
 
 
 var container = jQuery("#treeContainer")
-var container2 = jQuery("#treeContainer2")
+//var container2 = jQuery("#treeContainer2")
 
 
 var settings = {
@@ -127,30 +128,22 @@ var settings = {
 
 // var settings2 = {
 // 	container: container2,
-// 	dataSource: jsonSource = generateJson(10, 4),
-// 	plugins:["checkbox"]
+// 	dataSource: jsonSourc2
 // }
 
 
-
-container.bind("click.node", function(event, tree, node){
-	console.log(node)
-})
-
 //starting timer
-var start = (new Date).getTime();
-
+//var start = (new Date).getTime();
 	var tree = Vtree.create(settings);
 
 //stop timer
-var diff = (new Date).getTime() - start;
-
-console.log("timer:",diff)
-
-var a = Vtree.getTree(container).nodeStore.structure.id2NodeMap
-var b = 0 ; for (var i in a){b++}
-console.log("nb nodes rendered:",b)
-
+// var diff = (new Date).getTime() - start;
+// 
+// console.log("timer:",diff)
+// 
+// var a = Vtree.getTree(container).nodeStore.structure.id2NodeMap
+// var b = 0 ; for (var i in a){b++}
+// console.log("nb nodes rendered:",b)
 
 
 // //starting timer

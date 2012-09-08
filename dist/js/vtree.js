@@ -139,6 +139,9 @@ Vtree.utils = {
 				}
 				return tree;
 			},
+			getTrees: function(){
+				return trees;
+			},
 			_generateTreeId: function(){
 				var S4 = function() {
 				       return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
@@ -172,6 +175,9 @@ Vtree.utils = {
 		_fn: {	
 			build: function(){
 				this.setId();
+				if (!this.container.length) {
+					throw "container is empty. Check that the element is on the page or that you run your code when the document is ready."
+				}
 				// fires a beforeInit event			
 				this.container.trigger("beforeInit.tree", [this])
 				if (!this.asynchronous) {
@@ -199,8 +205,8 @@ Vtree.utils = {
 			setId: function(){
 				//give tree an id
 				if (!this.id) {
-					if (typeof this.dataSource.id != "undefined") {
-						this.id = this.dataSource.id.replace(" ", "_")
+					if (typeof this.dataSource.tree.id != "undefined") {
+						this.id = this.dataSource.tree.id.replace(" ", "_")
 					} else{
 						this.id = Vtree._generateTreeId();
 					}	
@@ -448,10 +454,8 @@ Vtree.plugins.defaults.core.node = {
 			},
 
 			getEl: function(){
-				if(!this.el){
-					this.el = $('li[data-nodeid='+this.id+']')
-				}
-				return $('li[data-nodeid='+this.id+']')
+				this.el = $('li[data-nodeid='+this.id+'][data-treeid='+this.tree.id+']')
+				return this.el;
 
 			}
 		}
@@ -484,6 +488,12 @@ Vtree.plugins.defaults.core.node = {
 			plugins: settings.tree.plugins
 		})
 		
+		this.structure = {
+			id2NodeMap: {},
+			path2NodeMap: {},
+			tree:{}
+		};
+		
 		//load settings passed in param
 		$.extend(true, this, settings)
 		
@@ -494,11 +504,6 @@ Vtree.plugins.defaults.core.node = {
 
 	Vtree.plugins.defaults.core.nodeStore = {
 		defaults:{	
-			structure: {
-				id2NodeMap: {},
-				path2NodeMap: {},
-				tree:{}
-			},
 			tree: null
 		},
 		_fn: {
@@ -566,7 +571,6 @@ Vtree.plugins.defaults.core.node = {
 						delete settings.nodes
 					}					
 					var node = new Vtree.Node(settings)
-					
 					// keep it in the nodeStore structure
 					this.structure.id2NodeMap[sourceNode.id] = node
 					this.structure.path2NodeMap[path] = node

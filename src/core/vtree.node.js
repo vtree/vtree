@@ -163,10 +163,8 @@ Vtree.plugins.defaults.core.node = {
 			},
 
 			getEl: function(){
-				if(!this.el){
-					this.el = $('li[data-nodeid='+this.id+']')
-				}
-				return $('li[data-nodeid='+this.id+']')
+				this.el = $('li[data-nodeid='+this.id+'][data-treeid='+this.tree.id+']')
+				return this.el;
 
 			}
 		}
