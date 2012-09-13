@@ -31,8 +31,6 @@
 				bold: function() {
 					// bolding behaviour: 
 					// bolding a node bolds all his parents until root node but doesn't affect children state
-					// fire bold event                                          
-					this.tree.container.trigger("bold.node", [this.tree, this]);
 					debugger
 					this.isBold = true;
 					this.getEl().addClass('bold');
@@ -42,13 +40,13 @@
 						parent.isBold = true;
 						parent.getEl().addClass("bold");
 					}	
+					// fire bold event                                          
+					this.tree.container.trigger("bold.node", [this.tree, this]);
 			    },
 				unbold: function() {
 					// bolding behaviour: 
 					// unbolding a node unbolds all his children but doesn't affect parents state
-					// fire bold event
-					this.tree.container.trigger("unbold.node", [this.tree, this]);
-					
+
 					this.isBold = false;
 					this.getEl().removeClass('bold');
 					// unbold children
@@ -65,6 +63,10 @@
 						}
 					};
 					_rec_unbold(this);
+					
+					// fire bold event
+					this.tree.container.trigger("unbold.node", [this.tree, this]);
+					
 			    },
 				getHTML: function(){	
 					
