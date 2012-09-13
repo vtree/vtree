@@ -33,9 +33,7 @@
 				check: function() {
 					// checking behaviour: 
 					// checking a node checks all his parents until root node but doesn't affect children checkbox state
-					// fire check event                                          
-					this.tree.container.trigger("check.node", [this.tree, this]);
-					
+
 					this.isChecked = true;
 
 					// check parents
@@ -44,13 +42,13 @@
 						parent.isChecked = true;
 						parent.getEl().find("input[type=checkbox]").eq(0).prop("checked", true);
 					}	
+					// fire check event                                          
+					this.tree.container.trigger("check.node", [this.tree, this]);
 			    },
 				uncheck: function() {
 					// checking behaviour: 
 					// unchecking a node unchecks all his children but doesn't affect parents state
-					// fire check event
-					this.tree.container.trigger("uncheck.node", [this.tree, this]);
-					
+
 					this.isChecked = false;
 
 					// uncheck children
@@ -67,6 +65,10 @@
 						}
 					};
 					_rec_uncheck(this);
+					
+					// fire check event
+					this.tree.container.trigger("uncheck.node", [this.tree, this]);
+					
 			    },
 				getHTML: function(){	
 					
