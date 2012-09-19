@@ -81,32 +81,68 @@ jsonSource = {
 					id:"test_3",
 					title: "title_3",
 					description: "title_3",
-					iconClass: "customFolder",
-					hasChildren: false,
-					nodes:[]
-				}]
+					iconClass: "default",
+					hasChildren: true,
+					nodes:[{
+						id:"test_9",
+						title: "title_9",
+						description: "title_9",
+						iconClass: "customFolder",
+						hasChildren: false,
+						nodes:[]
+						}
+					]},
+					{
+					id:"test_6",
+					title: "title_6",
+					description: "title_6",
+					hasChildren: true,
+					nodes:[{
+						id:"test_7",
+						title: "title_7",
+						description: "title_7",
+						hasChildren: false,
+						nodes:[]
+						}
+					]},
+					{
+						id:"test_8",
+						title: "title_8",
+						description: "title_8",
+						iconClass: "customFolder",
+						hasChildren: false,
+						nodes:[]
+					},
+					{
+						id:"test_9",
+						title: "title_9",
+						description: "title_9",
+						hasChildren: false,
+						nodes:[]
+					}]
 			}]
-		},
-		{
-			id:"test_4",
-			title: "title_4",
-			description: "title_4",
-			hasChildren: true,
-			iconPath:{
-				open:"../images/icon_folder_open_16.png",
-				close:"../images/icon_folder_closed_16.png"
-			},
-			nodes:[{
-				id:"test_5",
-				title: "title_5",
-				description: "title_5",
-				iconClass: "customFolder",
-				hasChildren: false,
-			}]
-		}
-		]
-	}
+			}
+	
+			,{
+						id:"test_4",
+						title: "title_4",
+						description: "title_4",
+						hasChildren: true,
+						iconPath:{
+							open:"../images/icon_folder_open_16.png",
+							close:"../images/icon_folder_closed_16.png"
+						},
+						nodes:[{
+							id:"test_5",
+							title: "title_5",
+							description: "title_5",
+							iconClass: "customFolder",
+							hasChildren: false,
+						}]
+					}
+	]}
 }
+
 
 
 //jsonSource = generateJson(10, 3)

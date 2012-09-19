@@ -11,24 +11,34 @@
 				build: function(){
 					var that = this;
 					this.container.on("beforeInit.tree", function(e, tree){
+						
 						if (!that.ajaxUrl) {
 							throw "you need to specify the ajaxUrl setting."
 						}
-						$.ajax({
-							type: "GET",
-							url: that.ajaxUrl,
-							dataType: 'json',
-							data: {
-								action:"getTree",
-								tree: tree.id
-							},	
-							success: $.proxy(that.onAjaxResponse, that)
-						})
-
+						
+						if (that.dataSource.tree){
+							that.continueBuilding();
+						}else{
+							var openedNodes = (typeof tree.getOpenedNodes == "function")? tree.getOpenedNodes():[];
+							that.container.append("<p class='loading'>Loading tree...</p>")
+							console.log("openedNodes:",openedNodes)
+							
+							$.ajax({
+								type: "GET",
+								url: that.ajaxUrl,
+								dataType: 'json',
+								data: {
+									action:"getTree",
+									tree: tree.id,
+									initially_open: openedNodes
+								},	
+								success: $.proxy(that.onAjaxResponse, that)
+							})
+						}
 					})
 					
 					.on("beforeOpen.node", function(e, tree, node){
-						if (!node.hasRenderedChildren || (node.hasRenderedChildren && that.forceAjaxReload)) {
+						if (node.hasChildren && !node.children.length && (!node.hasRenderedChildren || (node.hasRenderedChildren && that.forceAjaxReload))) {
 							$.ajax({
 								type: "GET",
 								url: that.ajaxUrl,
@@ -54,13 +64,8 @@
 					return this._call_prev();
 				},
 				onAjaxResponse: function(data, response, jqXHR){
-					var that = this;
-					var fn = function(){
-						that.dataSource = data;
-						that.continueBuilding();
-					}
-					setTimeout(fn, 0);
-					
+					this.dataSource = data;
+					this.continueBuilding();
 				}
 			}
 		},
@@ -73,7 +78,7 @@
 					var that = this;
 					var fn = function(){
 						if (typeof data[that.id] == "undefined") {
-							throw "ajax response didn;t send back node with id:"+ that.id
+							throw "ajax response didn't send back node with id:"+ that.id
 						}
 						that.nodeStore._recBuildNodes( that, that.parents, data[that.id].nodes);
 						that.continueOpening();

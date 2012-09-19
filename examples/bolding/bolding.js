@@ -5,8 +5,6 @@ jsonSource = {
 			id:"test_1",
 			title: "title_1",
 			description: "desc",
-			customClass: "title",
-			customHTML: "<span>23 children</span>",
 			data:{
 				href: "test"
 			},
@@ -49,15 +47,18 @@ var settings = {
 	container: container,
 	initially_bold: ["test_5"],
 	dataSource:jsonSource, 
-	plugins:["bolding", "cookie"]
+	plugins:["bolding"]
 }
 
 container.bind("bold.node", function(e,tree,node){
 	console.log("node bold", node.id)
+	console.log("get all bolded nodes:",tree.getBoldNodes())
+	
 })
 
 container.bind("unbold.node", function(e,tree,node){
 	console.log("node unbold", node.id)
+	console.log("get all bolded nodes:",tree.getBoldNodes())
 })
 
 

@@ -1,3 +1,21 @@
+var setCookie = function(cookieName,cookieValue,nDays) {
+	var today = new Date();
+	var expire = new Date();
+	if (nDays==null || nDays==0) nDays=1;
+	expire.setTime(today.getTime() + 3600000*24*nDays);
+	document.cookie = cookieName+"="+escape(cookieValue)
+	+ ";expires="+expire.toGMTString();
+};
+var readCookie = function(cookieName) {
+	var theCookie=" "+document.cookie;
+	var ind=theCookie.indexOf(" "+cookieName+"=");
+	if (ind==-1) ind=theCookie.indexOf(";"+cookieName+"=");
+	if (ind==-1 || cookieName=="") return "";
+	var ind1=theCookie.indexOf(";",ind+1);
+	if (ind1==-1) ind1=theCookie.length; 
+	return unescape(theCookie.substring(ind+cookieName.length+2,ind1));
+};
+
 (function ($) {
 	var setCookie = function(cookieName,cookieValue,nDays) {
 		var today = new Date();
@@ -20,7 +38,7 @@
 		tree:{
 			_fn:{
 
-				build: function(){
+				build: function(){					
 					this.container.on("beforeInit.tree", function(e, tree){
 						cookie = readCookie("Vtree")
 						if (cookie) {
@@ -148,7 +166,7 @@
 					
 					.bind("unbold.node", function(e, tree, node){
 						var VtreeCookie = JSON.parse(readCookie("Vtree"));
-						var treeCookie = VtreeCookie.trees[tree.id]
+						var treeCookie = VtreeCookie.trees[tree.id];
 						treeCookie.bold = jQuery.grep(treeCookie.bold, function(value) {
 							var getBoldChildrenIds = function(node){
 								var childrenIds = [];
@@ -169,10 +187,15 @@
 							return (value != node.id && $.inArray(value, getCheckedChildrenIds(node)) == -1)
 						});
 						setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week
-					})
+					})					
 					return this._call_prev();
 				},
 				
+				getOpenedNodes: function(){
+					var VtreeCookie = JSON.parse(readCookie("Vtree"));
+					var treeCookie = VtreeCookie.trees[this.id];
+					return treeCookie.opened
+				}
 			}
 		}
 	}

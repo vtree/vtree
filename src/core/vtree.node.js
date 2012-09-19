@@ -24,7 +24,6 @@ Vtree.plugins.defaults.core.node = {
 			children            : [],
 			iconClass           : "",
 			iconPath            : {open:"", close:""},
-			isSynchro           : false,
 			customHTML			: ""
 		},
 		_fn:{
@@ -51,8 +50,6 @@ Vtree.plugins.defaults.core.node = {
 			continueOpening: function(){
 				// change open state variable
 				this.isOpen = true;				
-				// node is not anymore synchronised with html
-				this.isSynchro = false;
 				// if it has children but there are not rendered
 				if(this.hasChildren && !this.hasRenderedChildren){
 					// we build the children
@@ -73,8 +70,6 @@ Vtree.plugins.defaults.core.node = {
 					this.tree.container.trigger("beforeClose.node", [this.tree, this])
 					// it sets the isOpen to false
 					this.isOpen = false;
-					// change the isSynchro to false
-					this.isSynchro = false;
 					// change the hasVisibleChildren to false 
 					this.hasVisibleChildren = false;
 					// refresh the node
@@ -82,7 +77,6 @@ Vtree.plugins.defaults.core.node = {
 					if (this.iconPath.close) {
 						el.find("img")[0].src = this.iconPath.close;
 					}
-					this.isSynchro = true;
 
 					// fires a "afterClose" event
 					this.tree.container.trigger("afterClose.node", [this.tree, this])
@@ -96,7 +90,7 @@ Vtree.plugins.defaults.core.node = {
 
 			_getChildrenHTML: function(){
 				var ul = $("<ul>").addClass("children")
-				nodes = this.children;
+				var nodes = this.children;
 				for (var i=0, len = nodes.length; i < len; i++) {
 					ul.append(nodes[i].getHTML())
 				}
@@ -132,9 +126,9 @@ Vtree.plugins.defaults.core.node = {
 				}else if (this.customClass.indexOf("title") !== -1){
 					a.append("<"+titleTag+"></"+titleTag+">")
 						.children()
-						.html(this.title)
+						.html(this.title);
 				}else {
-					a.html(this.title)
+					a.html(this.title);
 				}	
 								
 				if (this.customHTML) {
@@ -147,6 +141,8 @@ Vtree.plugins.defaults.core.node = {
 					if (this.isOpen) {
 						li.append(this._getChildrenHTML())
 					}
+				}else{
+					li.prepend("<a href='#' class='align'></a>");
 				}	
 			
 				return li;

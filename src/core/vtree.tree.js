@@ -19,7 +19,7 @@
 		},
 		_fn: {	
 			build: function(){
-				this.setId();
+				this.setId();				
 				if (!this.container.length) {
 					throw "container is empty. Check that the element is on the page or that you run your code when the document is ready."
 				}
@@ -50,7 +50,7 @@
 			setId: function(){
 				//give tree an id
 				if (!this.id) {
-					if (typeof this.dataSource.tree.id != "undefined") {
+					if (this.dataSource.tree && typeof this.dataSource.tree.id != "undefined") {
 						this.id = this.dataSource.tree.id.replace(" ", "_")
 					} else{
 						this.id = Vtree._generateTreeId();
@@ -111,7 +111,7 @@
 			},
 
 			toJson: function(){
-				return this.nodeStore.getStructure();
+				return this.nodeStore.toJson();
 			},
 
 			getSiblings: function(node){

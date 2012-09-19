@@ -30,6 +30,13 @@
 		<copy todir="${dist}/style">
 		    <fileset dir="${src}/style"/>
 		  </copy>
+		
+		<!-- concat test files -->
+		<concat destfile="${basedir}/test/vtree.spec.js"> 
+
+			<fileset dir="test/spec" includes="*.js"/>
+
+		</concat>
 	</target>
 	
 
