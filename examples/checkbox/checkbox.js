@@ -58,7 +58,7 @@ generateJson = function(siblingsMaxNb, depth ){
 //jsonSource = generateJson(3, 4)
 jsonSource = {
 	tree:{
-		id:"root",
+		id:"checkboxTree",
 		nodes:[{
 			id:"test_1",
 			title: "title_1",
@@ -113,6 +113,8 @@ var settings = {
 
 container.bind("check.node", function(e,tree,node){
 	console.log("node checked", node.id)
+	console.log("all checked nodes:",tree.getCheckedNodes())
+	
 })
 
 container.bind("uncheck.node", function(e,tree,node){

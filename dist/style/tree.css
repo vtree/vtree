@@ -29,7 +29,10 @@ position:relative }
 ul.tree li {
 position:relative }
 
-ul.tree li.bold>a.title>em, ul.tree li.bold>a.title>h3 {
+
+ul.tree li.bold>a.title,
+ul.tree li.bold>a.title>em, 
+ul.tree li.bold>a.title>h3 {
 	font-weight: bold;
 }
 
@@ -45,10 +48,20 @@ text-decoration:none }
 ul.tree li h3 {
 padding-top:0 }
 
-ul.tree li a + a,
-ul.tree li a + label {
-color:#444;
-padding-left:15px }
+ul.tree li a.align + a, ul.tree li a.align + label {
+padding-left: 15px;
+}
+
+ul.tree li a + a, ul.tree li a + label {
+color: #444;
+padding-left: 15px;
+}
+
+ul.tree li a.align { 
+	position: absolute;
+	left: 0;
+	float: left;
+}
 
 ul.tree li a {
 color:#444 }

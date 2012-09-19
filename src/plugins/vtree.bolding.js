@@ -31,7 +31,6 @@
 				bold: function() {
 					// bolding behaviour: 
 					// bolding a node bolds all his parents until root node but doesn't affect children state
-					debugger
 					this.isBold = true;
 					this.getEl().addClass('bold');
 					// bold parents

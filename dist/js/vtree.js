@@ -174,7 +174,7 @@ Vtree.utils = {
 		},
 		_fn: {	
 			build: function(){
-				this.setId();
+				this.setId();				
 				if (!this.container.length) {
 					throw "container is empty. Check that the element is on the page or that you run your code when the document is ready."
 				}
@@ -205,7 +205,7 @@ Vtree.utils = {
 			setId: function(){
 				//give tree an id
 				if (!this.id) {
-					if (typeof this.dataSource.tree.id != "undefined") {
+					if (this.dataSource.tree && typeof this.dataSource.tree.id != "undefined") {
 						this.id = this.dataSource.tree.id.replace(" ", "_")
 					} else{
 						this.id = Vtree._generateTreeId();
@@ -266,7 +266,7 @@ Vtree.utils = {
 			},
 
 			toJson: function(){
-				return this.nodeStore.getStructure();
+				return this.nodeStore.toJson();
 			},
 
 			getSiblings: function(node){
@@ -315,7 +315,6 @@ Vtree.plugins.defaults.core.node = {
 			children            : [],
 			iconClass           : "",
 			iconPath            : {open:"", close:""},
-			isSynchro           : false,
 			customHTML			: ""
 		},
 		_fn:{
@@ -342,8 +341,6 @@ Vtree.plugins.defaults.core.node = {
 			continueOpening: function(){
 				// change open state variable
 				this.isOpen = true;				
-				// node is not anymore synchronised with html
-				this.isSynchro = false;
 				// if it has children but there are not rendered
 				if(this.hasChildren && !this.hasRenderedChildren){
 					// we build the children
@@ -364,8 +361,6 @@ Vtree.plugins.defaults.core.node = {
 					this.tree.container.trigger("beforeClose.node", [this.tree, this])
 					// it sets the isOpen to false
 					this.isOpen = false;
-					// change the isSynchro to false
-					this.isSynchro = false;
 					// change the hasVisibleChildren to false 
 					this.hasVisibleChildren = false;
 					// refresh the node
@@ -373,7 +368,6 @@ Vtree.plugins.defaults.core.node = {
 					if (this.iconPath.close) {
 						el.find("img")[0].src = this.iconPath.close;
 					}
-					this.isSynchro = true;
 
 					// fires a "afterClose" event
 					this.tree.container.trigger("afterClose.node", [this.tree, this])
@@ -387,7 +381,7 @@ Vtree.plugins.defaults.core.node = {
 
 			_getChildrenHTML: function(){
 				var ul = $("<ul>").addClass("children")
-				nodes = this.children;
+				var nodes = this.children;
 				for (var i=0, len = nodes.length; i < len; i++) {
 					ul.append(nodes[i].getHTML())
 				}
@@ -423,9 +417,9 @@ Vtree.plugins.defaults.core.node = {
 				}else if (this.customClass.indexOf("title") !== -1){
 					a.append("<"+titleTag+"></"+titleTag+">")
 						.children()
-						.html(this.title)
+						.html(this.title);
 				}else {
-					a.html(this.title)
+					a.html(this.title);
 				}	
 								
 				if (this.customHTML) {
@@ -438,6 +432,8 @@ Vtree.plugins.defaults.core.node = {
 					if (this.isOpen) {
 						li.append(this._getChildrenHTML())
 					}
+				}else{
+					li.prepend("<a href='#' class='align'></a>");
 				}	
 			
 				return li;
@@ -511,8 +507,9 @@ Vtree.plugins.defaults.core.node = {
 				if (typeof dataSource != "undefined") {
 
 					var struct = this.structure;
+					var children = dataSource.nodes || dataSource.children;
 					// recursively build the node structure
-					this._recBuildNodes( this.rootNode, [this.rootNode], dataSource.nodes);
+					this._recBuildNodes( this.rootNode, [this.rootNode], children);
 					// keep the tree hierarchy in the internal structure
 					this.structure.tree = this.rootNode
 
@@ -529,10 +526,10 @@ Vtree.plugins.defaults.core.node = {
 				
 				var parents_already_opened = false;
 				for (var i=0, len = nodes.length; i < len; i++) {
-					var sourceNode = nodes[i],
-						isOpen = false,
-						hasVisibleChildren = false,
-						hasRenderedChildren = false;
+					var sourceNode = nodes[i];
+					var isOpen = (typeof sourceNode.isOpen != "undefined")? sourceNode.isOpen : false;
+					var hasVisibleChildren = (typeof sourceNode.hasVisibleChildren != "undefined")? sourceNode.hasVisibleChildren : false;
+					var hasRenderedChildren = (typeof sourceNode.hasRenderedChildren != "undefined")? sourceNode.hasRenderedChildren : false;
 					var id = sourceNode.id.replace(" ", "_");
 					// check if node should be initially opened
 					if ($.inArray(sourceNode.id, this.tree.initially_open) !== -1) {
@@ -548,7 +545,10 @@ Vtree.plugins.defaults.core.node = {
 							parents_already_opened = true
 						}
 					}					
-					// build the node instance
+					// at this stage the tree doesn;t have the reference to the nodeStore, as we need it on the node
+					// I pass it here before creating the node
+					this.tree.nodeStore = this;
+					// build the node instance					
 					var settings = $.extend({}, sourceNode, {
 						id: sourceNode.id.replace(" ", "_"),
 						parent: parent,
@@ -571,8 +571,9 @@ Vtree.plugins.defaults.core.node = {
 					//keep all siblings in an array to add later all children to the parent
 					siblings.push(node)
 					// if it has children, build children nodes
-					if (sourceNode.nodes && sourceNode.nodes.length){					
-						this._recBuildNodes( node, parents.concat(node), sourceNode.nodes)
+					var children = sourceNode.nodes || sourceNode.children
+					if (children && children.length){					
+						this._recBuildNodes( node, parents.concat(node), children)
 					}	
 				}
 				// now that we know all children, add them to the parents
@@ -584,6 +585,27 @@ Vtree.plugins.defaults.core.node = {
 				return this.structure.tree;
 			},
 
+			toJson: function(){
+				var cleanNode = function(node){
+					var node = jQuery.extend(true, {}, node)
+					delete node.tree;
+					delete node.parents;
+					delete node.el;
+					delete node.parent;
+					delete node.nodeStore;
+					delete node.pluginFns;
+					delete node.plugins;
+					if (node.children.length){
+						for (var i=0, len = node.children.length; i < len; i++) {
+							node.children[i] = cleanNode(node.children[i])
+						}
+					}
+					return node;
+				}
+				
+				return cleanNode(this.structure.tree);
+			},
+			
 			getNode: function(mixedNode){
 				var node;
 				//if  mixedNode is a node instance
@@ -640,24 +662,34 @@ Vtree.plugins.defaults.core.node = {
 				build: function(){
 					var that = this;
 					this.container.on("beforeInit.tree", function(e, tree){
+						
 						if (!that.ajaxUrl) {
 							throw "you need to specify the ajaxUrl setting."
 						}
-						$.ajax({
-							type: "GET",
-							url: that.ajaxUrl,
-							dataType: 'json',
-							data: {
-								action:"getTree",
-								tree: tree.id
-							},	
-							success: $.proxy(that.onAjaxResponse, that)
-						})
-
+						
+						if (that.dataSource.tree){
+							that.continueBuilding();
+						}else{
+							var openedNodes = (typeof tree.getOpenedNodes == "function")? tree.getOpenedNodes():[];
+							that.container.append("<p class='loading'>Loading tree...</p>")
+							console.log("openedNodes:",openedNodes)
+							
+							$.ajax({
+								type: "GET",
+								url: that.ajaxUrl,
+								dataType: 'json',
+								data: {
+									action:"getTree",
+									tree: tree.id,
+									initially_open: openedNodes
+								},	
+								success: $.proxy(that.onAjaxResponse, that)
+							})
+						}
 					})
 					
 					.on("beforeOpen.node", function(e, tree, node){
-						if (!node.hasRenderedChildren || (node.hasRenderedChildren && that.forceAjaxReload)) {
+						if (node.hasChildren && !node.children.length && (!node.hasRenderedChildren || (node.hasRenderedChildren && that.forceAjaxReload))) {
 							$.ajax({
 								type: "GET",
 								url: that.ajaxUrl,
@@ -683,13 +715,8 @@ Vtree.plugins.defaults.core.node = {
 					return this._call_prev();
 				},
 				onAjaxResponse: function(data, response, jqXHR){
-					var that = this;
-					var fn = function(){
-						that.dataSource = data;
-						that.continueBuilding();
-					}
-					setTimeout(fn, 0);
-					
+					this.dataSource = data;
+					this.continueBuilding();
 				}
 			}
 		},
@@ -702,7 +729,7 @@ Vtree.plugins.defaults.core.node = {
 					var that = this;
 					var fn = function(){
 						if (typeof data[that.id] == "undefined") {
-							throw "ajax response didn;t send back node with id:"+ that.id
+							throw "ajax response didn't send back node with id:"+ that.id
 						}
 						that.nodeStore._recBuildNodes( that, that.parents, data[that.id].nodes);
 						that.continueOpening();
@@ -748,9 +775,6 @@ Vtree.plugins.defaults.core.node = {
 				bold: function() {
 					// bolding behaviour: 
 					// bolding a node bolds all his parents until root node but doesn't affect children state
-					// fire bold event                                          
-					this.tree.container.trigger("bold.node", [this.tree, this]);
-					debugger
 					this.isBold = true;
 					this.getEl().addClass('bold');
 					// bold parents
@@ -759,13 +783,13 @@ Vtree.plugins.defaults.core.node = {
 						parent.isBold = true;
 						parent.getEl().addClass("bold");
 					}	
+					// fire bold event                                          
+					this.tree.container.trigger("bold.node", [this.tree, this]);
 			    },
 				unbold: function() {
 					// bolding behaviour: 
 					// unbolding a node unbolds all his children but doesn't affect parents state
-					// fire bold event
-					this.tree.container.trigger("unbold.node", [this.tree, this]);
-					
+
 					this.isBold = false;
 					this.getEl().removeClass('bold');
 					// unbold children
@@ -782,6 +806,10 @@ Vtree.plugins.defaults.core.node = {
 						}
 					};
 					_rec_unbold(this);
+					
+					// fire bold event
+					this.tree.container.trigger("unbold.node", [this.tree, this]);
+					
 			    },
 				getHTML: function(){	
 					
@@ -869,9 +897,7 @@ Vtree.plugins.defaults.core.node = {
 				check: function() {
 					// checking behaviour: 
 					// checking a node checks all his parents until root node but doesn't affect children checkbox state
-					// fire check event                                          
-					this.tree.container.trigger("check.node", [this.tree, this]);
-					
+
 					this.isChecked = true;
 
 					// check parents
@@ -880,13 +906,13 @@ Vtree.plugins.defaults.core.node = {
 						parent.isChecked = true;
 						parent.getEl().find("input[type=checkbox]").eq(0).prop("checked", true);
 					}	
+					// fire check event                                          
+					this.tree.container.trigger("check.node", [this.tree, this]);
 			    },
 				uncheck: function() {
 					// checking behaviour: 
 					// unchecking a node unchecks all his children but doesn't affect parents state
-					// fire check event
-					this.tree.container.trigger("uncheck.node", [this.tree, this]);
-					
+
 					this.isChecked = false;
 
 					// uncheck children
@@ -903,6 +929,10 @@ Vtree.plugins.defaults.core.node = {
 						}
 					};
 					_rec_uncheck(this);
+					
+					// fire check event
+					this.tree.container.trigger("uncheck.node", [this.tree, this]);
+					
 			    },
 				getHTML: function(){	
 					
@@ -976,7 +1006,25 @@ Vtree.plugins.defaults.core.node = {
 	}
 	
 
-})(jQuery);(function ($) {
+})(jQuery);var setCookie = function(cookieName,cookieValue,nDays) {
+	var today = new Date();
+	var expire = new Date();
+	if (nDays==null || nDays==0) nDays=1;
+	expire.setTime(today.getTime() + 3600000*24*nDays);
+	document.cookie = cookieName+"="+escape(cookieValue)
+	+ ";expires="+expire.toGMTString();
+};
+var readCookie = function(cookieName) {
+	var theCookie=" "+document.cookie;
+	var ind=theCookie.indexOf(" "+cookieName+"=");
+	if (ind==-1) ind=theCookie.indexOf(";"+cookieName+"=");
+	if (ind==-1 || cookieName=="") return "";
+	var ind1=theCookie.indexOf(";",ind+1);
+	if (ind1==-1) ind1=theCookie.length; 
+	return unescape(theCookie.substring(ind+cookieName.length+2,ind1));
+};
+
+(function ($) {
 	var setCookie = function(cookieName,cookieValue,nDays) {
 		var today = new Date();
 		var expire = new Date();
@@ -998,7 +1046,7 @@ Vtree.plugins.defaults.core.node = {
 		tree:{
 			_fn:{
 
-				build: function(){
+				build: function(){					
 					this.container.on("beforeInit.tree", function(e, tree){
 						cookie = readCookie("Vtree")
 						if (cookie) {
@@ -1126,7 +1174,7 @@ Vtree.plugins.defaults.core.node = {
 					
 					.bind("unbold.node", function(e, tree, node){
 						var VtreeCookie = JSON.parse(readCookie("Vtree"));
-						var treeCookie = VtreeCookie.trees[tree.id]
+						var treeCookie = VtreeCookie.trees[tree.id];
 						treeCookie.bold = jQuery.grep(treeCookie.bold, function(value) {
 							var getBoldChildrenIds = function(node){
 								var childrenIds = [];
@@ -1147,10 +1195,15 @@ Vtree.plugins.defaults.core.node = {
 							return (value != node.id && $.inArray(value, getCheckedChildrenIds(node)) == -1)
 						});
 						setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week
-					})
+					})					
 					return this._call_prev();
 				},
 				
+				getOpenedNodes: function(){
+					var VtreeCookie = JSON.parse(readCookie("Vtree"));
+					var treeCookie = VtreeCookie.trees[this.id];
+					return treeCookie.opened
+				}
 			}
 		}
 	}

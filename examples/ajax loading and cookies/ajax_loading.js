@@ -66,6 +66,12 @@ jQuery.ajax = function (param) {
     _mockAjaxOptions = param;
 	if (param.data.action == "getTree") {
 		data = parents
+		if (param.data.initially_open.indexOf("test_1")!= -1) {
+			parents.tree.nodes[0].nodes = childrenJsonSource.test_1.nodes
+		}
+		if (param.data.initially_open.indexOf("test_4")!= -1) {
+			parents.tree.nodes[1].nodes = childrenJsonSource.test_4.nodes
+		}
 	}else if (param.data.action == "getChildren") {
 		data = childrenJsonSource
 	}
@@ -79,9 +85,8 @@ jQuery.ajax = function (param) {
 var settings = {
 	container: jQuery("#treeContainer"),
 	ajaxUrl: "/ajaxUrl",
-	plugins: ["ajax_loading"],
-	id:"root",
-	dataSource: parents
+	plugins: ["ajax_loading", "cookie"],
+	id:"ajaxTree"
 }
 
 

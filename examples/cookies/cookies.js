@@ -9,10 +9,6 @@ jsonSource = {
 			title: "title_1",
 			description: "desc",
 			customClass: "title",
-			customHTML: "<span>23 children</span>",
-			data:{
-				href: "test"
-			},
 			hasChildren: true,
 			nodes:[{
 				id:"test_2",

@@ -40,8 +40,9 @@
 				if (typeof dataSource != "undefined") {
 
 					var struct = this.structure;
+					var children = dataSource.nodes || dataSource.children;
 					// recursively build the node structure
-					this._recBuildNodes( this.rootNode, [this.rootNode], dataSource.nodes);
+					this._recBuildNodes( this.rootNode, [this.rootNode], children);
 					// keep the tree hierarchy in the internal structure
 					this.structure.tree = this.rootNode
 
@@ -58,10 +59,10 @@
 				
 				var parents_already_opened = false;
 				for (var i=0, len = nodes.length; i < len; i++) {
-					var sourceNode = nodes[i],
-						isOpen = false,
-						hasVisibleChildren = false,
-						hasRenderedChildren = false;
+					var sourceNode = nodes[i];
+					var isOpen = (typeof sourceNode.isOpen != "undefined")? sourceNode.isOpen : false;
+					var hasVisibleChildren = (typeof sourceNode.hasVisibleChildren != "undefined")? sourceNode.hasVisibleChildren : false;
+					var hasRenderedChildren = (typeof sourceNode.hasRenderedChildren != "undefined")? sourceNode.hasRenderedChildren : false;
 					var id = sourceNode.id.replace(" ", "_");
 					// check if node should be initially opened
 					if ($.inArray(sourceNode.id, this.tree.initially_open) !== -1) {
@@ -77,7 +78,10 @@
 							parents_already_opened = true
 						}
 					}					
-					// build the node instance
+					// at this stage the tree doesn;t have the reference to the nodeStore, as we need it on the node
+					// I pass it here before creating the node
+					this.tree.nodeStore = this;
+					// build the node instance					
 					var settings = $.extend({}, sourceNode, {
 						id: sourceNode.id.replace(" ", "_"),
 						parent: parent,
@@ -100,8 +104,9 @@
 					//keep all siblings in an array to add later all children to the parent
 					siblings.push(node)
 					// if it has children, build children nodes
-					if (sourceNode.nodes && sourceNode.nodes.length){					
-						this._recBuildNodes( node, parents.concat(node), sourceNode.nodes)
+					var children = sourceNode.nodes || sourceNode.children
+					if (children && children.length){					
+						this._recBuildNodes( node, parents.concat(node), children)
 					}	
 				}
 				// now that we know all children, add them to the parents
@@ -113,6 +118,27 @@
 				return this.structure.tree;
 			},
 
+			toJson: function(){
+				var cleanNode = function(node){
+					var node = jQuery.extend(true, {}, node)
+					delete node.tree;
+					delete node.parents;
+					delete node.el;
+					delete node.parent;
+					delete node.nodeStore;
+					delete node.pluginFns;
+					delete node.plugins;
+					if (node.children.length){
+						for (var i=0, len = node.children.length; i < len; i++) {
+							node.children[i] = cleanNode(node.children[i])
+						}
+					}
+					return node;
+				}
+				
+				return cleanNode(this.structure.tree);
+			},
+			
 			getNode: function(mixedNode){
 				var node;
 				//if  mixedNode is a node instance
