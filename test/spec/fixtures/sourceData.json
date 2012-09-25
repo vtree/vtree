@@ -1,0 +1,33 @@
+{"tree":{
+	"nodes": [
+		{
+			"id":"test_1",
+			"title": "title_1",
+			"description": "title_1",
+			"customClass": "title",
+			"hasChildren": true,
+			"nodes":[{
+				"id":"test_2",
+				"title": "title_2",
+				"description": "title_2",
+				"iconClass": "default",
+				"hasChildren": true,
+				"nodes":[{
+					"id":"test_3",
+					"title": "title_3",
+					"description": "title_3",
+					"iconClass": "default",
+					"hasChildren": false,
+					"nodes":[]
+				}]
+			}]
+		},{
+			"id":"test_4",
+			"title": "title_4",
+			"description": "title_4",
+			"hasChildren": false
+		}
+	],
+	"id": "tree"
+}
+}

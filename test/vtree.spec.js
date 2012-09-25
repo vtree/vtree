@@ -1,4 +1,12 @@
-describe("Node", function() {
+customMatchers = {
+	toBeObject: function(obj) {
+		return Object.identical(this.actual, obj)
+	},
+	toBeNode: function(node) {
+		return Object.identical(this.actual.toJson(), node.toJson())
+	}
+};
+describe("Node core functions", function() {
 	describe("initialization", function() {
 		var node;
 		beforeEach(function () {  
@@ -380,44 +388,632 @@ describe("Node", function() {
 		
 	});
 
-	// describe("getting list of children nodes", function() {
-	// 	beforeEach(function() {
-	// 		var child1 = new Vtree.Node({
-	// 			id: "child1",
-	// 			title: "child1",
-	// 			hasChildren: false
-	// 		});
-	// 		var child2 = new Vtree.Node({
-	// 			id: "child2",
-	// 			title: "child2",
-	// 			hasChildren: false
-	// 		});
-	// 		var parent = new Vtree.Node({
-	// 			id: "parent",
-	// 			title: "parent",
-	// 			hasChildren: true,
-	// 			children:[child1, child2]
-	// 		});
-	// 		spyOn(child1, "getHTML").andReturn($("li.node1"));
-	// 		spyOn(child2, "getHTML").andReturn($("li.node2"));
-	// 		var ul = parent._getChildrenHTML();
-	// 	});
-	// 	it("should call getHTML for each child node ", function() {
-	// 		expect(child1.getHTML).toHaveBeenCalled();
-	// 		expect(child2.getHTML).toHaveBeenCalled();
-	// 	});
-	// 	it("should return a jquery ul list with the li for each node", function() {
-	// 		expect(ul).toBe('ul');
-	// 		expect(ul).toContain("li.node1");
-	// 		expect(ul).toContain("li.node2");
-	// 	});
-	// 	it("should have a class 'children' on the ul element", function() {
-	// 		expect(ul.hasClass("children")).toBeTruthy();
-	// 	});
-	// 	
-	// 	
-	// 	
-	// 	
-	// 	
-	// });
+	describe("getting list of children nodes", function() {
+		var child1,
+			child2,
+			parent,
+			ul;
+		beforeEach(function() {
+			child1 = new Vtree.Node({
+				id: "child1",
+				title: "child1",
+				hasChildren: false
+			});
+			child2 = new Vtree.Node({
+				id: "child2",
+				title: "child2",
+				hasChildren: false
+			});
+			parent = new Vtree.Node({
+				id: "parent",
+				title: "parent",
+				hasChildren: true,
+				children:[child1, child2]
+			});
+			spyOn(child1, "getHTML").andReturn($("<li class='node1'>"));
+			spyOn(child2, "getHTML").andReturn($("<li class='node2'>"));
+			ul = parent._getChildrenHTML();
+			
+		});
+		it("should call getHTML for each child node ", function() {
+			expect(child1.getHTML).toHaveBeenCalled();
+			expect(child2.getHTML).toHaveBeenCalled();
+		});
+		it("should return a jquery ul list with the li for each node", function() {
+			expect(ul).toBe('ul');
+			expect(ul).toContain("li.node1");
+			expect(ul).toContain("li.node2");
+		});
+		it("should have a class 'children' on the ul element", function() {
+			expect(ul.hasClass("children")).toBeTruthy();
+		});
+		
+		
+		
+		
+		
+	});
+
+	describe("building html for a node", function() {
+		describe("when a node has children", function() {
+			describe("and the node is open", function() {
+				var node, html;
+				beforeEach(function () {  
+					node = new Vtree.Node({
+						id: "root",
+						title: "title",
+						description: "description",
+						iconPath:{
+							open: "path/to/openIcon",
+							close: "path/to/closeIcon"
+						},
+						hasChildren:true,
+						isOpen: true,
+						tree:{id:"tree"}
+					})
+					spyOn(node, "_getChildrenHTML").andReturn($("<ul class='children'/>"));
+					html = node.getHTML();
+				});
+				it("should add an open close tag", function() {
+					expect(html.children(":first")).toBe('a.openClose')
+				});
+				it("should get html for children", function() {
+					expect(node._getChildrenHTML).toHaveBeenCalled();
+					expect(html).toContain("ul.children");
+				});
+				it("should give a class open", function() {
+					expect(html).toHaveClass("open")
+				});
+				it("should give a class folder", function() {
+					expect(html).toHaveClass("folder");
+				});
+				it("should have the iconPath.open path in the image source", function() {
+					expect(html.find("img")).toHaveAttr("src", "path/to/openIcon")
+				});
+			});
+			describe("and the node is closed", function() {
+				var node, html;
+				beforeEach(function () {  
+					node = new Vtree.Node({
+						id: "root",
+						title: "title",
+						description: "description",
+						hasChildren:true,
+						iconPath:{
+							open: "path/to/openIcon",
+							close: "path/to/closeIcon"
+						},
+						isOpen:false,
+						tree:{id:"tree"}
+					})
+					html = node.getHTML();
+				});
+				it("should add an open close tag", function() {
+					expect(html.children(":first")).toBe("a.openClose")
+				});
+				it("should give a class folder", function() {
+					expect(html).toHaveClass("folder");
+				});
+				it("shouldn't give a class open", function() {
+					expect(html).not.toHaveClass("open")
+				});
+				it("should have the iconPath.close path in the image source", function() {
+					expect(html.find("img")).toHaveAttr("src", "path/to/closeIcon")
+					
+				});
+			});
+					
+		});
+		describe("when a node doesn't have children", function() {
+			var node, html;
+			beforeEach(function () {  
+				node = new Vtree.Node({
+					id: "root",
+					title: "title",
+					description: "description",
+					customClass: "customClass",
+					hasChildren:false,
+					tree:{id:"tree"}
+				})
+				html = node.getHTML();
+			});
+			it("should have a first child as an element for alignement", function() {
+				expect(html.children(":first")).toBe("a.align")
+			});
+			it("should return a li element", function() {
+				expect(html).toBe('li');
+			});
+			it("should be able to add a custom class to the li element with the attribute customClass", function() {
+				expect(html).toHaveClass("customClass")
+			});
+		
+			it("should have an attribute data-nodeid containing the node id", function() {
+				expect(html).toHaveAttr("data-nodeid", "root")
+			});
+			it("should have an attribute data-treeid containing the tree id", function() {
+				expect(html).toHaveAttr("data-treeid", "tree")
+			});
+			it("should contain a a tag with a class 'title'", function() {
+				expect(html).toContain("a.title");
+			});
+			it("should contain a a tag with a title attribute corresponding to the node description", function() {
+				expect(html).toContain("a[title='description']");
+			});			
+			
+		});
+		describe("when we pass a customClass attribute as 'title'", function() {
+			var node, html;
+			beforeEach(function () {  
+				node = new Vtree.Node({
+					id: "root",
+					title: "title",
+					description: "description",
+					customClass: "title",
+					hasChildren:false,
+					tree:{id:"tree"}
+				})
+				html = node.getHTML();
+			});
+			it("should contains a h3 element with a text inside corresponding to the title node", function() {
+				expect(html).toContain('h3');
+				var h3 = html.find("h3")
+				expect(h3).toHaveText("title")
+			});
+			
+		});
+		describe("the a tag, when we pass a iconClass attribute", function() {
+			var node, html, a;
+			beforeEach(function () {  
+				node = new Vtree.Node({
+					id: "root",
+					title: "title",
+					description: "description",
+					iconClass: "iconClass",
+					hasChildren:false,
+					tree:{id:"tree"}
+				})
+				html = node.getHTML();
+				a = html.find("a")
+			});
+			it("should have a first child as a <i> tag with a class corresponding to the iconClass attribute", function() {
+				expect(a.children(":first")).toBe("i.iconClass");
+			});
+			it("should have the last child as a em tag with a text corresponding to the title attribute ", function() {
+				var em = a.children(":last")
+				expect(em).toBe("em");
+				expect(em).toHaveText("title")
+			});
+			
+			
+		});
+		describe("the iconPath attribute", function() {
+			var node, html, a;
+			beforeEach(function () {  
+				node = new Vtree.Node({
+					id: "root",
+					title: "title",
+					description: "description",
+					iconPath:"path/to/icon.png",
+					hasChildren:false,
+					tree:{id:"tree"}
+				})
+				html = node.getHTML();
+				a = html.find("a")
+			});
+			it("should have a first child as a <i> tag with a <img> inside", function() {
+				var i = a.children(":first");
+				expect(i).toBe("i");
+				expect(i).toContain("img")
+			});
+			
+			it("should have the iconPath path in the image source", function() {
+				expect(a.find("img")).toHaveAttr("src", "path/to/icon.png")
+			});
+			it("should have  the last child as a em tag with a text corresponding to the title attribute ", function() {
+				var em = a.children(":last")
+				expect(em).toBe("em");
+				expect(em).toHaveText("title")
+			});
+			
+			
+		});
+		describe("when we don't pass any info for the icon", function() {
+			var node, html, a;
+			beforeEach(function () {  
+				node = new Vtree.Node({
+					id: "root",
+					title: "title",
+					description: "description",
+					hasChildren:false,
+					tree:{id:"tree"}
+				})
+				html = node.getHTML();
+				a = html.find("a")
+			});
+			it("should have the title inside the a tag", function() {
+				expect(a).toHaveText("title");
+			});
+		});
+		
+	});
+
+	describe("getting the li element for the node", function() {
+		var node, el;
+		beforeEach(function () {  
+			appendSetFixtures(sandbox())
+			node = new Vtree.Node({
+				id: "root",
+				title: "title",
+				description: "description",
+				hasChildren:false,
+				tree:{
+					id:"tree",
+					container: $("#sandbox")
+				}
+			})
+			$('#sandbox').append(node.getHTML())
+			el = node.getEl();
+		});
+		it("should return the li element corresponding to the node", function() {
+			expect(el).toHaveAttr("data-nodeid", "root")
+			expect(el).toHaveAttr("data-treeid", "tree")
+		});
+		
+	});
+	
+	describe("toggling loading state", function() {
+		var node, el;
+		beforeEach(function () {  
+			appendSetFixtures(sandbox())
+			node = new Vtree.Node({
+				id: "root",
+				title: "title",
+				description: "description",
+				hasChildren:false,
+				tree:{
+					id:"tree",
+					container: $("#sandbox")
+				}
+			})
+			$('#sandbox').append(node.getHTML())
+			node.toggleLoading();
+		});
+		it("should toggle a loading class to the li element", function() {
+			expect(node.getEl().hasClass("loading")).toBeTruthy();
+			node.toggleLoading();
+			expect(node.getEl().hasClass("loading")).toBeFalsy();
+		});
+		
+		it("should toggle a 'Loading...' text", function() {
+			expect(node.getEl().find("em").text()).toBe("Loading...");
+			node.toggleLoading()
+			expect(node.getEl().text()).not.toBe("Loading...");
+		});
+		
+		
+	});
+
+	describe("getting json object describing the node", function() {
+		var node, json;
+		beforeEach(function () {
+			this.addMatchers(customMatchers); 
+			appendSetFixtures(sandbox())
+			node = new Vtree.Node({
+				id: "root",
+				title: "title",
+				description: "description",
+				hasChildren:false,
+				tree:{
+					id:"tree",
+					container: $("#sandbox")
+				}
+			})
+			$('#sandbox').append(node.getHTML())
+			json = node.toJson();
+		});
+		it("should return the node without infinite loop", function() {
+			expect(json).toBeObject({
+				children: [],
+				customClass: "",
+				customHTML: "",
+				description: "description",
+				hasChildren: false,
+				hasRenderedChildren: false,
+				hasVisibleChildren: false,
+				iconClass: "",
+				iconPath: { open : '', close : '' },
+				id: "root",
+				isOpen: false,
+				title: "title"
+			})
+		});
+		
+	});
 });
+describe("NodeStore core functions", function() {
+	var data, tree;
+	beforeEach(function() {
+		this.addMatchers(customMatchers);
+		data = getJSONFixture('sourceData.json');
+		tree = {
+			id: "treeId",
+			dataSource: data
+		};
+	});
+	
+	describe("intialisation", function() {
+		var ns;
+		beforeEach(function() {	
+		  	ns = new Vtree.NodeStore({
+				tree: tree 
+			});
+		});
+		it("should create the root node", function() {
+			expect(ns.rootNode).not.toBeUndefined();
+		});
+		it("should load settings passed in parameters", function() {
+			expect(ns.tree.id).toBe(tree.id)
+		});
+		
+		
+		
+	});
+	describe("intializing the structure", function() {
+		var ns;
+		beforeEach(function() {
+		  	ns = new Vtree.NodeStore({
+				tree: tree 
+			});
+			spyOn(ns, "_recBuildNodes");
+			spyOn(ns, "getDataSource").andReturn(tree.dataSource.tree);
+			ns.initStructure();
+		});	
+		it("should get the data source from the tree", function() {
+			expect(ns.getDataSource).toHaveBeenCalled();
+		});
+			
+		it("should call _recBuildNodes with correct parameters", function() {
+			expect(ns._recBuildNodes).toHaveBeenCalledWith(ns.rootNode, [ns.rootNode], ns.getDataSource().nodes);
+		});
+		it("should store the rootNode as the tree structure", function() {
+			expect(ns.structure.tree.toJson()).toBeObject(ns.rootNode.toJson())
+		});
+		
+	});
+	describe("getting the data Source from the tree", function() {
+		var ns;
+		beforeEach(function() {
+		  	ns = new Vtree.NodeStore({
+				tree: tree 
+			});
+		});
+		it("should return the json data source", function() {
+			expect(ns.getDataSource()).toBeObject(data.tree)
+		});
+		
+	});
+	describe("building the node structure", function() {
+		var ns;
+		beforeEach(function() {	
+		  	ns = new Vtree.NodeStore({
+				tree: tree 
+			});
+			ns._recBuildNodes( ns.rootNode, [ns.rootNode], data.tree.nodes);
+		  	
+		});
+			
+		it("should set the children nodes to the parent", function() {
+			expect(ns.rootNode.children.length).toBe(2);
+			expect(ns.rootNode.children[0]).toBeNode(ns.getNode("test_1"));
+			expect(ns.rootNode.children[1]).toBeNode(ns.getNode("test_4"));
+		});
+		it("should add nodes to the internal structure", function() {
+			expect(ns.structure.id2NodeMap["test_1"]).toBeNode(ns.getNode("test_1"))
+			expect(ns.structure.id2NodeMap["test_2"]).toBeNode(ns.getNode("test_2"))
+			expect(ns.structure.id2NodeMap["test_3"]).toBeNode(ns.getNode("test_3"))
+			expect(ns.structure.id2NodeMap["test_4"]).toBeNode(ns.getNode("test_4"))
+		});
+		describe("passing the right arguments to the node", function() {
+			it("should pass the isOpen setting", function() {
+				var nodeStore = new Vtree.NodeStore({
+					tree: tree 
+				});
+				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
+					"id":"test_4",
+					"title": "title_4",
+					"description": "title_4",
+					"hasChildren": false
+				}]);
+				expect(nodeStore.getNode("test_4").isOpen).toBeFalsy();
+				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
+					"id":"test_4",
+					"title": "title_4",
+					"description": "title_4",
+					"isOpen": true
+				}]);
+				expect(nodeStore.getNode("test_4").isOpen).toBeTruthy();
+				
+			});
+			it("should give nodes reference to the tree", function() {
+				expect(ns.getNode("test_1").tree.id).toBe(tree.id)
+			});
+			it("should give reference to the node store", function() {
+				
+			});
+			it("should pass the hasRenderedChildren setting", function() {
+				
+			});
+			it("should pass the hasVisibleChildren setting", function() {
+				
+			});
+			it("should pass the parent node", function() {
+				
+			});
+			it("should pass the parent nodes in an array", function() {
+				
+			});
+			it("should pass the plugins from the tree if they exists", function() {
+				
+			});		
+		});
+		describe("when the node is in the array 'initially_open' ", function() {
+			beforeEach(function() {
+				tree = $.extend(tree, {initially_open:["test_2"]})
+			  	ns = new Vtree.NodeStore({
+					tree: tree 
+				});
+				ns._recBuildNodes( ns.rootNode, [ns.rootNode], data.tree.nodes);
+			});
+			it("should set the node as open", function() {
+				expect(ns.getNode("test_2").isOpen).toBeTruthy();
+				expect(ns.getNode("test_2").hasVisibleChildren).toBeTruthy();
+				expect(ns.getNode("test_2").hasRenderedChildren).toBeTruthy();
+			});
+			it("should open all parents as well", function() {
+				expect(ns.getParents("test_2")[0].isOpen).toBeTruthy();
+				expect(ns.getParents("test_2")[0].hasVisibleChildren).toBeTruthy();
+				expect(ns.getParents("test_2")[0].hasRenderedChildren).toBeTruthy();
+				expect(ns.getParents("test_2")[1].isOpen).toBeTruthy();
+				expect(ns.getParents("test_2")[1].hasVisibleChildren).toBeTruthy();
+				expect(ns.getParents("test_2")[1].hasRenderedChildren).toBeTruthy();
+
+			});
+			
+			
+		});
+
+		
+		
+	});
+	
+	describe("getting the internal structure", function() {
+		var ns;
+		beforeEach(function() {
+			ns = new Vtree.NodeStore({
+				tree: tree 
+			});
+		});
+		it("should return the internal structure", function() {
+			expect(ns.getStructure().id).toBeObject(ns.structure.tree.id)
+		});
+		
+		
+	});
+	
+	describe("traversing tree and getting nodes", function() {
+		var ns;
+		beforeEach(function() {
+			ns = new Vtree.NodeStore({
+				tree: tree 
+			});
+		});
+		describe("getting a node", function() {
+
+			it("should return the correct node if you pass a node id", function() {
+				expect(ns.getNode("test_3").toJson()).toBeObject({
+					id : 'test_3', 
+					isOpen : false,
+					title : 'title_3', 
+					description : 'title_3', 
+					customClass : '', 
+					hasVisibleChildren : false, 
+					hasRenderedChildren : false, 
+					hasChildren : false, 
+					children : [ ], 
+					iconClass : 'default', 
+					iconPath : { open : '', close : '' }, 
+					customHTML : '' 
+				})
+			});
+			it("should return the correct node if you pass the node instance", function() {
+				var nodeInstance = ns.getStructure().children[0].children[0].children[0]; // node title_3
+				expect(ns.getNode(nodeInstance).toJson()).toBeObject({
+					id : 'test_3', 
+					isOpen : false,
+					title : 'title_3', 
+					description : 'title_3', 
+					customClass : '', 
+					hasVisibleChildren : false, 
+					hasRenderedChildren : false, 
+					hasChildren : false, 
+					children : [ ], 
+					iconClass : 'default', 
+					iconPath : { open : '', close : '' }, 
+					customHTML : '' 
+				})
+			});
+
+		});
+		describe("getting siblings", function() {
+			it("should return all siblings without the node itself", function() {
+				expect(ns.getSiblings("test_1")[0].toJson()).toBeObject(ns.getNode("test_4").toJson())
+			});
+			
+		});
+		describe("getting the direct parent", function() {
+			it("should return the parent node", function() {
+				expect(ns.getParent("test_3").toJson()).toBeObject(ns.getNode("test_2").toJson())
+			});
+			
+		});
+		describe("getting all the parents", function() {
+			it("should return the parent nodes", function() {
+				var parents = ns.getParents("test_3")
+				expect(parents.length).toBe(3);
+				expect(parents[0].id).toBeObject("root")
+				expect(parents[1].toJson()).toBeObject(ns.getNode("test_1").toJson())
+				expect(parents[2].toJson()).toBeObject(ns.getNode("test_2").toJson())
+			});
+			
+		});
+		
+		describe("getting children", function() {
+			it("should return all children", function() {
+				expect(ns.getChildren("test_1")[0].toJson()).toBeObject(ns.getNode("test_2").toJson())
+			});
+			
+		});
+	});
+});/*
+    Original script title: "Object.identical.js"; version 1.12
+    Copyright (c) 2011, Chris O'Brien, prettycode.org
+    http://github.com/prettycode/Object.identical.js
+
+    Permission is hereby granted for unrestricted use, modification, and redistribution of this
+    script, only under the condition that this code comment is kept wholly complete, appearing
+    directly above the script's code body, in all original or modified non-minified representations
+*/
+
+Object.identical = function (a, b, sortArrays) {
+  
+    /* Requires ECMAScript 5 functions:
+           - Array.isArray()
+           - Object.keys()
+           - Array.prototype.forEach()
+           - JSON.stringify()
+    */
+  
+    function sort(object) {
+        
+        if (sortArrays === true && Array.isArray(object)) {
+            return object.sort();
+        }
+        else if (typeof object !== "object" || object === null) {
+            return object;
+        }
+        
+        var result = [];
+        
+        Object.keys(object).sort().forEach(function(key) {
+            result.push({
+                key: key,
+                value: sort(object[key])
+            });
+        });
+        
+        return result; 
+    }
+    
+    return JSON.stringify(sort(a)) === JSON.stringify(sort(b));
+};
+

@@ -4,6 +4,7 @@
 		tree:{
 			defaults:{
 				ajaxUrl: "",
+				ajaxParameters:{},
 				asynchronous: true,
 				forceAjaxReload: false
 			},
@@ -19,19 +20,20 @@
 						if (that.dataSource.tree){
 							that.continueBuilding();
 						}else{
-							var openedNodes = (typeof tree.getOpenedNodes == "function")? tree.getOpenedNodes():[];
-							that.container.append("<p class='loading'>Loading tree...</p>")
-							console.log("openedNodes:",openedNodes)
+							var openedNodes = (typeof tree.getOpenedNodes == "function")? tree.getOpenedNodes():tree.initially_open;
+							console.log("openedNodes:",openedNodes.join(","))
 							
+							that.container.append("<p class='loading'>Loading tree...</p>")
+							var data = $.extend(true, tree.ajaxParameters , {
+								action:"getTree",
+								tree: tree.id,
+								initially_open: openedNodes.join(",")
+							});
 							$.ajax({
 								type: "GET",
 								url: that.ajaxUrl,
 								dataType: 'json',
-								data: {
-									action:"getTree",
-									tree: tree.id,
-									initially_open: openedNodes
-								},	
+								data: data,	
 								success: $.proxy(that.onAjaxResponse, that)
 							})
 						}
@@ -39,14 +41,15 @@
 					
 					.on("beforeOpen.node", function(e, tree, node){
 						if (node.hasChildren && !node.children.length && (!node.hasRenderedChildren || (node.hasRenderedChildren && that.forceAjaxReload))) {
+							var data = $.extend(true, this.ajaxParameters , {
+								action:"getChildren",
+								nodes: node.id
+							});
 							$.ajax({
 								type: "GET",
 								url: that.ajaxUrl,
 								dataType: 'json',
-								data: {
-									action:"getChildren",
-									nodes: [node.id]
-								},	
+								data: data,	
 								success: $.proxy(node.onAjaxResponse, node)
 							})
 						}else{
@@ -63,8 +66,12 @@
 					
 					return this._call_prev();
 				},
+				
+				getAjaxData:function(data){
+					return data
+				},
 				onAjaxResponse: function(data, response, jqXHR){
-					this.dataSource = data;
+					this.dataSource = this.getAjaxData(data);
 					this.continueBuilding();
 				}
 			}
@@ -75,15 +82,12 @@
 			},
 			_fn:{
 				onAjaxResponse: function(data, response, jqXHR){					
-					var that = this;
-					var fn = function(){
-						if (typeof data[that.id] == "undefined") {
-							throw "ajax response didn't send back node with id:"+ that.id
-						}
-						that.nodeStore._recBuildNodes( that, that.parents, data[that.id].nodes);
-						that.continueOpening();
+					var nodeData = this.tree.getAjaxData(data);	
+					if (typeof nodeData[this.id] == "undefined") {
+						throw "ajax response didn't send back node with id:"+ this.id
 					}
-					setTimeout(fn, 0);
+					this.nodeStore._recBuildNodes( this, this.parents, nodeData[this.id].nodes);
+					this.continueOpening();
 					
 				}
 			}
