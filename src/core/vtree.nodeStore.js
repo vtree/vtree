@@ -90,7 +90,6 @@
 						isOpen: isOpen,
 						hasRenderedChildren: hasRenderedChildren,
 						hasVisibleChildren: hasVisibleChildren,
-						isOpen: isOpen,
 						tree: this.tree,
 						nodeStore: this,
 						plugins: this.tree.plugins
@@ -119,24 +118,7 @@
 			},
 
 			toJson: function(){
-				var cleanNode = function(node){
-					var node = jQuery.extend(true, {}, node)
-					delete node.tree;
-					delete node.parents;
-					delete node.el;
-					delete node.parent;
-					delete node.nodeStore;
-					delete node.pluginFns;
-					delete node.plugins;
-					if (node.children.length){
-						for (var i=0, len = node.children.length; i < len; i++) {
-							node.children[i] = cleanNode(node.children[i])
-						}
-					}
-					return node;
-				}
-				
-				return cleanNode(this.structure.tree);
+				return this.structure.tree.toJson();
 			},
 			
 			getNode: function(mixedNode){
@@ -156,7 +138,7 @@
 			getSiblings: function(mixedNode){
 				node = this.getNode(mixedNode)
 				// get parent's children
-				siblings = node.getParent().getChildren()
+				siblings = node.parent.children
 				// remove the current node
 				for (var i = siblings.length - 1; i >= 0; i--){
 					if (siblings[i].id == node.id){

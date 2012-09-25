@@ -117,8 +117,13 @@ Vtree.plugins.defaults.core.node = {
 						.find("i").addClass(this.iconClass)
 						.end()
 						.find(titleTag).html(this.title)
-				}else if (this.iconPath.close) {
-					var icon = (this.isOpen)?this.iconPath.open: this.iconPath.close;
+				}else if (typeof this.iconPath != "undefined") {
+					var icon;
+					if (this.hasChildren && typeof this.iconPath.close != "undefined" && typeof this.iconPath.open != "undefined") {
+						icon = (this.isOpen)?this.iconPath.open: this.iconPath.close;
+					}else{
+						icon = this.iconPath;
+					}
 					a.append("<i><img/></i><"+titleTag+"></"+titleTag+">")
 						.find("img").attr("src", icon)
 						.end()
@@ -163,6 +168,27 @@ Vtree.plugins.defaults.core.node = {
 				this.el = $('li[data-nodeid='+this.id+'][data-treeid='+this.tree.id+']')
 				return this.el;
 
+			},
+			toJson: function(){
+				var node = jQuery.extend(true, {}, this)
+				for(var i in node){
+					if (typeof node[i] == "function"){
+						delete node[i]
+					}
+				}
+				delete node.tree;
+				delete node.parents;
+				delete node.el;
+				delete node.parent;
+				delete node.nodeStore;
+				delete node.pluginFns;
+				delete node.plugins;
+				if (node.children.length){
+					for (var i=0, len = node.children.length; i < len; i++) {
+						node.children[i] = node.children[i].toJson
+					}
+				}
+				return node;
 			}
 		}
 	}
