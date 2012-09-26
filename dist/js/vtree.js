@@ -176,10 +176,10 @@ Vtree.utils = {
 			build: function(){
 				this.setId();				
 				if (!this.container.length) {
-					throw "container is empty. Check that the element is on the page or that you run your code when the document is ready."
+					throw "container is empty. Check that the element is on the page or that you run your code when the document is ready.";
 				}
 				// fires a beforeInit event			
-				this.container.trigger("beforeInit.tree", [this])
+				this.container.trigger("beforeInit.tree", [this]);
 				
 				if (!this.asynchronous) {
 					this.continueBuilding();
@@ -1098,9 +1098,7 @@ var readCookie = function(cookieName) {
 								// we get the cookie 
 								tree.initially_open = treeCookie.opened;
 								tree.initially_checked = treeCookie.checked;
-								tree.initially_bold = treeCookie.bold;
-								console.log("tree:",tree)
-								
+								tree.initially_bold = treeCookie.bold;								
 								tree.container.trigger("OpenNodesFromCookie.tree", [tree])
 								
 							}else{

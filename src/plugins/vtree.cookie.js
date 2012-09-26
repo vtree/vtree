@@ -48,9 +48,7 @@ var readCookie = function(cookieName) {
 								// we get the cookie 
 								tree.initially_open = treeCookie.opened;
 								tree.initially_checked = treeCookie.checked;
-								tree.initially_bold = treeCookie.bold;
-								console.log("tree:",tree)
-								
+								tree.initially_bold = treeCookie.bold;								
 								tree.container.trigger("OpenNodesFromCookie.tree", [tree])
 								
 							}else{
