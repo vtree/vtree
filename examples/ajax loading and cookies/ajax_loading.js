@@ -1,4 +1,4 @@
-parents = {
+dataSource = {
 	tree:{
 		id:"root",
 		nodes:[{
@@ -33,8 +33,8 @@ childrenJsonSource = {
 			title: "title_2",
 			description: "desc",
 			iconClass: "customFolder",
-			hasChildren: false,
-			nodes:[	]
+			hasChildren: true,
+			nodes:[]
 		},
 		{
 			id:"test_3",
@@ -54,6 +54,16 @@ childrenJsonSource = {
 			hasChildren: false
 		}]
 	},
+	"test_2":{
+		id:"test_2",
+		nodes:[{
+			id:"test_6",
+			title: "title_6",
+			description: "desc",
+			iconClass: "customFolder",
+			hasChildren: false
+		}]
+	}
 	
 }
 
@@ -64,15 +74,7 @@ childrenJsonSource = {
 jQuery.ajax = function (param) {
 	console.log("mock ajax:",param)
     _mockAjaxOptions = param;
-	if (param.data.action == "getTree") {
-		data = parents
-		if (param.data.initially_open.indexOf("test_1")!= -1) {
-			parents.tree.nodes[0].nodes = childrenJsonSource.test_1.nodes
-		}
-		if (param.data.initially_open.indexOf("test_4")!= -1) {
-			parents.tree.nodes[1].nodes = childrenJsonSource.test_4.nodes
-		}
-	}else if (param.data.action == "getChildren") {
+	if (param.data.action == "getChildren") {
 		data = childrenJsonSource
 	}
     //call success handler
@@ -86,7 +88,8 @@ var settings = {
 	container: jQuery("#treeContainer"),
 	ajaxUrl: "/ajaxUrl",
 	plugins: ["ajax_loading", "cookie"],
-	id:"ajaxTree"
+	id:"ajaxTree",
+	dataSource: dataSource
 }
 
 

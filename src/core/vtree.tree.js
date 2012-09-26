@@ -21,10 +21,11 @@
 			build: function(){
 				this.setId();				
 				if (!this.container.length) {
-					throw "container is empty. Check that the element is on the page or that you run your code when the document is ready."
+					throw "container is empty. Check that the element is on the page or that you run your code when the document is ready.";
 				}
 				// fires a beforeInit event			
-				this.container.trigger("beforeInit.tree", [this])
+				this.container.trigger("beforeInit.tree", [this]);
+				
 				if (!this.asynchronous) {
 					this.continueBuilding();
 				}

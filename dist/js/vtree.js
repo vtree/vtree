@@ -180,6 +180,7 @@ Vtree.utils = {
 				}
 				// fires a beforeInit event			
 				this.container.trigger("beforeInit.tree", [this])
+				
 				if (!this.asynchronous) {
 					this.continueBuilding();
 				}
@@ -670,40 +671,14 @@ Vtree.plugins.defaults.core.node = {
 			_fn:{
 				build: function(){
 					var that = this;
-					this.container.on("beforeInit.tree", function(e, tree){
-						
-						if (!that.ajaxUrl) {
-							throw "you need to specify the ajaxUrl setting."
-						}
-						
-						if (that.dataSource.tree){
-							that.continueBuilding();
-						}else{
-							var openedNodes = (typeof tree.getOpenedNodes == "function")? tree.getOpenedNodes():tree.initially_open;
-							console.log("openedNodes:",openedNodes.join(","))
-							
-							that.container.append("<p class='loading'>Loading tree...</p>")
-							var data = $.extend(true, tree.ajaxParameters , {
-								action:"getTree",
-								tree: tree.id,
-								initially_open: openedNodes.join(",")
-							});
-							$.ajax({
-								type: "GET",
-								url: that.ajaxUrl,
-								dataType: 'json',
-								data: data,	
-								success: $.proxy(that.onAjaxResponse, that)
-							})
-						}
-					})
-					
-					.on("beforeOpen.node", function(e, tree, node){
+					// when we open a node we need to get his children from the server unless they are already on the page.
+					// we can specify a forceAjaxReload setting to true, if we always want to realod the children even if they are already loaded from a previous opening
+					this.container.on("beforeOpen.node", function(e, tree, node){
 						if (node.hasChildren && !node.children.length && (!node.hasRenderedChildren || (node.hasRenderedChildren && that.forceAjaxReload))) {
-							var data = $.extend(true, this.ajaxParameters , {
+							var data = $.extend(true, {
 								action:"getChildren",
 								nodes: node.id
-							});
+							}, this.ajaxParameters );
 							$.ajax({
 								type: "GET",
 								url: that.ajaxUrl,
@@ -717,11 +692,44 @@ Vtree.plugins.defaults.core.node = {
 						
 					})
 					
+					// when we close a node and in case we force ajax relaod at each reopening, we clear the children nodes
 					.on("afterClose.node", function(e, tree, node){
 						if (that.forceAjaxReload) {
 							node.getEl().children("ul.children").remove()
 						}
 					})
+					
+					// when we use the ajax plugin with the cookie plugin, we need to be careful to this special case
+					// if in the cookie some nodes are saved as opened, we need to ask for their children using ajax
+					// in order to display also the children and keep the state saved by the cookie					
+					.on("OpenNodesFromCookie.tree", function(e, tree){
+						var opened = tree.initially_open;
+						
+						if (opened.length) {
+							var data = $.extend(true, {
+								action:"getChildren",
+								nodes: opened
+							}, this.ajaxParameters );
+							$.ajax({
+								type: "GET",
+								url: that.ajaxUrl,
+								dataType: 'json',
+								data: data,	
+								success: $.proxy(tree.onAjaxResponse, tree)
+							})
+						}else{
+							tree.continueBuilding();
+						}
+					})
+					
+					// in the case we use ajax without the cookie plugin, we don't need to wait for the ajax response to 
+					// continue the tree building
+					.on("beforeInit.tree", function(e, tree){
+						if ($.inArray("cookie", tree.plugins) == -1) {
+							tree.continueBuilding();
+						}
+					})
+					
 					
 					return this._call_prev();
 				},
@@ -729,10 +737,32 @@ Vtree.plugins.defaults.core.node = {
 				getAjaxData:function(data){
 					return data
 				},
+				
 				onAjaxResponse: function(data, response, jqXHR){
-					this.dataSource = this.getAjaxData(data);
-					this.continueBuilding();
-				}
+					nodesData = this.getAjaxData(data);
+					for (var nodeId in nodesData) {
+						 var nodeData = nodesData[nodeId];
+						this.addDataToNodeSource(nodeData)
+					}
+					this.continueBuilding()
+				},
+				
+				addDataToNodeSource: function(nodeData){
+					findNode = function(nodes, id){
+						var node = false;
+						for (var i=0, len = nodes.length; i < len; i++) {
+							var node = nodes[i];
+							if (node.id == id) {
+								return node;
+							}else if (node.nodes && node.nodes.length) {
+								var rec = findNode(nodes[i].nodes, nodeData.id);
+								if (rec) {return rec}
+							}
+						}
+					}
+					var nodeSource = findNode(this.dataSource.tree.nodes, nodeData.id);
+					nodeSource = $.extend(true, nodeSource, nodeData)
+				},
 			}
 		},
 		node:{
@@ -1069,6 +1099,10 @@ var readCookie = function(cookieName) {
 								tree.initially_open = treeCookie.opened;
 								tree.initially_checked = treeCookie.checked;
 								tree.initially_bold = treeCookie.bold;
+								console.log("tree:",tree)
+								
+								tree.container.trigger("OpenNodesFromCookie.tree", [tree])
+								
 							}else{
 								// we create the initial cookie
 								VtreeCookie.trees[tree.id] = {

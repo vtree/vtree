@@ -1,33 +1,40 @@
-parents = {
-	response:{
-		tree:{
-			id:"root",
-			nodes:[{
-				id:"test_1",
-				title: "title_1",
+var dataSource = {
+	tree:{
+		id:"root",
+		nodes:[{
+			id:"test_1",
+			title: "title_1",
+			description: "desc",
+			iconClass: "customFolder",
+			customClass: "title",
+			hasChildren: true,
+			children:[{
+				id:"test_2",
+				title: "title_2",
 				description: "desc",
 				iconClass: "customFolder",
-				customClass: "title",
-				hasChildren: true,
-				nodes:[
-				]
+				hasChildren: false,
+				nodes:[	]
 			},
 			{
-				id:"test_4",
-				title: "title_4",
+				id:"test_3",
+				title: "title_3",
 				description: "desc",
 				iconClass: "customFolder",
-				hasChildren: true,
-				nodes:[
-				]
-			}
-			]
+				hasChildren: false
+			}]
+		},
+		{
+			id:"test_4",
+			title: "title_4",
+			description: "desc",
+			iconClass: "customFolder",
+			hasChildren: true
 		}
+		]
 	}
 }
-
-
-childrenJsonSource = {
+var childrenJsonSource = {
 	response:{
 		"test_1": {
 			id: "test_1",
@@ -64,19 +71,18 @@ childrenJsonSource = {
 
 
 //Mock ajax function
-// jQuery.ajax = function (param) {
-// 	console.log("mock ajax:",param)
-//     _mockAjaxOptions = param;
-// 	if (param.data.action == "getTree") {
-// 		data = parents
-// 	}else if (param.data.action == "getChildren") {
-// 		data = childrenJsonSource
-// 	}
-//     //call success handler
-// 	setTimeout(function() {
-//     	param.success(data, "textStatus", "jqXHR");
-// 	}, 1000);
-// };
+jQuery.ajax = function (param) {
+	console.log("mock ajax:",param)
+	_mockAjaxOptions = param;
+
+	if (param.data.action == "getChildren") {
+		data = childrenJsonSource
+	}
+	//call success handler
+	setTimeout(function() {
+		param.success(data, "textStatus", "jqXHR");
+		}, 1000);
+};
 
 
 var settings = {
@@ -91,7 +97,7 @@ var settings = {
 	},
 	plugins: ["ajax_loading"],
 	id:"root",
-	initially_open: ["test_1", "test_4"]
+	dataSource: dataSource
 }
 
 
