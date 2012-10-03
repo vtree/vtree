@@ -46,6 +46,7 @@ var container = jQuery("#treeContainer")
 var settings = {
 	container: container,
 	initially_bold: ["test_5"],
+	cascading_bold: false,
 	dataSource:jsonSource, 
 	plugins:["bolding"]
 }

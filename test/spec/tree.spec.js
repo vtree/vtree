@@ -12,7 +12,7 @@ describe("core tree function", function() {
 	});
 	describe("intialisation", function() {
 		it("should load settings pass in parameter", function() {
-			expect(tree.id).toBe("root");
+			expect(tree.id).toBe("tree");
 			expect(tree.container.attr("id")).toBe(container.attr("id"));
 			expect(tree.dataSource).toBeObject(data);
 		});
@@ -20,16 +20,8 @@ describe("core tree function", function() {
 			expect(tree instanceof Vtree.Tree).toBeTruthy();
 			expect(tree.id).toBe(data.tree.id);
 		});
-		it("should have defaults param", function() {
-			
-		});
 	});
-	describe("building the tree", function() {
-		it("should return the tree", function() {
-			
-		});
-		
-	});
+
 	describe("settings an id for the tree", function() {
 		describe("when id is in dataSource", function() {
 			it("should set the id", function() {

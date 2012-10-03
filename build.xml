@@ -1,7 +1,8 @@
 <project name="Vyre Tree Framework" basedir="." default="build" >
 	<property name="src" location="${basedir}/src"/>
 	<property name="dist"  location="${basedir}/dist"/>
-
+	<property name="localServer"  location="/Users/lginoux/Sites/Vtree"/>
+	
 	<target name="build" description="Concatenate all js files">
 		<!-- create directory structure -->
 		<delete dir="${dist}"/>
@@ -33,11 +34,17 @@
 		
 		<!-- concat test files -->
 		<concat destfile="${basedir}/test/vtree.spec.js"> 
-
 			<fileset dir="test/spec" includes="*.js"/>
-
 		</concat>
+
+		<antcall target="copyToLocalServer">
+  		</antcall>
 	</target>
-	
+
+	<target name="copyToLocalServer" description="make a copy on local server">
+		<copy todir="${localServer}">
+		    <fileset dir="${basedir}"/>
+		</copy>
+	</target>
 
 </project>

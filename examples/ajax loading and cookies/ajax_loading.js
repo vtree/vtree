@@ -73,7 +73,7 @@ childrenJsonSource = {
 //Mock ajax function
 jQuery.ajax = function (param) {
 	console.log("mock ajax:",param)
-    _mockAjaxOptions = param;
+	mockAjaxOptions = param;
 	if (param.data.action == "getChildren") {
 		data = childrenJsonSource
 	}
