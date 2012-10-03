@@ -18,7 +18,8 @@
 							var data = $.extend(true, {
 								action:"getChildren",
 								nodes: node.id
-							}, this.ajaxParameters );
+							}, tree.ajaxParameters );
+							debugger
 							$.ajax({
 								type: "GET",
 								url: that.ajaxUrl,
@@ -49,7 +50,7 @@
 							var data = $.extend(true, {
 								action:"getChildren",
 								nodes: opened
-							}, this.ajaxParameters );
+							}, tree.ajaxParameters );
 							$.ajax({
 								type: "GET",
 								url: that.ajaxUrl,

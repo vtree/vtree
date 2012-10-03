@@ -106,22 +106,68 @@ describe("NodeStore core functions", function() {
 				expect(ns.getNode("test_1").tree.id).toBe(tree.id)
 			});
 			it("should give reference to the node store", function() {
-				
+				expect(ns.getNode("test_1").nodeStore.tree.id).toBe(tree.id)
 			});
 			it("should pass the hasRenderedChildren setting", function() {
+				var nodeStore = new Vtree.NodeStore({
+					tree: tree 
+				});
+				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
+					"id":"test",
+					"title": "title",
+					"description": "desc",
+					"hasRenderedChildren": true
+				}]);
+				expect(nodeStore.getNode("test").hasRenderedChildren).toBeTruthy();
 				
 			});
 			it("should pass the hasVisibleChildren setting", function() {
+				var nodeStore = new Vtree.NodeStore({
+					tree: tree 
+				});
+				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
+					"id":"test",
+					"title": "title",
+					"description": "desc",
+					"hasVisibleChildren": true
+				}]);
+				expect(nodeStore.getNode("test").hasVisibleChildren).toBeTruthy();
 				
 			});
 			it("should pass the parent node", function() {
+				expect(ns.getNode("test_2").parent.id).toBe("test_1")
+				expect(ns.getNode("test_3").parent.id).toBe("test_2")
+				expect(ns.getNode("test_1").parent.id).toBe("root")
+				expect(ns.getNode("test_4").parent.id).toBe("root")
 				
 			});
 			it("should pass the parent nodes in an array", function() {
+				expect(ns.getNode("test_3").parents.length).toBe(3)
+				expect(ns.getNode("test_3").parents[0].id).toBe("root")
+				expect(ns.getNode("test_3").parents[1].id).toBe("test_1")
+				expect(ns.getNode("test_3").parents[2].id).toBe("test_2")
 				
+				expect(ns.getNode("test_2").parents.length).toBe(2)
+				expect(ns.getNode("test_2").parents[0].id).toBe("root")
+				expect(ns.getNode("test_2").parents[1].id).toBe("test_1")
+				
+				expect(ns.getNode("test_1").parents.length).toBe(1)
+				expect(ns.getNode("test_1").parents[0].id).toBe("root")
 			});
 			it("should pass the plugins from the tree if they exists", function() {
-				
+				tree = $.extend(true, tree, {
+					plugins:["checkbox"]
+				});
+				var nodeStore = new Vtree.NodeStore({
+					tree: tree 
+				});
+				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
+					"id":"test",
+					"title": "title",
+					"description": "desc",
+					"hasVisibleChildren": true
+				}]);
+				expect(nodeStore.getNode("test").plugins[0]).toBe("checkbox");
 			});		
 		});
 		describe("when the node is in the array 'initially_open' ", function() {
