@@ -19,7 +19,7 @@
 								action:"getChildren",
 								nodes: node.id
 							}, tree.ajaxParameters );
-							debugger
+
 							$.ajax({
 								type: "GET",
 								url: that.ajaxUrl,
@@ -49,7 +49,7 @@
 						if (opened.length) {
 							var data = $.extend(true, {
 								action:"getChildren",
-								nodes: opened
+								nodes: opened.join(",")
 							}, tree.ajaxParameters );
 							$.ajax({
 								type: "GET",

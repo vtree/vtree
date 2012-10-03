@@ -139,7 +139,21 @@ jsonSource = {
 							iconClass: "customFolder",
 							hasChildren: false,
 						}]
-					}
+					},
+			{id:"a",
+			title: "a",
+			description: "a",
+			hasChildren: false,
+			iconPath:"../images/icon_folder_open_16.png"},
+			{id:"b",
+			title: "b",
+			description: "b",
+			hasChildren: false,
+			iconClass:"default"},
+			{id:"c",
+			title: "c",
+			description: "c",
+			hasChildren: false},
 	]}
 }
 

@@ -687,7 +687,7 @@ Vtree.plugins.defaults.core.node = {
 								action:"getChildren",
 								nodes: node.id
 							}, tree.ajaxParameters );
-							debugger
+
 							$.ajax({
 								type: "GET",
 								url: that.ajaxUrl,
@@ -717,7 +717,7 @@ Vtree.plugins.defaults.core.node = {
 						if (opened.length) {
 							var data = $.extend(true, {
 								action:"getChildren",
-								nodes: opened
+								nodes: opened.join(",")
 							}, tree.ajaxParameters );
 							$.ajax({
 								type: "GET",
@@ -798,7 +798,8 @@ Vtree.plugins.defaults.core.node = {
 	Vtree.plugins.bolding = {
 		tree:{
 			defaults:{
-				initially_bold: []
+				initially_bold: [],
+				cascading_bold: false
 			},
 			_fn:{
 				_attachEvents: function(){
@@ -828,12 +829,14 @@ Vtree.plugins.defaults.core.node = {
 					// bolding a node bolds all his parents until root node but doesn't affect children state
 					this.isBold = true;
 					this.getEl().addClass('bold');
-					// bold parents
-					for (var i=0, parents = this.parents, len = this.parents.length; i < len; i++) {
-						var parent = parents[i];
-						parent.isBold = true;
-						parent.getEl().addClass("bold");
-					}	
+					if (this.tree.cascading_bold) {
+						// bold parents
+						for (var i=0, parents = this.parents, len = this.parents.length; i < len; i++) {
+							var parent = parents[i];
+							parent.isBold = true;
+							parent.getEl().addClass("bold");
+						}	
+					}
 					// fire bold event                                          
 					this.tree.container.trigger("bold.node", [this.tree, this]);
 			    },
@@ -843,6 +846,7 @@ Vtree.plugins.defaults.core.node = {
 
 					this.isBold = false;
 					this.getEl().removeClass('bold');
+					
 					// unbold children
 					_rec_unbold = function(node){
 						if (node.hasChildren) {
@@ -856,7 +860,10 @@ Vtree.plugins.defaults.core.node = {
 							}
 						}
 					};
-					_rec_unbold(this);
+					
+					if (this.tree.cascading_bold) {
+						_rec_unbold(this);
+					}
 					
 					// fire bold event
 					this.tree.container.trigger("unbold.node", [this.tree, this]);
@@ -885,8 +892,10 @@ Vtree.plugins.defaults.core.node = {
 						if (typeof node != "undefined"){
 							node.isBold = true;
 						}
-						for (var j=0, lengh = parents.length; j < lengh; j++) {							
-							parents[j].isBold = true;
+						if (this.tree.cascading_bold) {
+							for (var j=0, lengh = parents.length; j < lengh; j++) {							
+								parents[j].isBold = true;
+							}
 						}
 					}
 					
