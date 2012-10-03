@@ -154,7 +154,7 @@ describe("Node core functions", function() {
 					hasChildren: true,
 					children:[child],
 					iconPath:{
-						open:"/path/to/open_icon.png"
+						open:window.location.origin+"/images/file.png"
 					},
 					tree: mockTree
 				});
@@ -188,7 +188,7 @@ describe("Node core functions", function() {
 				expect(parent.el).toHaveClass("open")
 			});
 			it("should change the open icon", function() {
-				expect(parent.el.find("img")[0].src).toBe(window.location.origin+"/path/to/open_icon.png");
+				expect(parent.el.find("img")[0].src).toBe(window.location.origin+"/images/file.png");
 			});
 		});
 		describe("if children are asynchronously loaded", function() {
@@ -215,7 +215,7 @@ describe("Node core functions", function() {
 					hasChildren: true,
 					children:[child],
 					iconPath:{
-						open:"/path/to/open_icon.png"
+						open:"/images/file.png"
 					},
 					tree: mockTree
 				});
@@ -240,7 +240,7 @@ describe("Node core functions", function() {
 			});
 			
 			it("should change the open icon", function() {
-				expect(parent.el.find("img")[0].src).toBe(window.location.origin+"/path/to/open_icon.png");
+				expect(parent.el.find("img")[0].src).toBe(window.location.origin+"/images/file.png");
 			});
 			
 			
@@ -323,7 +323,7 @@ describe("Node core functions", function() {
 					isOpen: true,
 					children:[child],
 					iconPath:{
-						close:"/path/to/close_icon.png"
+						close:"/images/file.png"
 					},
 					tree: mockTree
 				});
@@ -349,7 +349,7 @@ describe("Node core functions", function() {
 				expect(parent.hasRenderedChildren).toBeTruthy();
 			});
 			it("change the icon path for the close button", function() {
-				expect(parent.el.find("img")[0].src).toBe(window.location.origin+"/path/to/close_icon.png");
+				expect(parent.el.find("img")[0].src).toBe(window.location.origin+"/images/file.png");
 			});
 			
 			
@@ -444,8 +444,8 @@ describe("Node core functions", function() {
 						title: "title",
 						description: "description",
 						iconPath:{
-							open: "path/to/openIcon",
-							close: "path/to/closeIcon"
+							open: "/images/file.png",
+							close: "/images/file.png"
 						},
 						hasChildren:true,
 						isOpen: true,
@@ -468,7 +468,7 @@ describe("Node core functions", function() {
 					expect(html).toHaveClass("folder");
 				});
 				it("should have the iconPath.open path in the image source", function() {
-					expect(html.find("img")).toHaveAttr("src", "path/to/openIcon")
+					expect(html.find("img")).toHaveAttr("src", "/images/file.png")
 				});
 			});
 			describe("and the node is closed", function() {
@@ -480,8 +480,8 @@ describe("Node core functions", function() {
 						description: "description",
 						hasChildren:true,
 						iconPath:{
-							open: "path/to/openIcon",
-							close: "path/to/closeIcon"
+							open: "/images/file.png",
+							close: "/images/file.png"
 						},
 						isOpen:false,
 						tree:{id:"tree"}
@@ -498,7 +498,7 @@ describe("Node core functions", function() {
 					expect(html).not.toHaveClass("open")
 				});
 				it("should have the iconPath.close path in the image source", function() {
-					expect(html.find("img")).toHaveAttr("src", "path/to/closeIcon")
+					expect(html.find("img")).toHaveAttr("src", "/images/file.png")
 					
 				});
 			});
@@ -593,7 +593,7 @@ describe("Node core functions", function() {
 					id: "root",
 					title: "title",
 					description: "description",
-					iconPath:"path/to/icon.png",
+					iconPath:"/images/file.png",
 					hasChildren:false,
 					tree:{id:"tree"}
 				})
@@ -607,7 +607,7 @@ describe("Node core functions", function() {
 			});
 			
 			it("should have the iconPath path in the image source", function() {
-				expect(a.find("img")).toHaveAttr("src", "path/to/icon.png")
+				expect(a.find("img")).toHaveAttr("src", "/images/file.png")
 			});
 			it("should have  the last child as a em tag with a text corresponding to the title attribute ", function() {
 				var em = a.children(":last")
@@ -685,7 +685,7 @@ describe("Node core functions", function() {
 		});
 		
 		it("should toggle a 'Loading...' text", function() {
-			expect(node.getEl().find("em").text()).toBe("Loading...");
+			expect(node.getEl().find("a.title").text()).toBe("Loading...");
 			node.toggleLoading()
 			expect(node.getEl().text()).not.toBe("Loading...");
 		});
@@ -838,22 +838,68 @@ describe("NodeStore core functions", function() {
 				expect(ns.getNode("test_1").tree.id).toBe(tree.id)
 			});
 			it("should give reference to the node store", function() {
-				
+				expect(ns.getNode("test_1").nodeStore.tree.id).toBe(tree.id)
 			});
 			it("should pass the hasRenderedChildren setting", function() {
+				var nodeStore = new Vtree.NodeStore({
+					tree: tree 
+				});
+				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
+					"id":"test",
+					"title": "title",
+					"description": "desc",
+					"hasRenderedChildren": true
+				}]);
+				expect(nodeStore.getNode("test").hasRenderedChildren).toBeTruthy();
 				
 			});
 			it("should pass the hasVisibleChildren setting", function() {
+				var nodeStore = new Vtree.NodeStore({
+					tree: tree 
+				});
+				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
+					"id":"test",
+					"title": "title",
+					"description": "desc",
+					"hasVisibleChildren": true
+				}]);
+				expect(nodeStore.getNode("test").hasVisibleChildren).toBeTruthy();
 				
 			});
 			it("should pass the parent node", function() {
+				expect(ns.getNode("test_2").parent.id).toBe("test_1")
+				expect(ns.getNode("test_3").parent.id).toBe("test_2")
+				expect(ns.getNode("test_1").parent.id).toBe("root")
+				expect(ns.getNode("test_4").parent.id).toBe("root")
 				
 			});
 			it("should pass the parent nodes in an array", function() {
+				expect(ns.getNode("test_3").parents.length).toBe(3)
+				expect(ns.getNode("test_3").parents[0].id).toBe("root")
+				expect(ns.getNode("test_3").parents[1].id).toBe("test_1")
+				expect(ns.getNode("test_3").parents[2].id).toBe("test_2")
 				
+				expect(ns.getNode("test_2").parents.length).toBe(2)
+				expect(ns.getNode("test_2").parents[0].id).toBe("root")
+				expect(ns.getNode("test_2").parents[1].id).toBe("test_1")
+				
+				expect(ns.getNode("test_1").parents.length).toBe(1)
+				expect(ns.getNode("test_1").parents[0].id).toBe("root")
 			});
 			it("should pass the plugins from the tree if they exists", function() {
-				
+				tree = $.extend(true, tree, {
+					plugins:["checkbox"]
+				});
+				var nodeStore = new Vtree.NodeStore({
+					tree: tree 
+				});
+				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
+					"id":"test",
+					"title": "title",
+					"description": "desc",
+					"hasVisibleChildren": true
+				}]);
+				expect(nodeStore.getNode("test").plugins[0]).toBe("checkbox");
 			});		
 		});
 		describe("when the node is in the array 'initially_open' ", function() {
@@ -973,6 +1019,276 @@ describe("NodeStore core functions", function() {
 			});
 			
 		});
+	});
+});describe("core tree function", function() {
+	var data, tree, container;
+	beforeEach(function() {
+		this.addMatchers(customMatchers);
+		appendSetFixtures(sandbox())
+		data = getJSONFixture('sourceData.json');
+		container = $('#sandbox')
+		tree = new Vtree.Tree({
+			container:container,
+			dataSource: data
+		})
+	});
+	describe("intialisation", function() {
+		it("should load settings pass in parameter", function() {
+			expect(tree.id).toBe("root");
+			expect(tree.container.attr("id")).toBe(container.attr("id"));
+			expect(tree.dataSource).toBeObject(data);
+		});
+		it("should return the tree", function() {
+			expect(tree instanceof Vtree.Tree).toBeTruthy();
+			expect(tree.id).toBe(data.tree.id);
+		});
+		it("should have defaults param", function() {
+			
+		});
+	});
+	describe("building the tree", function() {
+		it("should return the tree", function() {
+			
+		});
+		
+	});
+	describe("settings an id for the tree", function() {
+		describe("when id is in dataSource", function() {
+			it("should set the id", function() {
+				tree.setId()			  	
+				expect(tree.id).toBe(data.tree.id);
+			});
+		});
+		describe("when id is in settings", function() {
+			var tree;
+			beforeEach(function() {
+				delete data.tree.id
+			  	tree = new Vtree.Tree({
+					container:$('#sandbox'),
+					dataSource: data,
+					id: "tree"
+				})
+				tree.setId()
+			});
+			it("should set the id", function() {				
+				expect(tree.id).toBe("tree");
+			});
+			
+		});
+		describe("when id is not defined", function() {
+			var tree;
+			beforeEach(function() {
+				delete data.tree.id
+				spyOn(Vtree, "_generateTreeId");
+			  	tree = new Vtree.Tree({
+					dataSource: data,
+					container:$('#sandbox')					
+				})
+				tree.setId()
+			});
+			it("should generate a random id", function() {
+				expect(Vtree._generateTreeId).toHaveBeenCalled();
+			});
+			
+		});
+		describe("id should not have space", function() {
+			var tree;
+			beforeEach(function() {
+				data.tree.id = "id      with space"
+				spyOn(Vtree, "_generateTreeId");
+			  	tree = new Vtree.Tree({
+					dataSource: data,
+					container:$('#sandbox')					
+				})
+				tree.setId()
+			});
+			it("should replace space by _", function() {
+				expect(tree.id).toBe("id_with_space");
+			});
+			
+		});
+		
+	});
+	describe("refreshing the tree", function() {
+		var eventSpy;
+		beforeEach(function() {
+			spyOn(tree.container, "empty").andReturn(tree.container)
+			spyOn(tree, "_generateHTML").andReturn("html")
+			eventSpy = spyOnEvent('#sandbox', 'rendered.tree');
+			
+			tree.refresh()			  	
+		});
+		it("should empty the container", function() {
+			expect(tree.container.empty).toHaveBeenCalled();
+
+		});
+		it("should append the html of the tree by calling _generateHTML", function() {
+			expect(tree._generateHTML).toHaveBeenCalled();			
+		});
+		it("should trigger a rendered.tree event passing the tree", function() {
+			expect(eventSpy).toHaveBeenTriggered();
+
+		});
+	});
+	
+	describe("attaching events to the tree", function() {
+		it("should return the container", function() {
+			var container = tree._attachEvents()
+			expect(container.attr("id")).toBe("sandbox");
+		});
+		describe("click event", function() {
+			it("trigger a click.node event", function() {
+				var eventSpy = spyOnEvent('#sandbox', 'click.node');
+				container.find("li:first").click()
+				expect(eventSpy).toHaveBeenTriggered();
+				
+			});
+						
+		});
+		describe("double click event", function() {
+			it("trigger a dblclick.node event", function() {
+				var eventSpy = spyOnEvent('#sandbox', 'dblclick.node');
+				container.find("li:first").dblclick()
+				expect(eventSpy).toHaveBeenTriggered();
+			});
+						
+		});
+		describe("right clicking a node", function() {
+			it("trigger a contextMenu.node event", function() {
+				var eventSpy = spyOnEvent('#sandbox', 'contextMenu.node');
+				container.find("li:first").trigger({
+				    type: 'contextMenu'
+				});
+				expect(eventSpy).toHaveBeenTriggered();
+			});
+			
+		});
+		describe("hover event on node", function() {
+			it("triggers a mouseenter.node event and pass the node", function() {
+				var eventSpy = spyOnEvent('#sandbox', 'mouseenter.node');
+				container.find("li:first").trigger( 'mouseenter' )
+				expect(eventSpy).toHaveBeenTriggered();
+				
+			});
+			it("triggers a mouseleave.node event and pass the node", function() {
+				var eventSpy = spyOnEvent('#sandbox', 'mouseleave.node');
+				container.find("li:first").trigger( 'mouseleave' )
+				expect(eventSpy).toHaveBeenTriggered();
+			});
+			
+		});
+		describe("open/close event on a node", function() {
+			it("calls the toggleOpen function on the node", function() {
+				spyOn(tree.getNode("test_1"), "toggleOpen");
+				container.find("li:first .openClose").click();
+				expect(tree.getNode("test_1").toggleOpen).toHaveBeenCalled();
+			});
+			
+		});
+		
+	});
+	
+	describe("generating the html for the tree", function() {
+		var ul, struc;
+		beforeEach(function() {
+			struc = tree.nodeStore.getStructure()
+			for (var i=0, len = struc.children.length; i < len; i++) {
+				var node = struc.children[i]
+				spyOn(node, "getHTML")
+			}
+			ul = tree._generateHTML();
+		});
+		it("should add a class tree to the ul element", function() {
+			expect(ul).toHaveClass("tree")
+		});
+		it("should get the structure form the node store", function() {
+			spyOn(tree.nodeStore, "getStructure").andReturn({children:[]});
+			ul = tree._generateHTML();
+			
+			expect(tree.nodeStore.getStructure).toHaveBeenCalled();
+		});
+		it("should call the getHTML function for each parent node of the tree and append it to the ul element", function() {
+			for (var i=0, len = struc.children.length; i < len; i++) {
+				var node = struc.children[i];
+				expect(node.getHTML).toHaveBeenCalled();
+			}
+			
+		});
+		it("should return the ul element", function() {
+			expect(ul[0].tagName).toBe("UL");
+		});
+	
+	});
+
+	describe("getting a node", function() {
+		it("should call nodeStore.getNode and return its result", function() {
+			spyOn(tree.nodeStore, "getNode").andReturn("sdnfsldfasd")
+			var res = tree.getNode("test_1")
+			expect(tree.nodeStore.getNode).toHaveBeenCalled();
+			expect(res).toBe("sdnfsldfasd");
+		});
+	});
+	describe("destroying the node", function() {
+		it("should empty the container", function() {
+			spyOn(tree.container, "empty");
+			tree.destroy()
+			expect(tree.container.empty).toHaveBeenCalled();
+		});
+		it("should unbind the events with namespace .node", function() {
+			spyOn(tree.container, "unbind").andReturn(tree.container);
+			tree.destroy()
+			expect(tree.container.unbind).toHaveBeenCalledWith(".node");
+		});
+		it("should undelegate the container", function() {
+			spyOn(tree.container, "undelegate").andReturn(tree.container);			
+			tree.destroy()
+			expect(tree.container.undelegate).toHaveBeenCalled();
+		});
+	});
+
+	describe("the toJson function", function() {
+		it("should call the nodeStore.toJson function and return its result", function() {
+				spyOn(tree.nodeStore, "toJson").andReturn("1234567890");
+				var res = tree.toJson()
+				expect(tree.nodeStore.toJson).toHaveBeenCalled();
+				expect(res).toBe("1234567890");
+		});
+	});
+	
+	describe("the getSiblings function", function() {
+		it("should call the nodeStore.getSiblings function, pass it the node and return the result", function() {
+			spyOn(tree.nodeStore, "getSiblings").andReturn("dfgsdfsf")
+			var res = tree.getSiblings("test_1")
+			expect(tree.nodeStore.getSiblings).toHaveBeenCalledWith("test_1");
+			expect(res).toBe("dfgsdfsf");
+		});
+	});
+	
+	describe("the getParent function", function() {
+		it("should call the nodeStore.getParent function, pass it the node and return the result", function() {
+			spyOn(tree.nodeStore, "getParent").andReturn("wfwmfldf")
+			var res = tree.getParent("test_1")
+			expect(tree.nodeStore.getParent).toHaveBeenCalledWith("test_1");
+			expect(res).toBe("wfwmfldf");
+		});
+
+	});
+	describe("the getParents function", function() {
+		it("should call the nodeStore.getParents function, pass it the node and return the result", function() {
+			spyOn(tree.nodeStore, "getParents").andReturn("wfwmfldf")
+			var res = tree.getParents("test_1")
+			expect(tree.nodeStore.getParents).toHaveBeenCalledWith("test_1");
+			expect(res).toBe("wfwmfldf");
+		});
+	});
+	describe("the getChildren function", function() {
+		it("should call the nodeStore.getChildren function, pass it the node and return the result", function() {
+			spyOn(tree.nodeStore, "getChildren").andReturn("wfwmfldf")
+			var res = tree.getChildren("test_1")
+			expect(tree.nodeStore.getChildren).toHaveBeenCalledWith("test_1");
+			expect(res).toBe("wfwmfldf");
+		});
+
 	});
 });/*
     Original script title: "Object.identical.js"; version 1.12

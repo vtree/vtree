@@ -90,6 +90,7 @@ var settings = {
 	ajaxUrl: "/ajaxUrl",
 	ajaxParameters: {
 		defaultParam: "testing",
+		action: "getChildren",
 		awesomeness: true
 	},
 	getAjaxData:function(data){

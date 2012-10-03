@@ -1,3 +1,11 @@
+customMatchers = {
+	toBeObject: function(obj) {
+		return Object.identical(this.actual, obj)
+	},
+	toBeNode: function(node) {
+		return Object.identical(this.actual.toJson(), node.toJson())
+	}
+};
 describe("Node core functions", function() {
 	describe("initialization", function() {
 		var node;
@@ -677,7 +685,7 @@ describe("Node core functions", function() {
 		});
 		
 		it("should toggle a 'Loading...' text", function() {
-			expect(node.getEl().find("a.title").text()).toBe("Loading...");
+			expect(node.getEl().find("em").text()).toBe("Loading...");
 			node.toggleLoading()
 			expect(node.getEl().text()).not.toBe("Loading...");
 		});
@@ -722,3 +730,598 @@ describe("Node core functions", function() {
 		
 	});
 });
+describe("NodeStore core functions", function() {
+	var data, tree;
+	beforeEach(function() {
+		this.addMatchers(customMatchers);
+		data = getJSONFixture('sourceData.json');
+		tree = {
+			id: "treeId",
+			dataSource: data
+		};
+	});
+	
+	describe("intialisation", function() {
+		var ns;
+		beforeEach(function() {	
+		  	ns = new Vtree.NodeStore({
+				tree: tree 
+			});
+		});
+		it("should create the root node", function() {
+			expect(ns.rootNode).not.toBeUndefined();
+		});
+		it("should load settings passed in parameters", function() {
+			expect(ns.tree.id).toBe(tree.id)
+		});
+		
+		
+		
+	});
+	describe("intializing the structure", function() {
+		var ns;
+		beforeEach(function() {
+		  	ns = new Vtree.NodeStore({
+				tree: tree 
+			});
+			spyOn(ns, "_recBuildNodes");
+			spyOn(ns, "getDataSource").andReturn(tree.dataSource.tree);
+			ns.initStructure();
+		});	
+		it("should get the data source from the tree", function() {
+			expect(ns.getDataSource).toHaveBeenCalled();
+		});
+			
+		it("should call _recBuildNodes with correct parameters", function() {
+			expect(ns._recBuildNodes).toHaveBeenCalledWith(ns.rootNode, [ns.rootNode], ns.getDataSource().nodes);
+		});
+		it("should store the rootNode as the tree structure", function() {
+			expect(ns.structure.tree.toJson()).toBeObject(ns.rootNode.toJson())
+		});
+		
+	});
+	describe("getting the data Source from the tree", function() {
+		var ns;
+		beforeEach(function() {
+		  	ns = new Vtree.NodeStore({
+				tree: tree 
+			});
+		});
+		it("should return the json data source", function() {
+			expect(ns.getDataSource()).toBeObject(data.tree)
+		});
+		
+	});
+	describe("building the node structure", function() {
+		var ns;
+		beforeEach(function() {	
+		  	ns = new Vtree.NodeStore({
+				tree: tree 
+			});
+			ns._recBuildNodes( ns.rootNode, [ns.rootNode], data.tree.nodes);
+		  	
+		});
+			
+		it("should set the children nodes to the parent", function() {
+			expect(ns.rootNode.children.length).toBe(2);
+			expect(ns.rootNode.children[0]).toBeNode(ns.getNode("test_1"));
+			expect(ns.rootNode.children[1]).toBeNode(ns.getNode("test_4"));
+		});
+		it("should add nodes to the internal structure", function() {
+			expect(ns.structure.id2NodeMap["test_1"]).toBeNode(ns.getNode("test_1"))
+			expect(ns.structure.id2NodeMap["test_2"]).toBeNode(ns.getNode("test_2"))
+			expect(ns.structure.id2NodeMap["test_3"]).toBeNode(ns.getNode("test_3"))
+			expect(ns.structure.id2NodeMap["test_4"]).toBeNode(ns.getNode("test_4"))
+		});
+		describe("passing the right arguments to the node", function() {
+			it("should pass the isOpen setting", function() {
+				var nodeStore = new Vtree.NodeStore({
+					tree: tree 
+				});
+				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
+					"id":"test_4",
+					"title": "title_4",
+					"description": "title_4",
+					"hasChildren": false
+				}]);
+				expect(nodeStore.getNode("test_4").isOpen).toBeFalsy();
+				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
+					"id":"test_4",
+					"title": "title_4",
+					"description": "title_4",
+					"isOpen": true
+				}]);
+				expect(nodeStore.getNode("test_4").isOpen).toBeTruthy();
+				
+			});
+			it("should give nodes reference to the tree", function() {
+				expect(ns.getNode("test_1").tree.id).toBe(tree.id)
+			});
+			it("should give reference to the node store", function() {
+				expect(ns.getNode("test_1").nodeStore.tree.id).toBe(tree.id)
+			});
+			it("should pass the hasRenderedChildren setting", function() {
+				var nodeStore = new Vtree.NodeStore({
+					tree: tree 
+				});
+				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
+					"id":"test",
+					"title": "title",
+					"description": "desc",
+					"hasRenderedChildren": true
+				}]);
+				expect(nodeStore.getNode("test").hasRenderedChildren).toBeTruthy();
+				
+			});
+			it("should pass the hasVisibleChildren setting", function() {
+				var nodeStore = new Vtree.NodeStore({
+					tree: tree 
+				});
+				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
+					"id":"test",
+					"title": "title",
+					"description": "desc",
+					"hasVisibleChildren": true
+				}]);
+				expect(nodeStore.getNode("test").hasVisibleChildren).toBeTruthy();
+				
+			});
+			it("should pass the parent node", function() {
+				expect(ns.getNode("test_2").parent.id).toBe("test_1")
+				expect(ns.getNode("test_3").parent.id).toBe("test_2")
+				expect(ns.getNode("test_1").parent.id).toBe("root")
+				expect(ns.getNode("test_4").parent.id).toBe("root")
+				
+			});
+			it("should pass the parent nodes in an array", function() {
+				expect(ns.getNode("test_3").parents.length).toBe(3)
+				expect(ns.getNode("test_3").parents[0].id).toBe("root")
+				expect(ns.getNode("test_3").parents[1].id).toBe("test_1")
+				expect(ns.getNode("test_3").parents[2].id).toBe("test_2")
+				
+				expect(ns.getNode("test_2").parents.length).toBe(2)
+				expect(ns.getNode("test_2").parents[0].id).toBe("root")
+				expect(ns.getNode("test_2").parents[1].id).toBe("test_1")
+				
+				expect(ns.getNode("test_1").parents.length).toBe(1)
+				expect(ns.getNode("test_1").parents[0].id).toBe("root")
+			});
+			it("should pass the plugins from the tree if they exists", function() {
+				tree = $.extend(true, tree, {
+					plugins:["checkbox"]
+				});
+				var nodeStore = new Vtree.NodeStore({
+					tree: tree 
+				});
+				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
+					"id":"test",
+					"title": "title",
+					"description": "desc",
+					"hasVisibleChildren": true
+				}]);
+				expect(nodeStore.getNode("test").plugins[0]).toBe("checkbox");
+			});		
+		});
+		describe("when the node is in the array 'initially_open' ", function() {
+			beforeEach(function() {
+				tree = $.extend(tree, {initially_open:["test_2"]})
+			  	ns = new Vtree.NodeStore({
+					tree: tree 
+				});
+				ns._recBuildNodes( ns.rootNode, [ns.rootNode], data.tree.nodes);
+			});
+			it("should set the node as open", function() {
+				expect(ns.getNode("test_2").isOpen).toBeTruthy();
+				expect(ns.getNode("test_2").hasVisibleChildren).toBeTruthy();
+				expect(ns.getNode("test_2").hasRenderedChildren).toBeTruthy();
+			});
+			it("should open all parents as well", function() {
+				expect(ns.getParents("test_2")[0].isOpen).toBeTruthy();
+				expect(ns.getParents("test_2")[0].hasVisibleChildren).toBeTruthy();
+				expect(ns.getParents("test_2")[0].hasRenderedChildren).toBeTruthy();
+				expect(ns.getParents("test_2")[1].isOpen).toBeTruthy();
+				expect(ns.getParents("test_2")[1].hasVisibleChildren).toBeTruthy();
+				expect(ns.getParents("test_2")[1].hasRenderedChildren).toBeTruthy();
+
+			});
+			
+			
+		});
+
+		
+		
+	});
+	
+	describe("getting the internal structure", function() {
+		var ns;
+		beforeEach(function() {
+			ns = new Vtree.NodeStore({
+				tree: tree 
+			});
+		});
+		it("should return the internal structure", function() {
+			expect(ns.getStructure().id).toBeObject(ns.structure.tree.id)
+		});
+		
+		
+	});
+	
+	describe("traversing tree and getting nodes", function() {
+		var ns;
+		beforeEach(function() {
+			ns = new Vtree.NodeStore({
+				tree: tree 
+			});
+		});
+		describe("getting a node", function() {
+
+			it("should return the correct node if you pass a node id", function() {
+				expect(ns.getNode("test_3").toJson()).toBeObject({
+					id : 'test_3', 
+					isOpen : false,
+					title : 'title_3', 
+					description : 'title_3', 
+					customClass : '', 
+					hasVisibleChildren : false, 
+					hasRenderedChildren : false, 
+					hasChildren : false, 
+					children : [ ], 
+					iconClass : 'default', 
+					iconPath : { open : '', close : '' }, 
+					customHTML : '' 
+				})
+			});
+			it("should return the correct node if you pass the node instance", function() {
+				var nodeInstance = ns.getStructure().children[0].children[0].children[0]; // node title_3
+				expect(ns.getNode(nodeInstance).toJson()).toBeObject({
+					id : 'test_3', 
+					isOpen : false,
+					title : 'title_3', 
+					description : 'title_3', 
+					customClass : '', 
+					hasVisibleChildren : false, 
+					hasRenderedChildren : false, 
+					hasChildren : false, 
+					children : [ ], 
+					iconClass : 'default', 
+					iconPath : { open : '', close : '' }, 
+					customHTML : '' 
+				})
+			});
+
+		});
+		describe("getting siblings", function() {
+			it("should return all siblings without the node itself", function() {
+				expect(ns.getSiblings("test_1")[0].toJson()).toBeObject(ns.getNode("test_4").toJson())
+			});
+			
+		});
+		describe("getting the direct parent", function() {
+			it("should return the parent node", function() {
+				expect(ns.getParent("test_3").toJson()).toBeObject(ns.getNode("test_2").toJson())
+			});
+			
+		});
+		describe("getting all the parents", function() {
+			it("should return the parent nodes", function() {
+				var parents = ns.getParents("test_3")
+				expect(parents.length).toBe(3);
+				expect(parents[0].id).toBeObject("root")
+				expect(parents[1].toJson()).toBeObject(ns.getNode("test_1").toJson())
+				expect(parents[2].toJson()).toBeObject(ns.getNode("test_2").toJson())
+			});
+			
+		});
+		
+		describe("getting children", function() {
+			it("should return all children", function() {
+				expect(ns.getChildren("test_1")[0].toJson()).toBeObject(ns.getNode("test_2").toJson())
+			});
+			
+		});
+	});
+});describe("core tree function", function() {
+	var data, tree, container;
+	beforeEach(function() {
+		this.addMatchers(customMatchers);
+		appendSetFixtures(sandbox())
+		data = getJSONFixture('sourceData.json');
+		container = $('#sandbox')
+		tree = new Vtree.Tree({
+			container:container,
+			dataSource: data
+		})
+	});
+	describe("intialisation", function() {
+		it("should attach the settings passed in param", function() {
+			
+		});
+		it("should call build function", function() {
+			
+		});
+		it("should return the tree", function() {
+			
+		});
+		it("should have defaults param", function() {
+			
+		});
+	});
+	describe("building the tree", function() {
+		it("should return the tree", function() {
+			
+		});
+		
+	});
+	describe("settings an id for the tree", function() {
+		describe("when id is in dataSource", function() {
+			it("should set the id", function() {
+				tree.setId()			  	
+				expect(tree.id).toBe(data.tree.id);
+			});
+		});
+		describe("when id is in settings", function() {
+			var tree;
+			beforeEach(function() {
+				delete data.tree.id
+			  	tree = new Vtree.Tree({
+					container:$('#sandbox'),
+					dataSource: data,
+					id: "tree"
+				})
+				tree.setId()
+			});
+			it("should set the id", function() {				
+				expect(tree.id).toBe("tree");
+			});
+			
+		});
+		describe("when id is not defined", function() {
+			var tree;
+			beforeEach(function() {
+				delete data.tree.id
+				spyOn(Vtree, "_generateTreeId");
+			  	tree = new Vtree.Tree({
+					dataSource: data,
+					container:$('#sandbox')					
+				})
+				tree.setId()
+			});
+			it("should generate a random id", function() {
+				expect(Vtree._generateTreeId).toHaveBeenCalled();
+			});
+			
+		});
+		describe("id should not have space", function() {
+			var tree;
+			beforeEach(function() {
+				data.tree.id = "id      with space"
+				spyOn(Vtree, "_generateTreeId");
+			  	tree = new Vtree.Tree({
+					dataSource: data,
+					container:$('#sandbox')					
+				})
+				tree.setId()
+			});
+			it("should replace space by _", function() {
+				expect(tree.id).toBe("id_with_space");
+			});
+			
+		});
+		
+	});
+	describe("refreshing the tree", function() {
+		var eventSpy;
+		beforeEach(function() {
+			spyOn(tree.container, "empty").andReturn(tree.container)
+			spyOn(tree, "_generateHTML").andReturn("html")
+			eventSpy = spyOnEvent('#sandbox', 'rendered.tree');
+			
+			tree.refresh()			  	
+		});
+		it("should empty the container", function() {
+			expect(tree.container.empty).toHaveBeenCalled();
+
+		});
+		it("should append the html of the tree by calling _generateHTML", function() {
+			expect(tree._generateHTML).toHaveBeenCalled();			
+		});
+		it("should trigger a rendered.tree event passing the tree", function() {
+			expect(eventSpy).toHaveBeenTriggered();
+
+		});
+	});
+	
+	describe("attaching events to the tree", function() {
+		it("should return the container", function() {
+			var container = tree._attachEvents()
+			expect(container.attr("id")).toBe("sandbox");
+		});
+		describe("click event", function() {
+			it("trigger a click.node event", function() {
+				var eventSpy = spyOnEvent('#sandbox', 'click.node');
+				container.find("li:first").click()
+				expect(eventSpy).toHaveBeenTriggered();
+				
+			});
+						
+		});
+		describe("double click event", function() {
+			it("trigger a dblclick.node event", function() {
+				var eventSpy = spyOnEvent('#sandbox', 'dblclick.node');
+				container.find("li:first").dblclick()
+				expect(eventSpy).toHaveBeenTriggered();
+			});
+						
+		});
+		describe("right clicking a node", function() {
+			it("trigger a contextMenu.node event", function() {
+				var eventSpy = spyOnEvent('#sandbox', 'contextMenu.node');
+				container.find("li:first").trigger({
+				    type: 'contextMenu'
+				});
+				expect(eventSpy).toHaveBeenTriggered();
+			});
+			
+		});
+		describe("hover event on node", function() {
+			it("triggers a mouseenter.node event and pass the node", function() {
+				var eventSpy = spyOnEvent('#sandbox', 'mouseenter.node');
+				container.find("li:first").trigger( 'mouseenter' )
+				expect(eventSpy).toHaveBeenTriggered();
+				
+			});
+			it("triggers a mouseleave.node event and pass the node", function() {
+				var eventSpy = spyOnEvent('#sandbox', 'mouseleave.node');
+				container.find("li:first").trigger( 'mouseleave' )
+				expect(eventSpy).toHaveBeenTriggered();
+			});
+			
+		});
+		describe("open/close event on a node", function() {
+			it("calls the toggleOpen function on the node", function() {
+				spyOn(tree.getNode("test_1"), "toggleOpen");
+				container.find("li:first .openClose").click();
+				expect(tree.getNode("test_1").toggleOpen).toHaveBeenCalled();
+			});
+			
+		});
+		
+	});
+	
+	describe("generating the html for the tree", function() {
+		var ul, struc;
+		beforeEach(function() {
+			struc = tree.nodeStore.getStructure()
+			for (var i=0, len = struc.children.length; i < len; i++) {
+				var node = struc.children[i]
+				spyOn(node, "getHTML")
+			}
+			ul = tree._generateHTML();
+		});
+		it("should add a class tree to the ul element", function() {
+			expect(ul).toHaveClass("tree")
+		});
+		it("should get the structure form the node store", function() {
+			spyOn(tree.nodeStore, "getStructure").andReturn({children:[]});
+			ul = tree._generateHTML();
+			
+			expect(tree.nodeStore.getStructure).toHaveBeenCalled();
+		});
+		it("should call the getHTML function for each parent node of the tree and append it to the ul element", function() {
+			for (var i=0, len = struc.children.length; i < len; i++) {
+				var node = struc.children[i];
+				expect(node.getHTML).toHaveBeenCalled();
+			}
+			
+		});
+		it("should return the ul element", function() {
+			expect(ul[0].tagName).toBe("UL");
+		});
+	
+	});
+
+	describe("getting a node", function() {
+		it("should call nodeStore.getNode", function() {
+			
+		});
+		it("should return the node", function() {
+			
+		});
+	});
+	describe("destroying the node", function() {
+		it("should empty the container", function() {
+			
+		});
+		it("should unbind the events with namespace .node", function() {
+			
+		});
+		it("should undelegate the container", function() {
+			
+		});
+	});
+
+	describe("the toJson function", function() {
+		it("should call the nodeStore.toJson function", function() {
+			
+		});
+		it("should return the json for the tree", function() {
+			
+		});
+	});
+	
+	describe("the getSiblings function", function() {
+		it("should call the nodeStore.getSiblings function and pass it the node", function() {
+			
+		});
+		it("should return the result of the nodeStore.getSiblings ", function() {
+			
+		});
+	});
+	
+	describe("the getParent function", function() {
+		it("should call the nodeStore.getParent function and pass it the node", function() {
+			
+		});
+		it("should return the result of the nodeStore.getParent ", function() {
+			
+		});
+	});
+	describe("the getParents function", function() {
+		it("should call the nodeStore.getParents function and pass it the node", function() {
+			
+		});
+		it("should return the result of the nodeStore.getParents", function() {
+			
+		});
+	});
+	describe("the getChildren function", function() {
+		it("should call the nodeStore.getChildren function and pass it the node", function() {
+			
+		});
+		it("should return the result of the nodeStore.getChildren", function() {
+			
+		});
+	});
+});/*
+    Original script title: "Object.identical.js"; version 1.12
+    Copyright (c) 2011, Chris O'Brien, prettycode.org
+    http://github.com/prettycode/Object.identical.js
+
+    Permission is hereby granted for unrestricted use, modification, and redistribution of this
+    script, only under the condition that this code comment is kept wholly complete, appearing
+    directly above the script's code body, in all original or modified non-minified representations
+*/
+
+Object.identical = function (a, b, sortArrays) {
+  
+    /* Requires ECMAScript 5 functions:
+           - Array.isArray()
+           - Object.keys()
+           - Array.prototype.forEach()
+           - JSON.stringify()
+    */
+  
+    function sort(object) {
+        
+        if (sortArrays === true && Array.isArray(object)) {
+            return object.sort();
+        }
+        else if (typeof object !== "object" || object === null) {
+            return object;
+        }
+        
+        var result = [];
+        
+        Object.keys(object).sort().forEach(function(key) {
+            result.push({
+                key: key,
+                value: sort(object[key])
+            });
+        });
+        
+        return result; 
+    }
+    
+    return JSON.stringify(sort(a)) === JSON.stringify(sort(b));
+};
+

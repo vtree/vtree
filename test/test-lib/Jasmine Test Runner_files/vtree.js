@@ -404,16 +404,12 @@ Vtree.plugins.defaults.core.node = {
 				var a = li.children("a")
 						.addClass("title")
 						.attr("title", this.description);
-				
-				var isIconPathString = !!(typeof this.iconPath == "string" && this.iconPath != '');
-				var isIconPathObject = !!(typeof this.iconPath != "undefined" && this.iconPath.close && this.iconPath.open)
-				var hasIconPath = (isIconPathObject || isIconPathString);
 				if (this.iconClass) {
 					a.append("<i></i><"+titleTag+"></"+titleTag+">")
 						.find("i").addClass(this.iconClass)
 						.end()
 						.find(titleTag).html(this.title)
-				}else if (hasIconPath) {
+				}else if (typeof this.iconPath != "undefined") {
 					var icon;
 					if (this.hasChildren && typeof this.iconPath.close != "undefined" && typeof this.iconPath.open != "undefined") {
 						icon = (this.isOpen)?this.iconPath.open: this.iconPath.close;
@@ -453,14 +449,10 @@ Vtree.plugins.defaults.core.node = {
 				var titleTag = (this.customClass.indexOf("title") !== -1)? "h3" : "em";
 				var el = this.getEl();
 				var text = (el.hasClass("loading"))?this.title:"Loading...";
-				var title = el.toggleClass("loading").children("a.title, label")
-				var child = title.children(titleTag)
-				if (child.length) {
-					child.text(text)
-				}else{
-					title.text(text)
-				}
-							
+				el.toggleClass("loading")
+					.children("a.title, label")
+						.children(titleTag)
+							.text(text)
 				
 			},
 
@@ -686,8 +678,7 @@ Vtree.plugins.defaults.core.node = {
 							var data = $.extend(true, {
 								action:"getChildren",
 								nodes: node.id
-							}, tree.ajaxParameters );
-							debugger
+							}, this.ajaxParameters );
 							$.ajax({
 								type: "GET",
 								url: that.ajaxUrl,
@@ -718,7 +709,7 @@ Vtree.plugins.defaults.core.node = {
 							var data = $.extend(true, {
 								action:"getChildren",
 								nodes: opened
-							}, tree.ajaxParameters );
+							}, this.ajaxParameters );
 							$.ajax({
 								type: "GET",
 								url: that.ajaxUrl,

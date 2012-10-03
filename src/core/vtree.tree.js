@@ -52,7 +52,7 @@
 				//give tree an id
 				if (!this.id) {
 					if (this.dataSource.tree && typeof this.dataSource.tree.id != "undefined") {
-						this.id = this.dataSource.tree.id.replace(" ", "_")
+						this.id = this.dataSource.tree.id.replace(/\s+/g, "_")
 					} else{
 						this.id = Vtree._generateTreeId();
 					}	
