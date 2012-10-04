@@ -25,13 +25,136 @@ describe("Vtree manager functions", function() {
 		try{ Vtree.destroy("tree2")}catch(e){}
 	});
 	describe("adding a plugin to an object", function() {
+		var TestObject, testObject, pluginGroup;
+		beforeEach(function() {
+			pluginGroup = "tree";
+
+		});
+		it("should throw if plugin name does not exist", function() {
+			TestObject = function() {
+				this.pluginFns = {};
+				Vtree.addPlugin.apply(this, ["inexistantPlugin", pluginGroup])
+			}
+			expect(function(){testObject = new TestObject();}).toThrow();
+		});
 		
+		it("should extends the object with the default object of the plugin", function() {
+			TestObject = function() {
+				this.pluginFns = {};
+				Vtree.addPlugin.apply(this, ["core", pluginGroup])
+			}
+			testObject = new TestObject();
+			coreDefaults = Vtree.plugins.defaults.core[pluginGroup].defaults;
+			for (var attr in coreDefaults) {
+				 var attrVal = coreDefaults[attr];
+				 expect(testObject[attr]).toBeDefined();
+				 expect(testObject[attr]).toBe(attrVal);
+			}	
+
+		});
+
+		it("should add a function for each functions from the plugin", function() {
+			TestObject = function() {
+				this.pluginFns = {};
+				Vtree.addPlugin.apply(this, ["core", pluginGroup])
+			}
+			testObject = new TestObject();
+			coreFns = Vtree.plugins.defaults.core[pluginGroup]._fn;
+			for (var fnName in coreFns) {
+				 var fn = coreFns[fnName];
+				 expect(testObject[fnName]).toBeDefined();
+				 expect(typeof testObject[fnName]).toBe("function");
+			}	
+		});
+
+		
+		describe("when several plugins that we attach to the object, define the same function ", function() {
+			beforeEach(function() {
+			  			// define 2 plugins with same function
+				Vtree.plugins.plugin_1 = {
+					tree:{
+						defaults:{
+							res:""
+						},
+						_fn:{
+							a_function: function(){
+								return "plugin_1"
+							}
+						}
+					}
+				}
+				Vtree.plugins.plugin_2 = {
+					tree:{
+						defaults:{},
+						_fn:{
+							a_function: function(){
+								return this._call_prev()+ "plugin_2"
+							}
+						}
+					}
+				}
+				TestObject = function() {
+					this.pluginFns = {};
+					Vtree.addPlugin.apply(this, ["plugin_1", "tree"])
+					Vtree.addPlugin.apply(this, ["plugin_2", "tree"])
+				}
+
+			});
+			it("they should be both called when calling the function", function() {
+				testObject = new TestObject();
+				debugger
+				var res = testObject.a_function()
+				expect(res).toBe("plugin_1plugin_2");				
+			});
+			it("they should be called in the order they are passed in settings", function() {
+				
+			});
+			
+
+			
+		});
+	
 	});
 	describe("initializing an object", function() {
+		var TestObject, testObject, pluginGroup, settingsPlugins;
+		beforeEach(function() {
+			pluginGroup = "tree";
+			settingsPlugins = ["checkbox","cookie"];
+		 	TestObject = function(settings) {
+				Vtree.init.apply(this, [settings, pluginGroup])
+			}
+			spyOn(Vtree.addPlugin, "apply");
+			testObject = new TestObject({
+				plugins: settingsPlugins
+			});
+		});
+		it("for each default plugins, it should call addPlugins", function() {
+			for (var plugin in Vtree.plugins.defaults) {				
+				expect(Vtree.addPlugin.apply).toHaveBeenCalledWith(testObject, [plugin , pluginGroup]);
+			}
+		});
+		it("should add all plugins passed in parameters", function() {
+			$.each(settingsPlugins, function(index, pluginName) {
+				expect(Vtree.addPlugin.apply).toHaveBeenCalledWith(testObject, [pluginName , pluginGroup]);
+			});
+		});
+		
 		
 	});
 	describe("creating a tree", function() {
-		
+		it("should destroy a tree which exists in the same container", function() {
+			expect(function(){Vtree.getTree("tree")}).not.toThrow()
+			expect(Vtree.getTree("tree").id).toBe("tree");
+			var data2 = $.extend({}, data)
+		  	data2.tree.id = "tree2"
+			tree2 = Vtree.create({
+				container:container,
+				dataSource: data2
+			})
+			expect(function(){Vtree.getTree("tree")}).toThrow()
+			expect(function(){Vtree.getTree("tree2")}).not.toThrow()
+			expect(Vtree.getTree("tree2").id).toBe("tree2");
+		});
 	});
 	describe("destroying a tree", function() {
 		var param;

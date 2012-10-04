@@ -9,9 +9,8 @@
 			plugins: {
 				defaults:{core:{}}
 			},
-			addPlugin: function(pluginName, className){				
+			addPlugin: function(pluginName, className){		
 				var that = this;
-
 				var plg = Vtree.plugins[pluginName] || Vtree.plugins.defaults[pluginName]
 				if (!plg) {
 					throw "plugin not existing: "+ pluginName
@@ -77,7 +76,7 @@
 				sameContainer = false;
 				for (var i=0, len = trees.length; i < len; i++) {
 					var internalTree = trees[i];
-					if (tree.container.is(internalTree)) {
+					if (tree.container.is(internalTree.container)) {
 						sameContainer = true;
 						internalTree.destroy();
 						trees[i] = tree;
