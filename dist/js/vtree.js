@@ -6,7 +6,7 @@ if (typeof Vtree === "undefined") {
 if(typeof console === "undefined") {
 	console = {
 		log:function(){}
-	}
+	};
 }
 
 
@@ -24,32 +24,31 @@ Vtree.utils = {
 			plugins: {
 				defaults:{core:{}}
 			},
-			addPlugin: function(pluginName, className){		
+			addPlugin: function(pluginName, className){
 				var that = this;
-				var plg = Vtree.plugins[pluginName] || Vtree.plugins.defaults[pluginName]
+				var plg = Vtree.plugins[pluginName] || Vtree.plugins.defaults[pluginName];
 				if (!plg) {
-					throw "plugin not existing: "+ pluginName
+					throw "plugin not existing: "+ pluginName;
 				}
 				var plugin = plg[className];
-				if (!plugin) {return}
-				var that = this;
+				if (!plugin) {return;}
 				$.extend(this, plugin.defaults);
 
 				$.each(plugin._fn, function (fnName, fn) {
 
 					if (that.pluginFns[fnName]) {
-						var oldFunc = that.pluginFns[fnName][that.pluginFns[fnName].length -1]
+						var oldFunc = that.pluginFns[fnName][that.pluginFns[fnName].length -1];
 						var func = function(){
 							var args = Array.prototype.slice.call(arguments),
 								res;
 							res = fn.apply(
-								$.extend({}, this, { 
+								$.extend({}, this, {
 									_call_prev : function () {
 										return oldFunc.apply(this, args);
 									}
 								}), args);
 							return res;
-						}
+						};
 						that.pluginFns[fnName].push(func);
 						that[fnName] = function(){
 
@@ -60,33 +59,33 @@ Vtree.utils = {
 								this,
 								args
 							);
-							return res			
+							return res;
 
-						}
+						};
 					} else{
 						that.pluginFns[fnName] = [fn];
 						that[fnName] = fn;
-					}	
-				})
+					}
+				});
 			},
 			init: function(settings, className){
 				var that = this;
 				this.pluginFns = {};
 				//default plugins
-				for (var plugin in Vtree.plugins.defaults) {				
-					Vtree.addPlugin.apply(this, [plugin, className])
+				for (var plugin in Vtree.plugins.defaults) {
+					Vtree.addPlugin.apply(this, [plugin, className]);
 				}
 
 				// add plugins
-				if (settings.plugins) {				
+				if (settings.plugins) {
 					$.each(settings.plugins, function(index, pluginName) {
-						Vtree.addPlugin.apply(that, [pluginName, className])
+						Vtree.addPlugin.apply(that, [pluginName, className]);
 					});
 				}
 			},
 			create: function (settings) {
 				//build tree
-	        	var tree = new Vtree.Tree(settings);
+				var tree = new Vtree.Tree(settings);
 				// keep it internally and remove the previous one if it is using the same container
 				sameContainer = false;
 				for (var i=0, len = trees.length; i < len; i++) {
@@ -98,19 +97,19 @@ Vtree.utils = {
 					}
 				}
 				if (!sameContainer) {
-					trees.push(tree)
+					trees.push(tree);
 				}
 				return tree;
-	        },
+			},
 			destroy: function(mixed_tree){
-				var tree = this.getTree(mixed_tree)
+				var tree = this.getTree(mixed_tree);
 				for (var i=0, len = trees.length; i < len; i++) {
 					var internalTree = trees[i];
 					if (tree.id === internalTree.id) {
 						break;
 					}
 				}
-				trees.splice(i,1)
+				trees.splice(i,1);
 				tree.destroy();
 			},
 			getTree: function(mixed_tree){
@@ -121,7 +120,7 @@ Vtree.utils = {
 				if( mixed_tree instanceof Vtree.Tree){
 					tree = mixed_tree;
 					found = true;
-				// if it's a tree id	
+				// if it's a tree id
 				}else{
 					for (var i=0, len = trees.length; i < len; i++) {
 						tree = trees[i];
@@ -132,9 +131,8 @@ Vtree.utils = {
 						}
 					}
 				}
-
 				if (!found){
-					throw "tree not found: "+ mixed_tree
+					throw "tree not found: "+ mixed_tree;
 				}
 				return tree;
 			},
@@ -143,27 +141,27 @@ Vtree.utils = {
 			},
 			_generateTreeId: function(){
 				var S4 = function() {
-				       return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+					return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
 				};
-				return S4()+S4()+S4()
+				return S4()+S4()+S4();
 			}
 			
-		}
-	})();	
+		};
+	})();
 })(jQuery);
 
 (function ($) {
 	Vtree.Tree = function(settings) {
-		Vtree.init.apply(this, [settings, "tree"])
+		Vtree.init.apply(this, [settings, "tree"]);
 		//load settings passed in param
 		$.extend(this, settings);
-		
+
 		return this.build();
-	}
-	
-	
+	};
+
+
 	Vtree.plugins.defaults.core.tree = {
-		defaults:{	
+		defaults: {
 			id: "",
 			initially_open: [],
 			nodeStore: null,
@@ -171,15 +169,15 @@ Vtree.utils = {
 			dataSource: {},
 			asynchronous: false
 		},
-		_fn: {	
+		_fn: {
 			build: function(){
-				this.setId();				
+				this.setId();
 				if (!this.container.length) {
 					throw "container is empty. Check that the element is on the page or that you run your code when the document is ready.";
 				}
-				// fires a beforeInit event			
+				// fires a beforeInit event
 				this.container.trigger("beforeInit.tree", [this]);
-				
+
 				if (!this.asynchronous) {
 					this.continueBuilding();
 				}
@@ -192,24 +190,24 @@ Vtree.utils = {
 				this.nodeStore = new Vtree.NodeStore({
 					tree: this,
 					plugins: this.plugins
-					
+
 				});
 				//build the html from the data of the node Store
 				this.refresh();
 				// attach events to html
 				this._attachEvents();
 				// fires an event for the end of the initialisation
-				this.container.trigger("onReady.tree", [this])
+				this.container.trigger("onReady.tree", [this]);
 			},
-			
+
 			setId: function(){
 				//give tree an id
 				if (!this.id) {
 					if (this.dataSource.tree && typeof this.dataSource.tree.id != "undefined") {
-						this.id = this.dataSource.tree.id.replace(/\s+/g, "_")
+						this.id = this.dataSource.tree.id.replace(/\s+/g, "_");
 					} else{
 						this.id = Vtree._generateTreeId();
-					}	
+					}
 				}
 			},
 
@@ -217,17 +215,17 @@ Vtree.utils = {
 				this.container
 					.empty() // clean the container
 					.append(this._generateHTML())	// add html to container
-					.trigger("rendered.tree", [this]) //fires the rendered event
+					.trigger("rendered.tree", [this]); //fires the rendered event
 			},
 
 			_attachEvents: function(){
 				var that = this;
 				var fn = function(e){
-					var node = that.getNode($(this).attr("data-nodeid"))
-					that.container.trigger(e.type+".node", [that, node])
+					var node = that.getNode($(this).attr("data-nodeid"));
+					that.container.trigger(e.type+".node", [that, node]);
 					e.stopPropagation();
-					
-				}
+
+				};
 				this.container
 					.delegate("li","click", fn)
 					.delegate("li","dblclick",fn)
@@ -237,19 +235,19 @@ Vtree.utils = {
 						var node = that.getNode($(this).parent().attr("data-nodeid"));
 						node.toggleOpen();
 						e.stopPropagation();
-					})
-				return this.container
+					});
+				return this.container;
 			},
 
 			_generateHTML: function(){
-				var ul = $("<ul>").addClass("tree")
+				var ul = $("<ul>").addClass("tree");
 				// get the data from node store
 				tree = this.nodeStore.getStructure();
 				//for all children of root node we build the html
 				for (var i=0, len = tree.children.length; i < len; i++) {
-					ul.append(tree.children[i].getHTML())
+					ul.append(tree.children[i].getHTML());
 				}
-				// build html 
+				// build html
 				return ul;
 			},
 
@@ -278,26 +276,26 @@ Vtree.utils = {
 			},
 
 			getParents: function(mixedNode){
-				return this.nodeStore.getParents(mixedNode);			
+				return this.nodeStore.getParents(mixedNode);
 			},
 
 			getChildren: function(mixedNode){
 				return this.nodeStore.getChildren(mixedNode);
 			}
 		}
-	}
-		
+	};
+
 })(jQuery);
 
-(function ($) {	
+(function ($) {
 	Vtree.Node = function(settings){
-		Vtree.init.apply(this, [settings, "node"])
-		
+		Vtree.init.apply(this, [settings, "node"]);
+
 		//load settings passed in param
-		$.extend(this, settings)
+		$.extend(this, settings);
 	};
-	
-	
+
+
 Vtree.plugins.defaults.core.node = {
 		defaults:{
 			id                  : 0,
@@ -322,57 +320,57 @@ Vtree.plugins.defaults.core.node = {
 				// if it has children and there are not visible on the page
 				if (this.hasChildren && !this.hasVisibleChildren) {
 					// fires a "beforeOpen" event
-					this.tree.container.trigger("beforeOpen.node", [this.tree, this])
+					this.tree.container.trigger("beforeOpen.node", [this.tree, this]);
 					// toggle loading icon
 					this.toggleLoading();
-					
+
 					var el = this.getEl().addClass("open");
 					if (this.iconPath.open) {
 						el.find("img")[0].src = this.iconPath.open;
 					}
 					if (!this.tree.asynchronous){
-						this.continueOpening()
+						this.continueOpening();
 					}
-				
-				}	
-				return this;		
+
+				}
+				return this;
 			},
-			
+
 			continueOpening: function(){
 				// change open state variable
-				this.isOpen = true;				
+				this.isOpen = true;
 				// if it has children but there are not rendered
 				if(this.hasChildren && !this.hasRenderedChildren){
 					// we build the children
-					this.getEl().append(this._getChildrenHTML())
+					this.getEl().append(this._getChildrenHTML());
 					this.hasRenderedChildren = true;
 				}
-				this.hasVisibleChildren = true;	
+				this.hasVisibleChildren = true;
 				// toggle loading icon
-				this.toggleLoading()
+				this.toggleLoading();
 				// fires a "afterOpen" event
-				this.tree.container.trigger("afterOpen.node", [this.tree, this])	
+				this.tree.container.trigger("afterOpen.node", [this.tree, this]);
 			},
-			
+
 			close: function (){
 				// if there is any children and there are visible
 				if (this.hasChildren && this.hasVisibleChildren) {
 					// fires a "beforeClose" event
-					this.tree.container.trigger("beforeClose.node", [this.tree, this])
+					this.tree.container.trigger("beforeClose.node", [this.tree, this]);
 					// it sets the isOpen to false
 					this.isOpen = false;
-					// change the hasVisibleChildren to false 
+					// change the hasVisibleChildren to false
 					this.hasVisibleChildren = false;
 					// refresh the node
-					var el = this.getEl().removeClass("open")
+					var el = this.getEl().removeClass("open");
 					if (this.iconPath.close) {
 						el.find("img")[0].src = this.iconPath.close;
 					}
 
 					// fires a "afterClose" event
-					this.tree.container.trigger("afterClose.node", [this.tree, this])
+					this.tree.container.trigger("afterClose.node", [this.tree, this]);
 				}
-				return this;		
+				return this;
 			},
 
 			toggleOpen: function (){
@@ -380,10 +378,10 @@ Vtree.plugins.defaults.core.node = {
 			},
 
 			_getChildrenHTML: function(){
-				var ul = $("<ul>").addClass("children")
+				var ul = $("<ul>").addClass("children");
 				var nodes = this.children;
 				for (var i=0, len = nodes.length; i < len; i++) {
-					ul.append(nodes[i].getHTML())
+					ul.append(nodes[i].getHTML());
 				}
 				return ul;
 			},
@@ -392,26 +390,26 @@ Vtree.plugins.defaults.core.node = {
 				var className = (this.isOpen)?" open ":"";
 				className+= (this.hasChildren)? " folder": "";
 				className+= " "+this.customClass;
-				
+
 				var titleTag = (this.customClass.indexOf("title") !== -1)? "h3" : "em";
-				
+
 				var li = $("<li><a></a></li>")
 					.attr("data-nodeid", this.id)
 					.attr("data-treeid", this.tree.id)
-					.addClass(className)
-				
+					.addClass(className);
+
 				var a = li.children("a")
 						.addClass("title")
 						.attr("title", this.description);
-				
-				var isIconPathString = !!(typeof this.iconPath == "string" && this.iconPath != '');
-				var isIconPathObject = !!(typeof this.iconPath != "undefined" && this.iconPath.close && this.iconPath.open)
+
+				var isIconPathString = !!(typeof this.iconPath === "string" && this.iconPath !== '');
+				var isIconPathObject = !!(typeof this.iconPath !== "undefined" && this.iconPath.close && this.iconPath.open);
 				var hasIconPath = (isIconPathObject || isIconPathString);
 				if (this.iconClass) {
 					a.append("<i></i><"+titleTag+"></"+titleTag+">")
 						.find("i").addClass(this.iconClass)
 						.end()
-						.find(titleTag).html(this.title)
+						.find(titleTag).html(this.title);
 				}else if (hasIconPath) {
 					var icon;
 					if (this.hasChildren && typeof this.iconPath.close != "undefined" && typeof this.iconPath.open != "undefined") {
@@ -422,29 +420,29 @@ Vtree.plugins.defaults.core.node = {
 					a.append("<i><img/></i><"+titleTag+"></"+titleTag+">")
 						.find("img").attr("src", icon)
 						.end()
-						.find(titleTag).html(this.title)
+						.find(titleTag).html(this.title);
 				}else if (this.customClass.indexOf("title") !== -1){
 					a.append("<"+titleTag+"></"+titleTag+">")
 						.children()
 						.html(this.title);
 				}else {
 					a.html(this.title);
-				}	
-								
+				}
+
 				if (this.customHTML) {
 					li.append("<div class='custom'>")
 						.children(".custom")
-						.append(this.customHTML)
-				}	
+						.append(this.customHTML);
+				}
 				if (this.hasChildren) {
-					li.prepend("<a class='openClose'/>")
+					li.prepend("<a class='openClose'/>");
 					if (this.isOpen) {
-						li.append(this._getChildrenHTML())
+						li.append(this._getChildrenHTML());
 					}
 				}else{
 					li.prepend("<a href='#' class='align'></a>");
-				}	
-			
+				}
+
 				return li;
 			},
 
@@ -452,27 +450,27 @@ Vtree.plugins.defaults.core.node = {
 				var titleTag = (this.customClass.indexOf("title") !== -1)? "h3" : "em";
 				var el = this.getEl();
 				var text = (el.hasClass("loading"))?this.title:"Loading...";
-				var title = el.toggleClass("loading").children("a.title, label")
-				var child = title.children(titleTag)
+				var title = el.toggleClass("loading").children("a.title, label");
+				var child = title.children(titleTag);
 				if (child.length) {
-					child.text(text)
+					child.text(text);
 				}else{
-					title.text(text)
+					title.text(text);
 				}
-							
-				
+
+
 			},
 
 			getEl: function(){
-				this.el = $('li[data-nodeid='+this.id+'][data-treeid='+this.tree.id+']')
+				this.el = $('li[data-nodeid='+this.id+'][data-treeid='+this.tree.id+']');
 				return this.el;
 
 			},
 			toJson: function(){
-				var node = jQuery.extend(true, {}, this)
+				var node = jQuery.extend(true, {}, this);
 				for(var i in node){
 					if (typeof node[i] == "function"){
-						delete node[i]
+						delete node[i];
 					}
 				}
 				delete node.tree;
@@ -483,16 +481,14 @@ Vtree.plugins.defaults.core.node = {
 				delete node.pluginFns;
 				delete node.plugins;
 				if (node.children.length){
-					for (var i=0, len = node.children.length; i < len; i++) {
-						node.children[i] = node.children[i].toJson
+					for (var j=0, len = node.children.length; j < len; j++) {
+						node.children[j] = node.children[j].toJson;
 					}
 				}
 				return node;
 			}
 		}
-	}
-		
-		
+	};
 })(jQuery);
 
 
@@ -500,8 +496,8 @@ Vtree.plugins.defaults.core.node = {
 
 
 (function ($) {
-	Vtree.NodeStore = function(settings){	
-		Vtree.init.apply(this, [settings, "nodeStore"])
+	Vtree.NodeStore = function(settings){
+		Vtree.init.apply(this, [settings, "nodeStore"]);
 			
 		this.rootNode = new Vtree.Node({
 			id: "root",
@@ -515,7 +511,7 @@ Vtree.plugins.defaults.core.node = {
 			isOpen:true,
 			tree: settings.tree,
 			plugins: settings.tree.plugins
-		})
+		});
 		
 		this.structure = {
 			id2NodeMap: {},
@@ -523,20 +519,20 @@ Vtree.plugins.defaults.core.node = {
 		};
 		
 		//load settings passed in param
-		$.extend(true, this, settings)
+		$.extend(true, this, settings);
 		
 		if (!this.initStructure(settings)){
-			throw "internal structure not initialised properly"
+			throw "internal structure not initialised properly";
 		}
 	};
 
 	Vtree.plugins.defaults.core.nodeStore = {
-		defaults:{	
+		defaults:{
 			tree: null
 		},
 		_fn: {
 			initStructure: function(){
-				var dataSource = this.getDataSource()
+				var dataSource = this.getDataSource();
 				//if the data source is a json object
 				if (typeof dataSource != "undefined") {
 
@@ -545,7 +541,7 @@ Vtree.plugins.defaults.core.node = {
 					// recursively build the node structure
 					this._recBuildNodes( this.rootNode, [this.rootNode], children);
 					// keep the tree hierarchy in the internal structure
-					this.structure.tree = this.rootNode
+					this.structure.tree = this.rootNode;
 
 				}
 				return true;
@@ -555,8 +551,8 @@ Vtree.plugins.defaults.core.node = {
 				return this.tree.dataSource.tree;
 			},
 			
-			_recBuildNodes: function(parent, parents, nodes){			
-				var siblings = []
+			_recBuildNodes: function(parent, parents, nodes){
+				var siblings = [];
 				
 				var parents_already_opened = false;
 				for (var i=0, len = nodes.length; i < len; i++) {
@@ -576,13 +572,13 @@ Vtree.plugins.defaults.core.node = {
 								parents[j].hasVisibleChildren = true;
 								parents[j].hasRenderedChildren = true;
 							}
-							parents_already_opened = true
+							parents_already_opened = true;
 						}
-					}					
+					}
 					// at this stage the tree doesn;t have the reference to the nodeStore, as we need it on the node
 					// I pass it here before creating the node
 					this.tree.nodeStore = this;
-					// build the node instance					
+					// build the node instance
 					var settings = $.extend({}, sourceNode, {
 						id: sourceNode.id.replace(" ", "_"),
 						parent: parent,
@@ -596,21 +592,21 @@ Vtree.plugins.defaults.core.node = {
 						plugins: this.tree.plugins
 					});
 					if (settings.nodes) {
-						delete settings.nodes
-					}					
-					var node = new Vtree.Node(settings)
+						delete settings.nodes;
+					}
+					var node = new Vtree.Node(settings);
 					// keep it in the nodeStore structure
-					this.structure.id2NodeMap[sourceNode.id] = node
+					this.structure.id2NodeMap[sourceNode.id] = node;
 					//keep all siblings in an array to add later all children to the parent
-					siblings.push(node)
+					siblings.push(node);
 					// if it has children, build children nodes
-					var children = sourceNode.nodes || sourceNode.children
-					if (children && children.length){					
-						this._recBuildNodes( node, parents.concat(node), children)
-					}	
+					var children = sourceNode.nodes || sourceNode.children;
+					if (children && children.length){
+						this._recBuildNodes( node, parents.concat(node), children);
+					}
 				}
 				// now that we know all children, add them to the parents
-				parent.children = siblings
+				parent.children = siblings;
 			},
 
 
@@ -626,20 +622,20 @@ Vtree.plugins.defaults.core.node = {
 				var node;
 				//if  mixedNode is a node instance
 				if( mixedNode instanceof Vtree.Node){
-					node = mixedNode
+					node = mixedNode;
 				//if mixedNode is an id
 				}else if (typeof this.structure.id2NodeMap[mixedNode] != "undefined") {
 					node = this.structure.id2NodeMap[mixedNode];
 				}else{
-					throw "node not found: "+ mixedNode
+					throw "node not found: "+ mixedNode;
 				}
-				return node
+				return node;
 			},
 
 			getSiblings: function(mixedNode){
-				node = this.getNode(mixedNode)
+				node = this.getNode(mixedNode);
 				// get parent's children
-				siblings = node.parent.children
+				siblings = node.parent.children;
 				// remove the current node
 				for (var i = siblings.length - 1; i >= 0; i--){
 					if (siblings[i].id == node.id){
@@ -650,18 +646,18 @@ Vtree.plugins.defaults.core.node = {
 			},
 
 			getParent: function(mixedNode){
-				return this.getNode(mixedNode).parent
+				return this.getNode(mixedNode).parent;
 			},
 
 			getParents: function(mixedNode){
-				return this.getNode(mixedNode).parents
+				return this.getNode(mixedNode).parents;
 			},
 
 			getChildren: function(mixedNode){
-				return this.getNode(mixedNode).children
+				return this.getNode(mixedNode).children;
 			}
 		}
-	}
+	};
 
 })(jQuery);
 
@@ -691,106 +687,110 @@ Vtree.plugins.defaults.core.node = {
 								type: "GET",
 								url: that.ajaxUrl,
 								dataType: 'json',
-								data: data,	
+								data: data,
 								success: $.proxy(node.onAjaxResponse, node)
-							})
+							});
 						}else{
 							node.continueOpening();
 						}
-						
+
 					})
-					
+
 					// when we close a node and in case we force ajax relaod at each reopening, we clear the children nodes
 					.on("afterClose.node", function(e, tree, node){
 						if (that.forceAjaxReload) {
-							node.getEl().children("ul.children").remove()
+							node.getEl().children("ul.children").remove();
 						}
 					})
-					
+
 					// when we use the ajax plugin with the cookie plugin, we need to be careful to this special case
-					// if in the cookie some nodes are saved as opened, we need to ask for their children using ajax
-					// in order to display also the children and keep the state saved by the cookie					
+					// if some nodes are saved as opened in the cookie, we need to ask for their children using ajax
+					// in order to display also the children and keep the state saved by the cookie
 					.on("OpenNodesFromCookie.tree", function(e, tree){
 						var opened = tree.initially_open;
-						
+
 						if (opened.length) {
-							var data = $.extend(true, {
-								action:"getChildren",
-								nodes: opened.join(",")
-							}, tree.ajaxParameters );
-							$.ajax({
-								type: "GET",
-								url: that.ajaxUrl,
-								dataType: 'json',
-								data: data,	
-								success: $.proxy(tree.onAjaxResponse, tree)
-							})
+							tree.getChildrenNodes(opened);
 						}else{
 							tree.continueBuilding();
 						}
 					})
-					
-					// in the case we use ajax without the cookie plugin, we don't need to wait for the ajax response to 
+
+					// in the case we use ajax without the cookie plugin, we don't need to wait for the ajax response to
 					// continue the tree building
 					.on("beforeInit.tree", function(e, tree){
-						if ($.inArray("cookie", tree.plugins) == -1) {
+						var opened = tree.initially_open;
+
+						if (opened.length) {
+							tree.getChildrenNodes(opened);
+						}else if ($.inArray("cookie", tree.plugins) == -1) {
 							tree.continueBuilding();
 						}
-					})
-					
-					
+					});
+
+
 					return this._call_prev();
 				},
-				
-				getAjaxData:function(data){
-					return data
+
+				getChildrenNodes:function(nodes){
+					var data = $.extend(true, {
+						action:"getChildren",
+						nodes: nodes.join(",")
+					}, this.ajaxParameters );
+					$.ajax({
+						type: "GET",
+						url: this.ajaxUrl,
+						dataType: 'json',
+						data: data,
+						success: $.proxy(this.onAjaxResponse, this)
+					});
 				},
-				
+
+				getAjaxData:function(data){
+					return data;
+				},
+
 				onAjaxResponse: function(data, response, jqXHR){
 					nodesData = this.getAjaxData(data);
 					for (var nodeId in nodesData) {
-						 var nodeData = nodesData[nodeId];
-						this.addDataToNodeSource(nodeData)
+						var nodeData = nodesData[nodeId];
+						this.addDataToNodeSource(nodeData);
 					}
-					this.continueBuilding()
+					this.continueBuilding();
 				},
-				
+
 				addDataToNodeSource: function(nodeData){
 					findNode = function(nodes, id){
-						var node = false;
 						for (var i=0, len = nodes.length; i < len; i++) {
 							var node = nodes[i];
 							if (node.id == id) {
 								return node;
 							}else if (node.nodes && node.nodes.length) {
 								var rec = findNode(nodes[i].nodes, nodeData.id);
-								if (rec) {return rec}
+								if (rec) {return rec;}
 							}
 						}
-					}
+					};
 					var nodeSource = findNode(this.dataSource.tree.nodes, nodeData.id);
-					nodeSource = $.extend(true, nodeSource, nodeData)
-				},
+					nodeSource = $.extend(true, nodeSource, nodeData);
+				}
 			}
 		},
 		node:{
-			defaults:{
-							
-			},
 			_fn:{
-				onAjaxResponse: function(data, response, jqXHR){					
-					var nodeData = this.tree.getAjaxData(data);	
+				onAjaxResponse: function(data, response, jqXHR){
+					var nodeData = this.tree.getAjaxData(data);
 					if (typeof nodeData[this.id] == "undefined") {
-						throw "ajax response didn't send back node with id:"+ this.id
+						throw "ajax response didn't send back node with id:"+ this.id;
 					}
-					this.nodeStore._recBuildNodes( this, this.parents, nodeData[this.id].nodes);
+					this.nodeStore._recBuildNodes( this, this.parents.concat(this), nodeData[this.id].nodes);
 					this.continueOpening();
-					
+
 				}
 			}
 		}
-	}
-	
+	};
+
 
 })(jQuery);(function ($) {
 
@@ -804,14 +804,14 @@ Vtree.plugins.defaults.core.node = {
 				_attachEvents: function(){
 					var that  = this;
 					return this._call_prev()
-						.delegate("li","click.node",function(e){
-							var node = that.getNode($(this).attr("data-nodeid"));
-							node.toggleBold();
-							e.stopPropagation();
-						});
+					.delegate("li","click.node",function(e){
+						var node = that.getNode($(this).attr("data-nodeid"));
+						node.toggleBold();
+						e.stopPropagation();
+					});
 				},
 				getBoldNodes: function(){
-					return this.nodeStore.getBoldNodes()
+					return this.nodeStore.getBoldNodes();
 				}
 			}
 		},
@@ -822,9 +822,9 @@ Vtree.plugins.defaults.core.node = {
 			_fn:{
 				toggleBold: function() {
 					return (this.isBold)? this.unbold(): this.bold();
-			    },
+				},
 				bold: function() {
-					// bolding behaviour: 
+					// bolding behaviour:
 					// bolding a node bolds all his parents until root node but doesn't affect children state
 					this.isBold = true;
 					this.getEl().addClass('bold');
@@ -834,18 +834,18 @@ Vtree.plugins.defaults.core.node = {
 							var parent = parents[i];
 							parent.isBold = true;
 							parent.getEl().addClass("bold");
-						}	
+						}
 					}
-					// fire bold event                                          
+					// fire bold event
 					this.tree.container.trigger("bold.node", [this.tree, this]);
-			    },
+				},
 				unbold: function() {
-					// bolding behaviour: 
+					// bolding behaviour:
 					// unbolding a node unbolds all his children but doesn't affect parents state
 
 					this.isBold = false;
 					this.getEl().removeClass('bold');
-					
+
 					// unbold children
 					_rec_unbold = function(node){
 						if (node.hasChildren) {
@@ -859,45 +859,46 @@ Vtree.plugins.defaults.core.node = {
 							}
 						}
 					};
-					
+
 					if (this.tree.cascading_bold) {
 						_rec_unbold(this);
 					}
-					
+
 					// fire bold event
 					this.tree.container.trigger("unbold.node", [this.tree, this]);
-					
-			    },
-				getHTML: function(){	
-					
-					var li = this._call_prev()
+
+				},
+				getHTML: function(){
+
+					var li = this._call_prev();
 					if (this.isBold) {
-						li.addClass('bold')
+						li.addClass('bold');
 					}
-					
+
 					return li;
 				}
 			}
 		},
 		nodeStore:{
+			defaults:{},
 			_fn:{
 				initStructure: function(){
 					this._call_prev();
-					var initially_bold = this.tree.initially_bold;					
+					var initially_bold = this.tree.initially_bold;
 					for (var i=0, len = initially_bold.length; i < len; i++) {
 						var id = initially_bold[i];
-						var node = this.structure.id2NodeMap[id] 
-						var parents = node.parents;
+						var node = this.structure.id2NodeMap[id];
 						if (typeof node != "undefined"){
+							var parents = node.parents;
 							node.isBold = true;
-						}
-						if (this.tree.cascading_bold) {
-							for (var j=0, lengh = parents.length; j < lengh; j++) {							
-								parents[j].isBold = true;
+							if (this.tree.cascading_bold) {
+								for (var j=0, lengh = parents.length; j < lengh; j++) {
+									parents[j].isBold = true;
+								}
 							}
 						}
 					}
-					
+
 					return true;
 				},
 				getBoldNodes: function(){
@@ -907,19 +908,19 @@ Vtree.plugins.defaults.core.node = {
 							node = nodes[i];
 							if (node.isBold) {
 								boldNodes.push(node);
-								if (node.hasChildren) {
-									boldNodes = boldNodes.concat(_rec_getBoldNodes(node.children));
-								}
+							}
+							if (node.hasChildren) {
+								boldNodes = boldNodes.concat(_rec_getBoldNodes(node.children));
 							}
 						}
 						return boldNodes;
-					}
-					return _rec_getBoldNodes(this.structure.tree.children)
+					};
+					return _rec_getBoldNodes(this.structure.tree.children);
 				}
 			}
 		}
-	}
-	
+	};
+
 
 })(jQuery);(function ($) {
 
@@ -940,7 +941,7 @@ Vtree.plugins.defaults.core.node = {
 						});
 				},
 				getCheckedNodes: function(){
-					return this.nodeStore.getCheckedNodes()
+					return this.nodeStore.getCheckedNodes();
 				}
 			}
 		},
@@ -952,9 +953,9 @@ Vtree.plugins.defaults.core.node = {
 			_fn:{
 				toggleCheck: function() {
 					return (this.isChecked)? this.uncheck(): this.check();
-			    },
+				},
 				check: function() {
-					// checking behaviour: 
+					// checking behaviour:
 					// checking a node checks all his parents until root node but doesn't affect children checkbox state
 
 					this.isChecked = true;
@@ -964,12 +965,12 @@ Vtree.plugins.defaults.core.node = {
 						var parent = parents[i];
 						parent.isChecked = true;
 						parent.getEl().find("input[type=checkbox]").eq(0).prop("checked", true);
-					}	
-					// fire check event                                          
+					}
+					// fire check event
 					this.tree.container.trigger("check.node", [this.tree, this]);
-			    },
+				},
 				uncheck: function() {
-					// checking behaviour: 
+					// checking behaviour:
 					// unchecking a node unchecks all his children but doesn't affect parents state
 
 					this.isChecked = false;
@@ -988,25 +989,25 @@ Vtree.plugins.defaults.core.node = {
 						}
 					};
 					_rec_uncheck(this);
-					
+
 					// fire check event
 					this.tree.container.trigger("uncheck.node", [this.tree, this]);
-					
-			    },
-				getHTML: function(){	
-					
-					var li = this._call_prev()
+
+				},
+				getHTML: function(){
+
+					var li = this._call_prev();
 					li.children("a.title")
 						.replaceWith(function(){
-					    	return $("<label />").append($(this).contents());
+							return $("<label />").append($(this).contents());
 						});
-											
+
 					li.children("label")
 						.prepend('<input type="checkbox">')
 						.find("input")
 							.attr("checked", this.isChecked)
-							.attr("disabled", this.isDisabled)
-					
+							.attr("disabled", this.isDisabled);
+
 					return li;
 				}
 			}
@@ -1016,144 +1017,129 @@ Vtree.plugins.defaults.core.node = {
 				initStructure: function(){
 					this._call_prev();
 					var initially_checked = this.tree.initially_checked,
-						disabled_checkboxes = this.tree.disabled_checkboxes;
-					
-					for (var i=0, len = initially_checked.length; i < len; i++) {
-						var id = initially_checked[i];
-						var node = this.structure.id2NodeMap[id] 
-						var parents = node.parents;
+						disabled_checkboxes = this.tree.disabled_checkboxes,
+						i,j,id, node, children, parent;
+
+					for (i=0, len = initially_checked.length; i < len; i++) {
+						id = initially_checked[i];
+						node = this.structure.id2NodeMap[id];
+						parents = node.parents;
 						if (typeof node != "undefined"){
 							node.isChecked = true;
 						}
-						for (var j=0, lengh = parents.length; j < lengh; j++) {							
-							parents[j].isChecked = true
+						for (j=0, lengh = parents.length; j < lengh; j++) {
+							parents[j].isChecked = true;
 						}
 					}
-					
-					for (var i=0, len = disabled_checkboxes.length; i < len; i++) {
-						var id = disabled_checkboxes[i];	
-						var node = this.structure.id2NodeMap[id];
-						var children = node.children;
-						
+
+					for (i=0, len = disabled_checkboxes.length; i < len; i++) {
+						id = disabled_checkboxes[i];
+						node = this.structure.id2NodeMap[id];
+						children = node.children;
+
 						if (typeof node != "undefined"){
 							node.isDisabled = true;
 						}
-						for (var j=0, lengh = children.length; j < lengh; j++) {							
-							children[j].isDisabled = true
+						for (j=0, lengh = children.length; j < lengh; j++) {
+							children[j].isDisabled = true;
 						}
 					}
-					return true	
+					return true;
 				},
 				getCheckedNodes: function(){
 					var _rec_getCheckedNodes = function(nodes){
-						var checkedNodes = []
+						var checkedNodes = [];
 						for (var i=0, len = nodes.length; i < len; i++) {
 							node = nodes[i];
 							if (node.isChecked) {
-								checkedNodes.push(node)
+								checkedNodes.push(node);
 								if (node.hasChildren) {
-									checkedNodes = checkedNodes.concat(_rec_getCheckedNodes(node.children))
+									checkedNodes = checkedNodes.concat(_rec_getCheckedNodes(node.children));
 								}
 							}
 						}
 						return checkedNodes;
-					}
-					return _rec_getCheckedNodes(this.structure.tree.children)
+					};
+					return _rec_getCheckedNodes(this.structure.tree.children);
 				}
 			}
 		}
-	}
-	
+	};
 
-})(jQuery);var setCookie = function(cookieName,cookieValue,nDays) {
-	var today = new Date();
-	var expire = new Date();
-	if (nDays==null || nDays==0) nDays=1;
-	expire.setTime(today.getTime() + 3600000*24*nDays);
-	document.cookie = cookieName+"="+escape(cookieValue)
-	+ ";expires="+expire.toGMTString();
-};
-var readCookie = function(cookieName) {
-	var theCookie=" "+document.cookie;
-	var ind=theCookie.indexOf(" "+cookieName+"=");
-	if (ind==-1) ind=theCookie.indexOf(";"+cookieName+"=");
-	if (ind==-1 || cookieName=="") return "";
-	var ind1=theCookie.indexOf(";",ind+1);
-	if (ind1==-1) ind1=theCookie.length; 
-	return unescape(theCookie.substring(ind+cookieName.length+2,ind1));
-};
 
-(function ($) {
+})(jQuery);(function ($) {
 	var setCookie = function(cookieName,cookieValue,nDays) {
 		var today = new Date();
 		var expire = new Date();
-		if (nDays==null || nDays==0) nDays=1;
+		if (nDays===null || nDays===0) nDays=1;
 		expire.setTime(today.getTime() + 3600000*24*nDays);
-		document.cookie = cookieName+"="+escape(cookieValue)
-		+ ";expires="+expire.toGMTString();
+		document.cookie = cookieName+"="+escape(cookieValue)+ ";expires="+expire.toGMTString();
 	};
 	var readCookie = function(cookieName) {
 		var theCookie=" "+document.cookie;
 		var ind=theCookie.indexOf(" "+cookieName+"=");
 		if (ind==-1) ind=theCookie.indexOf(";"+cookieName+"=");
-		if (ind==-1 || cookieName=="") return "";
+		if (ind===-1 || cookieName==="") return "";
 		var ind1=theCookie.indexOf(";",ind+1);
-		if (ind1==-1) ind1=theCookie.length; 
+		if (ind1==-1) ind1=theCookie.length;
 		return unescape(theCookie.substring(ind+cookieName.length+2,ind1));
 	};
 	Vtree.plugins.cookie = {
 		tree:{
 			_fn:{
 
-				build: function(){					
+				build: function(){
 					this.container.on("beforeInit.tree", function(e, tree){
-						cookie = readCookie("Vtree")
+						var VtreeCookie;
+						cookie = readCookie("Vtree");
 						if (cookie) {
-							var VtreeCookie = JSON.parse(cookie);
+							VtreeCookie = JSON.parse(cookie);
 							var treeCookie = VtreeCookie.trees[tree.id];
 							if (treeCookie){
-								// we get the cookie 
+								// we get the cookie
 								tree.initially_open = treeCookie.opened;
 								tree.initially_checked = treeCookie.checked;
-								tree.initially_bold = treeCookie.bold;								
-								tree.container.trigger("OpenNodesFromCookie.tree", [tree])
-								
+								tree.initially_bold = treeCookie.bold;
+								tree.container.trigger("OpenNodesFromCookie.tree", [tree]);
+
 							}else{
 								// we create the initial cookie
 								VtreeCookie.trees[tree.id] = {
 									opened: tree.initially_open,
 									checked: tree.initially_checked,
 									bold: tree.initially_bold
-								}
-								setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week	
+								};
+								setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
 							}
 						}else{
 							// we create the initial cookie
-							VtreeCookie = {trees:{}}
+							VtreeCookie = {trees:{}};
 							// we create the initial cookie
 							VtreeCookie.trees[tree.id] = {
 								opened: tree.initially_open,
 								checked: tree.initially_checked,
 								bold: tree.initially_bold
-							}
-							setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week
+							};
+							setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
+							tree.container.trigger("OpenNodesFromCookie.tree", [tree]);
+
 						}
 
 					})
-					
+
 					.bind("afterOpen.node", function(e, tree, node){
 						var VtreeCookie = JSON.parse(readCookie("Vtree"));
-						var treeCookie = VtreeCookie.trees[tree.id]
+						var treeCookie = VtreeCookie.trees[tree.id];
 						if ($.inArray(node.id, treeCookie.opened) == -1){
-							treeCookie.opened.push(node.id)
+							treeCookie.opened.push(node.id);
 						}
-						setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week
-						
+						setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
+
 					})
-					
+
 					.bind("beforeClose.node", function(e, tree, node){
 						var VtreeCookie = JSON.parse(readCookie("Vtree"));
-						var treeCookie = VtreeCookie.trees[tree.id]
+						var treeCookie = VtreeCookie.trees[tree.id];
 						treeCookie.opened = jQuery.grep(treeCookie.opened, function(value) {
 							var getOpenedChildrenIds = function(node){
 								var childrenIds = [];
@@ -1162,39 +1148,39 @@ var readCookie = function(cookieName) {
 									for (var i=0, len = node.children.length; i < len; i++) {
 										var child = node.children[i];
 										if (child.isOpen) {
-											childrenIds.push(child.id)
-											childrenIds = childrenIds.concat(getOpenedChildrenIds(child))
+											childrenIds.push(child.id);
+											childrenIds = childrenIds.concat(getOpenedChildrenIds(child));
 										}
-										
+
 									}
 								}
-								return childrenIds
+								return childrenIds;
 							};
-							
-							return (value != node.id && $.inArray(value, getOpenedChildrenIds(node)) == -1) 
+
+							return (value != node.id && $.inArray(value, getOpenedChildrenIds(node)) == -1);
 						});
-						setCookie("Vtree",  JSON.stringify(VtreeCookie), 7) // stored for a week
+						setCookie("Vtree",  JSON.stringify(VtreeCookie), 7); // stored for a week
 					})
-					
+
 					.bind("check.node", function(e, tree, node){
 						var VtreeCookie = JSON.parse(readCookie("Vtree"));
-						var treeCookie = VtreeCookie.trees[tree.id]
-						
+						var treeCookie = VtreeCookie.trees[tree.id];
+
 						if ($.inArray(node.id, treeCookie.checked) == -1){
-							treeCookie.checked.push(node.id)
+							treeCookie.checked.push(node.id);
 						}
 						for (var i=0, len = node.parents.length; i < len; i++) {
 							var parent = node.parents[i];
 							if ($.inArray(parent.id, treeCookie.checked) == -1 && parent.id != "root"){
-								treeCookie.checked.push(parent.id)
+								treeCookie.checked.push(parent.id);
 							}
 						}
-						setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week
+						setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
 					})
-					
+
 					.bind("uncheck.node", function(e, tree, node){
 						var VtreeCookie = JSON.parse(readCookie("Vtree"));
-						var treeCookie = VtreeCookie.trees[tree.id]
+						var treeCookie = VtreeCookie.trees[tree.id];
 						treeCookie.checked = jQuery.grep(treeCookie.checked, function(value) {
 							var getCheckedChildrenIds = function(node){
 								var childrenIds = [];
@@ -1203,36 +1189,36 @@ var readCookie = function(cookieName) {
 									for (var i=0, len = node.children.length; i < len; i++) {
 										var child = node.children[i];
 										if (child.isChecked) {
-											childrenIds.push(child.id)
-											childrenIds = childrenIds.concat(getCheckedChildrenIds(child))
+											childrenIds.push(child.id);
+											childrenIds = childrenIds.concat(getCheckedChildrenIds(child));
 										}
 
 									}
 								}
-								return childrenIds
+								return childrenIds;
 							};
 
-							return (value != node.id && $.inArray(value, getCheckedChildrenIds(node)) == -1)
+							return (value != node.id && $.inArray(value, getCheckedChildrenIds(node)) == -1);
 						});
-						setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week
+						setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
 					})
-					
+
 					.bind("bold.node", function(e, tree, node){
 						var VtreeCookie = JSON.parse(readCookie("Vtree"));
-						var treeCookie = VtreeCookie.trees[tree.id]
-						
+						var treeCookie = VtreeCookie.trees[tree.id];
+
 						if ($.inArray(node.id, treeCookie.bold) == -1){
-							treeCookie.bold.push(node.id)
+							treeCookie.bold.push(node.id);
 						}
 						for (var i=0, len = node.parents.length; i < len; i++) {
 							var parent = node.parents[i];
 							if ($.inArray(parent.id, treeCookie.bold) == -1 && parent.id != "root"){
-								treeCookie.bold.push(parent.id)
+								treeCookie.bold.push(parent.id);
 							}
 						}
-						setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week
+						setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
 					})
-					
+
 					.bind("unbold.node", function(e, tree, node){
 						var VtreeCookie = JSON.parse(readCookie("Vtree"));
 						var treeCookie = VtreeCookie.trees[tree.id];
@@ -1244,345 +1230,340 @@ var readCookie = function(cookieName) {
 									for (var i=0, len = node.children.length; i < len; i++) {
 										var child = node.children[i];
 										if (child.isBold) {
-											childrenIds.push(child.id)
-											childrenIds = childrenIds.concat(getBoldChildrenIds(child))
+											childrenIds.push(child.id);
+											childrenIds = childrenIds.concat(getBoldChildrenIds(child));
 										}
 
 									}
 								}
-								return childrenIds
+								return childrenIds;
 							};
 
-							return (value != node.id && $.inArray(value, getCheckedChildrenIds(node)) == -1)
+							return (value != node.id && $.inArray(value, getCheckedChildrenIds(node)) == -1);
 						});
-						setCookie("Vtree", JSON.stringify(VtreeCookie), 7) // stored for a week
-					})					
+						setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
+					});
 					return this._call_prev();
 				},
-				
+
 				getOpenedNodes: function(){
 					var VtreeCookie = JSON.parse(readCookie("Vtree"));
 					var treeCookie = VtreeCookie.trees[this.id];
-					return treeCookie.opened
+					return treeCookie.opened;
 				}
 			}
 		}
-	}
-	
+	};
 
-})(jQuery);(function ($) {
-	
 
-	/**
-	 * jQuery client-side XSLT plugins.
-	 * 
-	 * @author <a href="mailto:jb@eaio.com">Johann Burkard</a>
-	 * @version $Id: jquery.xslt.js,v 1.10 2008/08/29 21:34:24 Johann Exp $
-	 */
-	/*
-	 * xslt.js
-	 *
-	 * Copyright (c) 2005-2008 Johann Burkard (<mailto:jb@eaio.com>)
-	 * <http://eaio.com>
-	 * 
-	 * Permission is hereby granted, free of charge, to any person obtaining a
-	 * copy of this software and associated documentation files (the "Software"),
-	 * to deal in the Software without restriction, including without limitation
-	 * the rights to use, copy, modify, merge, publish, distribute, sublicense,
-	 * and/or sell copies of the Software, and to permit persons to whom the
-	 * Software is furnished to do so, subject to the following conditions:
-	 * 
-	 * The above copyright notice and this permission notice shall be included
-	 * in all copies or substantial portions of the Software.
-	 * 
-	 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-	 * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-	 * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-	 * NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-	 * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-	 * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-	 * USE OR OTHER DEALINGS IN THE SOFTWARE.
-	 * 
-	 */
+})(jQuery);(function($) {
 
-	/**
-	 * Constructor for client-side XSLT transformations.
-	 * 
-	 * @author <a href="mailto:jb@eaio.com">Johann Burkard</a>
-	 * @version $Id: xslt.js,v 1.7 2008/08/29 21:22:55 Johann Exp $
-	 * @constructor
-	 */
-	var Transformation = function () {
 
-	    var xml;
+/**
+ * jQuery client-side XSLT plugins.
+ *
+ * @author <a href="mailto:jb@eaio.com">Johann Burkard</a>
+ * @version $Id: jquery.xslt.js,v 1.10 2008/08/29 21:34:24 Johann Exp $
+ */
+/*
+ * xslt.js
+ *
+ * Copyright (c) 2005-2008 Johann Burkard (<mailto:jb@eaio.com>)
+ * <http://eaio.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+ * NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+ * USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
 
-	    var xmlDoc;
+/**
+ * Constructor for client-side XSLT transformations.
+ *
+ * @author <a href="mailto:jb@eaio.com">Johann Burkard</a>
+ * @version $Id: xslt.js,v 1.7 2008/08/29 21:22:55 Johann Exp $
+ * @constructor
+ */
+	var Transformation = function() {
 
-	    var xslt;
+		var xml;
 
-	    var xsltDoc;
+		var xmlDoc;
 
-	    var callback = function() {};
+		var xslt;
 
-	    /**
-	     * Sort of like a fix for Opera who doesn't always get readyStates right.
-	     */
-	    var transformed = false;
+		var xsltDoc;
 
-	    /**
-	     * Returns the URL of the XML document.
-	     * 
-	     * @return the URL of the XML document
-	     * @type String
-	     */
-	    this.getXml = function() {
-	        return xml;
-	    }
+		var callback = function() {};
 
-	    /**
-	     * Returns the XML document.
-	     * 
-	     * @return the XML document
-	     */
-	    this.getXmlDocument = function() {
-	        return xmlDoc
-	    }
+		/**
+		 * Sort of like a fix for Opera who doesn't always get readyStates right.
+		 */
+		var transformed = false;
 
-	    /**
-	     * Sets the URL of the XML document.
-	     * 
-	     * @param x the URL of the XML document
-	     * @return this
-	     * @type Transformation
-	     */
-	    this.setXml = function(x) {
-	        xml = x;
-	        return this;
-	    }
+		/**
+		 * Returns the URL of the XML document.
+		 *
+		 * @return the URL of the XML document
+		 * @type String
+		 */
+		this.getXml = function() {
+			return xml;
+		};
 
-	    /**
-	     * Returns the URL of the XSLT document.
-	     * 
-	     * @return the URL of the XSLT document
-	     * @type String
-	     */
-	    this.getXslt = function() {
-	        return xslt;
-	    }
+		/**
+		 * Returns the XML document.
+		 *
+		 * @return the XML document
+		 */
+		this.getXmlDocument = function() {
+			return xmlDoc;
+		};
 
-	    /**
-	     * Returns the XSLT document.
-	     * 
-	     * @return the XSLT document
-	     */
-	    this.getXsltDocument = function() {
-	        return xsltDoc;
-	    }
+		/**
+		 * Sets the URL of the XML document.
+		 *
+		 * @param x the URL of the XML document
+		 * @return this
+		 * @type Transformation
+		 */
+		this.setXml = function(x) {
+			xml = x;
+			return this;
+		};
 
-	    /**
-	     * Sets the URL of the XSLT document.
-	     * 
-	     * @param x the URL of the XML document
-	     * @return this
-	     * @type Transformation
-	     */
-	    this.setXslt = function(x) {
-	        xslt = x;
-	        return this;
-	    }
+		/**
+		 * Returns the URL of the XSLT document.
+		 *
+		 * @return the URL of the XSLT document
+		 * @type String
+		 */
+		this.getXslt = function() {
+			return xslt;
+		};
 
-	    /**
-	     * Returns the callback function.
-	     * 
-	     * @return the callback function
-	     */
-	    this.getCallback = function() {
-	        return callback;
-	    }
+		/**
+		 * Returns the XSLT document.
+		 *
+		 * @return the XSLT document
+		 */
+		this.getXsltDocument = function() {
+			return xsltDoc;
+		};
 
-	    /**
-	     * Sets the callback function
-	     * 
-	     * @param c the callback function
-	     * @return this
-	     * @type Transformation
-	     */
-	    this.setCallback = function(c) {
-	        callback = c;
-	        return this;
-	    }
+		/**
+		 * Sets the URL of the XSLT document.
+		 *
+		 * @param x the URL of the XML document
+		 * @return this
+		 * @type Transformation
+		 */
+		this.setXslt = function(x) {
+			xslt = x;
+			return this;
+		};
 
-	    /**
-	     *
-	     * This method may only be called after {@link #setXml} and {@link #setXslt} have
-	     * been called.
-	     * <p>
-	     * 
-	     * @return the result of the transformation
-	     */
-	    this.transform = function() {
-	        if (!browserSupportsXSLT()) {
-	           return;
-	        }
-	        var str = /^\s*</;
-	        var t = this,
-				res;
-	        if (document.recalc) {
-	            var change = function() {
-	                var c = 'complete';
-	                if (xm.readyState == c && xs.readyState == c) {
-	                    window.setTimeout(function() {
-	                        xmlDoc = xm.XMLDocument;
-	                        xsltDoc = xs.XMLDocument;
-	                        callback(t);
-	                        res = xm.transformNode(xs.XMLDocument);
-	                    }, 50);
-	                }
-	            };
+		/**
+		 * Returns the callback function.
+		 *
+		 * @return the callback function
+		 */
+		this.getCallback = function() {
+			return callback;
+		};
 
-	            var xm = document.createElement('xml');
-	            xm.onreadystatechange = change;
-	            xm[str.test(xml) ? "innerHTML" : "src"] = xml;
+		/**
+		 * Sets the callback function
+		 *
+		 * @param c the callback function
+		 * @return this
+		 * @type Transformation
+		 */
+		this.setCallback = function(c) {
+			callback = c;
+			return this;
+		};
 
-	            var xs = document.createElement('xml');
-	            xs.onreadystatechange = change;
-	            xs[str.test(xslt) ? "innerHTML" : "src"] = xslt;
+		/**
+		 *
+		 * This method may only be called after {@link #setXml} and {@link #setXslt} have
+		 * been called.
+		 * <p>
+		 *
+		 * @return the result of the transformation
+		 */
+		this.transform = function() {
+			if(!browserSupportsXSLT()) {
+				return;
+			}
+			var str = /^\s*</;
+			var t = this,
+				res,
+				change,
+				xm,
+				xs;
+			if(document.recalc) {
+				change = function() {
+						var c = 'complete';
+						if(xm.readyState == c && xs.readyState == c) {
+							window.setTimeout(function() {
+								xmlDoc = xm.XMLDocument;
+								xsltDoc = xs.XMLDocument;
+								callback(t);
+								res = xm.transformNode(xs.XMLDocument);
+							}, 50);
+						}
+					};
 
-	            with (document.body) {
-	                insertBefore(xm);
-	                insertBefore(xs);
-	            };
-	        }
-	        else {
-	            var transformed = false;
+				xm = document.createElement('xml');
+				xm.onreadystatechange = change;
+				xm[str.test(xml) ? "innerHTML" : "src"] = xml;
 
-	            var xm = {
-	                readyState: 4
-	            };
-	            var xs = {
-	                readyState: 4
-	            };
-	            var change = function() {
-	                if (xm.readyState == 4 && xs.readyState == 4 && !transformed) {
-	                    xmlDoc = xm.responseXML;
-	                    xsltDoc = xs.responseXML;
-	                    var resultDoc;
-	                    var processor = new XSLTProcessor();
+				xs = document.createElement('xml');
+				xs.onreadystatechange = change;
+				xs[str.test(xslt) ? "innerHTML" : "src"] = xslt;
 
-	                    if (typeof processor.transformDocument == 'function') {
-	                        // obsolete Mozilla interface
-	                        resultDoc = document.implementation.createDocument("", "", null);
-	                        processor.transformDocument(xm.responseXML, xs.responseXML, resultDoc, null);
-	                        var out = new XMLSerializer().serializeToString(resultDoc);
-	                        callback(t);
-							res = out;
-	                    }
-	                    else {
-	                        processor.importStylesheet(xs.responseXML);
-	                        resultDoc = processor.transformToFragment(xm.responseXML, document);
-	                        callback(t);
-							res = resultDoc;
-	                    }
+				document.body.insertBefore(xm);
+				document.body.insertBefore(xs);
 
-	                    transformed = true;
-	                }
-	            };
+			} else {
+				var transformed = false;
 
-	            if (str.test(xml)) {
-	                xm.responseXML = new DOMParser().parseFromString(xml, "text/xml");
-	            }
-	            else {
-	                xm = new XMLHttpRequest();
-	                xm.onreadystatechange = change;
-	                xm.open("GET", xml);
-	                xm.send(null);
-	            }
+				xm = {
+					readyState: 4
+				};
+				xs = {
+					readyState: 4
+				};
+				change = function() {
+						if(xm.readyState == 4 && xs.readyState == 4 && !transformed) {
+							xmlDoc = xm.responseXML;
+							xsltDoc = xs.responseXML;
+							var resultDoc;
+							var processor = new XSLTProcessor();
 
-	            if (str.test(xslt)) {
-	                xs.responseXML = new DOMParser().parseFromString(xslt, "text/xml");
-	                change();
-	            }
-	            else {
-	                xs = new XMLHttpRequest();
-	                xs.onreadystatechange = change;
-	                xs.open("GET", xslt);
-	                xs.send(null);
-	            }
-	        }
+							if(typeof processor.transformDocument == 'function') {
+								// obsolete Mozilla interface
+								resultDoc = document.implementation.createDocument("", "", null);
+								processor.transformDocument(xm.responseXML, xs.responseXML, resultDoc, null);
+								var out = new XMLSerializer().serializeToString(resultDoc);
+								callback(t);
+								res = out;
+							} else {
+								processor.importStylesheet(xs.responseXML);
+								resultDoc = processor.transformToFragment(xm.responseXML, document);
+								callback(t);
+								res = resultDoc;
+							}
+
+							transformed = true;
+						}
+					};
+
+				if(str.test(xml)) {
+					xm.responseXML = new DOMParser().parseFromString(xml, "text/xml");
+				} else {
+					xm = new XMLHttpRequest();
+					xm.onreadystatechange = change;
+					xm.open("GET", xml);
+					xm.send(null);
+				}
+
+				if(str.test(xslt)) {
+					xs.responseXML = new DOMParser().parseFromString(xslt, "text/xml");
+					change();
+				} else {
+					xs = new XMLHttpRequest();
+					xs.onreadystatechange = change;
+					xs.open("GET", xslt);
+					xs.send(null);
+				}
+			}
 			return res;
-	    }
+		};
 
-	}
+	};
 
 	/**
 	 * Returns whether the browser supports XSLT.
-	 * 
+	 *
 	 * @return the browser supports XSLT
 	 * @type boolean
 	 */
-	var browserSupportsXSLT = function () {
-	    var support = false;
-	    if (document.recalc) { // IE 5+
-	        support = true;
-	    }
-	    else if (window.XMLHttpRequest != undefined && window.XSLTProcessor != undefined) { // Mozilla 0.9.4+, Opera 9+
-	       var processor = new XSLTProcessor();
-	       if (typeof processor.transformDocument == 'function') {
-	           support = window.XMLSerializer != undefined;
-	       }
-	       else {
-	           support = true;
-	       }
-	    }
-	    return support;
-	}
-	
-	
+	var browserSupportsXSLT = function() {
+		var support = false;
+		if(document.recalc) { // IE 5+
+			support = true;
+		} else if(window.XMLHttpRequest !== undefined && window.XSLTProcessor !== undefined) { // Mozilla 0.9.4+, Opera 9+
+			var processor = new XSLTProcessor();
+			if(typeof processor.transformDocument == 'function') {
+				support = window.XMLSerializer !== undefined;
+			} else {
+				support = true;
+			}
+		}
+		return support;
+	};
+
+
 	Vtree.plugins.xmlSource = {
-		nodeStore:{
-			defaults:{
-				xslt:''+
-					'<' + '?xml version="1.0" encoding="utf-8" ?>' + 
-					'<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" >' + 
-					'<xsl:output encoding="utf-8"  indent="no" omit-xml-declaration="yes" method="text" />' + 
-					''+
-					'<xsl:strip-space elements="*" />'+
-					'<xsl:template match="/">' + 
-					'	<xsl:apply-templates select="tree"/>' + 
-					'</xsl:template>'+
-					''+
-					'<xsl:template match="tree">' + 
-					'	{"tree":{'+
-					'		"id": "<xsl:value-of select="@id"/>",'+
-					' 		"nodes": <xsl:apply-templates select="nodes"/> }'+
-					'	}'+
-					'</xsl:template>' +
-					''+
-					'<xsl:template match="nodes">' + 
-					' [<xsl:apply-templates select="node"/>]'+
-					'</xsl:template>' +
-					''+
-					'<xsl:template match="node">' + 
-					'	{"id": "<xsl:value-of select="id"/>",'+
-					'	"title": "<xsl:value-of select="label|title"/>",'+
-					'	"description": "<xsl:value-of select="description"/>",'+
-					'	"hasChildren": <xsl:value-of select="hasChildren"/>,'+
-					'	"iconPath": "<xsl:value-of select="icon"/>",'+
-					'	"nodes":[<xsl:apply-templates select="node"/>]'+
-					'	}<xsl:if test="position()!=last()">,</xsl:if>'+
-					'</xsl:template>' + 
-					'</xsl:stylesheet>'
+		nodeStore: {
+			defaults: {
+				xslt: '' +
+				'<?xml version="1.0" encoding="utf-8" ?>' +
+				'<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" >' +
+				'<xsl:output encoding="utf-8"  indent="no" omit-xml-declaration="yes" method="text" />' +
+				'' +
+				'<xsl:strip-space elements="*" />' +
+				'<xsl:template match="/">' +
+				'	<xsl:apply-templates select="tree"/>' +
+				'</xsl:template>' +
+				'' +
+				'<xsl:template match="tree">' +
+				'	{"tree":{' +
+				'		"id": "<xsl:value-of select="@id"/>",' +
+				'	"nodes": <xsl:apply-templates select="nodes"/> }' +
+				'	}' +
+				'</xsl:template>' +
+				'' +
+				'<xsl:template match="nodes">' +
+				' [<xsl:apply-templates select="node"/>]' +
+				'</xsl:template>' +
+				'' +
+				'<xsl:template match="node">' +
+				'	{"id": "<xsl:value-of select="id"/>",' +
+				'	"title": "<xsl:value-of select="label|title"/>",' +
+				'	"description": "<xsl:value-of select="description"/>",' +
+				'	"hasChildren": <xsl:value-of select="hasChildren"/>,' +
+				'	"iconPath": "<xsl:value-of select="icon"/>",' +
+				'	"nodes":[<xsl:apply-templates select="node"/>]' +
+				'	}<xsl:if test="position()!=last()">,</xsl:if>' +
+				'</xsl:template>' +
+				'</xsl:stylesheet>'
 			},
-			_fn:{
-				getDataSource: function(attribute){
-					var res = new Transformation().setXml(this.tree.dataSource)
-					        .setXslt(this.xslt).transform();
+			_fn: {
+				getDataSource: function(attribute) {
+					var res = new Transformation().setXml(this.tree.dataSource).setXslt(this.xslt).transform();
 
 					this.tree.dataSource = JSON.parse(res.textContent);
 					return this._call_prev();
-				},
+				}
 			}
-		}		
-	}
-	
+		}
+	};
+
 })(jQuery);

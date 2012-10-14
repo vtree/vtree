@@ -84,14 +84,28 @@ jQuery.ajax = function (param) {
 };
 
 
+var container = jQuery("#treeContainer");
 var settings = {
-	container: jQuery("#treeContainer"),
+	container: container,
 	ajaxUrl: "/ajaxUrl",
-	plugins: ["ajax_loading", "cookie"],
+	plugins: ["ajax_loading", "bolding"],
 	id:"ajaxTree",
 	dataSource: dataSource
+	,initially_open: ["test_1", "test_2"]
+	,initially_bold: ["test_6"],
+	cascading_bold: true
 };
 
+container.bind('bold.node unbold.node', function(event, tree, node) {
+	console.log(">>>>>>>> checked node:", node);
+	boldNodeObjects = tree.getBoldNodes();
+	if (typeof boldNodeObjects != 'undefined') {
+		console.log("all bold nodes:");
+		for (i=0; i<boldNodeObjects.length; i++) {
+			console.log(boldNodeObjects[i].id,boldNodeObjects[i].title);
+		}
+	}
+});
 
 var tree = Vtree.create(settings);
 

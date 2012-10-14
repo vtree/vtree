@@ -31,7 +31,7 @@ position:relative }
 
 
 ul.tree li.bold>a.title,
-ul.tree li.bold>a.title>em, 
+ul.tree li.bold>a.title>em,
 ul.tree li.bold>a.title>h3 {
 	font-weight: bold;
 }
@@ -57,7 +57,7 @@ color: #444;
 padding-left: 15px;
 }
 
-ul.tree li a.align { 
+ul.tree li a.align {
 	position: absolute;
 	left: 0;
 	float: left;
@@ -180,11 +180,11 @@ background:#4077d4;
 -webkit-box-shadow:-3px 0 0 #4077d4;
    -moz-box-shadow:-3px 0 0 #4077d4;
         box-shadow:-3px 0 0 #4077d4 }
-        
+
 /*.tree li.selected > a i:before,
 .tree label.selected > input + i:before {
 color:#fff }*/
-        
+
 @font-face {
 font-family:'icons';
 src:

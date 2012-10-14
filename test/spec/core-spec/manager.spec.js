@@ -29,7 +29,7 @@ describe("Vtree manager functions", function() {
 			}
 			expect(function(){testObject = new TestObject();}).toThrow();
 		});
-		
+
 		it("should extends the object with the default object of the plugin", function() {
 			TestObject = function() {
 				this.pluginFns = {};
@@ -41,7 +41,7 @@ describe("Vtree manager functions", function() {
 				 var attrVal = coreDefaults[attr];
 				 expect(testObject[attr]).toBeDefined();
 				 expect(testObject[attr]).toBe(attrVal);
-			}	
+			}
 
 		});
 
@@ -56,10 +56,10 @@ describe("Vtree manager functions", function() {
 				 var fn = coreFns[fnName];
 				 expect(testObject[fnName]).toBeDefined();
 				 expect(typeof testObject[fnName]).toBe("function");
-			}	
+			}
 		});
 
-		
+
 		describe("when several plugins that we attach to the object, define the same function ", function() {
 			beforeEach(function() {
 			  			// define 2 plugins with same function
@@ -94,13 +94,12 @@ describe("Vtree manager functions", function() {
 			});
 			it("they should be both called when calling the function and in the order they have been added to the object", function() {
 				testObject = new TestObject();
-				debugger
 				var res = testObject.a_function()
-				expect(res).toBe("plugin_1plugin_2");				
+				expect(res).toBe("plugin_1plugin_2");
 			});
-			
+
 		});
-	
+
 	});
 	describe("initializing an object", function() {
 		var TestObject, testObject, pluginGroup, settingsPlugins;
@@ -116,7 +115,7 @@ describe("Vtree manager functions", function() {
 			});
 		});
 		it("for each default plugins, it should call addPlugins", function() {
-			for (var plugin in Vtree.plugins.defaults) {				
+			for (var plugin in Vtree.plugins.defaults) {
 				expect(Vtree.addPlugin.apply).toHaveBeenCalledWith(testObject, [plugin , pluginGroup]);
 			}
 		});
@@ -125,8 +124,8 @@ describe("Vtree manager functions", function() {
 				expect(Vtree.addPlugin.apply).toHaveBeenCalledWith(testObject, [pluginName , pluginGroup]);
 			});
 		});
-		
-		
+
+
 	});
 	describe("creating a tree", function() {
 		it("should destroy a tree which exists in the same container", function() {
@@ -151,7 +150,7 @@ describe("Vtree manager functions", function() {
 		it("should call getTree", function() {
 			spyOn(Vtree, "getTree").andReturn(tree);
 			Vtree.destroy(param);
-			
+
 			expect(Vtree.getTree).toHaveBeenCalledWith(param);
 		});
 		it("should call tree.destroy", function() {
@@ -172,10 +171,10 @@ describe("Vtree manager functions", function() {
 			expect(Vtree.getTrees().length).toBe(1);
 			expect(Vtree.getTrees()[0].id).toBe("tree2");
 		});
-		
-		
-		
-		
+
+
+
+
 	});
 	describe("getting a tree", function() {
 		var other_tree;
@@ -191,44 +190,44 @@ describe("Vtree manager functions", function() {
 			var res = Vtree.getTree(tree)
 			expect(res instanceof Vtree.Tree).toBeTruthy();
 			expect(res.id).toBe(tree.id);
-			
+
 			res = Vtree.getTree(other_tree)
 			expect(res instanceof Vtree.Tree).toBeTruthy();
 			expect(res.id).toBe(other_tree.id);
 		});
-		
+
 		it("when passing a tree id", function() {
 			var res = Vtree.getTree(tree.id)
 			expect(res instanceof Vtree.Tree).toBeTruthy();
-			expect(res.id).toBe(tree.id);	
-			
+			expect(res.id).toBe(tree.id);
+
 			res = Vtree.getTree(other_tree.id)
 			expect(res instanceof Vtree.Tree).toBeTruthy();
-			expect(res.id).toBe(other_tree.id);		
+			expect(res.id).toBe(other_tree.id);
 		});
-		
+
 		it("when passing a container jquery element", function() {
 			var res = Vtree.getTree(container)
 			expect(res instanceof Vtree.Tree).toBeTruthy();
 			expect(res.id).toBe(tree.id);
-			
+
 			res = Vtree.getTree(container2)
 			expect(res instanceof Vtree.Tree).toBeTruthy();
 			expect(res.id).toBe(other_tree.id);
 		});
-		
+
 		it("when passing a container selector", function() {
 			var res = Vtree.getTree("#sandbox")
 			expect(res instanceof Vtree.Tree).toBeTruthy();
 			expect(res.id).toBe(tree.id);
-			
+
 			res = Vtree.getTree("#sandbox2")
 			expect(res instanceof Vtree.Tree).toBeTruthy();
 			expect(res.id).toBe(other_tree.id);
 		});
-		
-		
-		
+
+
+
 	});
 	describe("getting all trees", function() {
 		it("should return all trees", function() {
@@ -242,20 +241,20 @@ describe("Vtree manager functions", function() {
 				container:container2,
 				dataSource: data
 			})
-			
+
 			trees = Vtree.getTrees();
 			expect(trees.length).toBe(2);
 			expect(trees[0] instanceof Vtree.Tree).toBeTruthy();
 			expect(trees[1] instanceof Vtree.Tree).toBeTruthy();
-			expect(trees[0].id).toBe("tree");			
-			expect(trees[1].id).toBe("tree2");			
+			expect(trees[0].id).toBe("tree");
+			expect(trees[1].id).toBe("tree2");
 		});
-		
+
 	});
 	describe("generating an identificator for a tree", function() {
 		it("should generate an id with 12 caracteres composed of numbers and letters ", function() {
 			expect(/([a-z0-9]){12}/.test(Vtree._generateTreeId())).toBeTruthy();
 		});
-		
+
 	});
 });

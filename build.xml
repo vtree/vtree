@@ -2,7 +2,7 @@
 	<property name="src" location="${basedir}/src"/>
 	<property name="dist"  location="${basedir}/dist"/>
 	<property name="localServer"  location="/Users/lginoux/Sites/Vtree"/>
-	
+
 	<target name="build" description="Concatenate all js files">
 		<!-- create directory structure -->
 		<delete dir="${dist}"/>
@@ -10,9 +10,9 @@
 		<mkdir dir="${dist}/js"/>
 		<mkdir dir="${dist}/style"/>
 
-		
+
 		<!-- concat and copy all javascript files -->
-		<concat destfile="${dist}/js/vtree.js"> 
+		<concat destfile="${dist}/js/vtree.js">
 			<!-- <fileset dir="${basedir}/src/core" includes="*.js">
 				<include name="vtree.utils.js"/>
 				<include name="vtree.utils.js"/>
@@ -26,15 +26,17 @@
 		    </filelist>
 			<fileset dir="${src}/plugins" includes="*.js" excludes="vtree.plugin_template.js"/>
 		</concat>
-		
+
 		<!-- copy all style files -->
 		<copy todir="${dist}/style">
 		    <fileset dir="${src}/style"/>
 		  </copy>
-		
+
 		<!-- concat test files -->
-		<concat destfile="${basedir}/test/vtree.spec.js"> 
-			<fileset dir="test/spec" includes="*.js"/>
+		<concat destfile="${basedir}/test/vtree.spec.js">
+			<fileset dir="test/spec/" includes="*.js"/>
+			<fileset dir="test/spec/core-spec" includes="*.js"/>
+			<fileset dir="test/spec/plugins-spec" includes="*.js"/>
 		</concat>
 
 		<antcall target="copyToLocalServer">
