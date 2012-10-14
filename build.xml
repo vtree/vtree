@@ -39,8 +39,7 @@
 			<fileset dir="test/spec/plugins-spec" includes="*.js"/>
 		</concat>
 
-		<antcall target="copyToLocalServer">
-  		</antcall>
+		<!-- <antcall target="copyToLocalServer"></antcall> -->
 	</target>
 
 	<target name="copyToLocalServer" description="make a copy on local server">
