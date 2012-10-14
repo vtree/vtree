@@ -6,6 +6,49 @@ customMatchers = {
 		return Object.identical(this.actual.toJson(), node.toJson())
 	}
 };
+/*
+    Original script title: "Object.identical.js"; version 1.12
+    Copyright (c) 2011, Chris O'Brien, prettycode.org
+    http://github.com/prettycode/Object.identical.js
+
+    Permission is hereby granted for unrestricted use, modification, and redistribution of this
+    script, only under the condition that this code comment is kept wholly complete, appearing
+    directly above the script's code body, in all original or modified non-minified representations
+*/
+
+Object.identical = function (a, b, sortArrays) {
+  
+    /* Requires ECMAScript 5 functions:
+           - Array.isArray()
+           - Object.keys()
+           - Array.prototype.forEach()
+           - JSON.stringify()
+    */
+  
+    function sort(object) {
+        
+        if (sortArrays === true && Array.isArray(object)) {
+            return object.sort();
+        }
+        else if (typeof object !== "object" || object === null) {
+            return object;
+        }
+        
+        var result = [];
+        
+        Object.keys(object).sort().forEach(function(key) {
+            result.push({
+                key: key,
+                value: sort(object[key])
+            });
+        });
+        
+        return result; 
+    }
+    
+    return JSON.stringify(sort(a)) === JSON.stringify(sort(b));
+};
+
 describe("Vtree manager functions", function() {
 	var data, tree, container, container2;
 	beforeEach(function() {
@@ -25,13 +68,130 @@ describe("Vtree manager functions", function() {
 		try{ Vtree.destroy("tree2")}catch(e){}
 	});
 	describe("adding a plugin to an object", function() {
-		
+		var TestObject, testObject, pluginGroup;
+		beforeEach(function() {
+			pluginGroup = "tree";
+
+		});
+		it("should throw if plugin name does not exist", function() {
+			TestObject = function() {
+				this.pluginFns = {};
+				Vtree.addPlugin.apply(this, ["inexistantPlugin", pluginGroup])
+			}
+			expect(function(){testObject = new TestObject();}).toThrow();
+		});
+
+		it("should extends the object with the default object of the plugin", function() {
+			TestObject = function() {
+				this.pluginFns = {};
+				Vtree.addPlugin.apply(this, ["core", pluginGroup])
+			}
+			testObject = new TestObject();
+			coreDefaults = Vtree.plugins.defaults.core[pluginGroup].defaults;
+			for (var attr in coreDefaults) {
+				 var attrVal = coreDefaults[attr];
+				 expect(testObject[attr]).toBeDefined();
+				 expect(testObject[attr]).toBe(attrVal);
+			}
+
+		});
+
+		it("should add a function for each functions from the plugin", function() {
+			TestObject = function() {
+				this.pluginFns = {};
+				Vtree.addPlugin.apply(this, ["core", pluginGroup])
+			}
+			testObject = new TestObject();
+			coreFns = Vtree.plugins.defaults.core[pluginGroup]._fn;
+			for (var fnName in coreFns) {
+				 var fn = coreFns[fnName];
+				 expect(testObject[fnName]).toBeDefined();
+				 expect(typeof testObject[fnName]).toBe("function");
+			}
+		});
+
+
+		describe("when several plugins that we attach to the object, define the same function ", function() {
+			beforeEach(function() {
+			  			// define 2 plugins with same function
+				Vtree.plugins.plugin_1 = {
+					tree:{
+						defaults:{
+							res:""
+						},
+						_fn:{
+							a_function: function(){
+								return "plugin_1"
+							}
+						}
+					}
+				}
+				Vtree.plugins.plugin_2 = {
+					tree:{
+						defaults:{},
+						_fn:{
+							a_function: function(){
+								return this._call_prev()+ "plugin_2"
+							}
+						}
+					}
+				}
+				TestObject = function() {
+					this.pluginFns = {};
+					Vtree.addPlugin.apply(this, ["plugin_1", "tree"])
+					Vtree.addPlugin.apply(this, ["plugin_2", "tree"])
+				}
+
+			});
+			it("they should be both called when calling the function and in the order they have been added to the object", function() {
+				testObject = new TestObject();
+				var res = testObject.a_function()
+				expect(res).toBe("plugin_1plugin_2");
+			});
+
+		});
+
 	});
 	describe("initializing an object", function() {
-		
+		var TestObject, testObject, pluginGroup, settingsPlugins;
+		beforeEach(function() {
+			pluginGroup = "tree";
+			settingsPlugins = ["checkbox","cookie"];
+		 	TestObject = function(settings) {
+				Vtree.init.apply(this, [settings, pluginGroup])
+			}
+			spyOn(Vtree.addPlugin, "apply");
+			testObject = new TestObject({
+				plugins: settingsPlugins
+			});
+		});
+		it("for each default plugins, it should call addPlugins", function() {
+			for (var plugin in Vtree.plugins.defaults) {
+				expect(Vtree.addPlugin.apply).toHaveBeenCalledWith(testObject, [plugin , pluginGroup]);
+			}
+		});
+		it("should add all plugins passed in parameters", function() {
+			$.each(settingsPlugins, function(index, pluginName) {
+				expect(Vtree.addPlugin.apply).toHaveBeenCalledWith(testObject, [pluginName , pluginGroup]);
+			});
+		});
+
+
 	});
 	describe("creating a tree", function() {
-		
+		it("should destroy a tree which exists in the same container", function() {
+			expect(function(){Vtree.getTree("tree")}).not.toThrow()
+			expect(Vtree.getTree("tree").id).toBe("tree");
+			var data2 = $.extend({}, data)
+		  	data2.tree.id = "tree2"
+			tree2 = Vtree.create({
+				container:container,
+				dataSource: data2
+			})
+			expect(function(){Vtree.getTree("tree")}).toThrow()
+			expect(function(){Vtree.getTree("tree2")}).not.toThrow()
+			expect(Vtree.getTree("tree2").id).toBe("tree2");
+		});
 	});
 	describe("destroying a tree", function() {
 		var param;
@@ -41,7 +201,7 @@ describe("Vtree manager functions", function() {
 		it("should call getTree", function() {
 			spyOn(Vtree, "getTree").andReturn(tree);
 			Vtree.destroy(param);
-			
+
 			expect(Vtree.getTree).toHaveBeenCalledWith(param);
 		});
 		it("should call tree.destroy", function() {
@@ -62,10 +222,10 @@ describe("Vtree manager functions", function() {
 			expect(Vtree.getTrees().length).toBe(1);
 			expect(Vtree.getTrees()[0].id).toBe("tree2");
 		});
-		
-		
-		
-		
+
+
+
+
 	});
 	describe("getting a tree", function() {
 		var other_tree;
@@ -81,44 +241,44 @@ describe("Vtree manager functions", function() {
 			var res = Vtree.getTree(tree)
 			expect(res instanceof Vtree.Tree).toBeTruthy();
 			expect(res.id).toBe(tree.id);
-			
+
 			res = Vtree.getTree(other_tree)
 			expect(res instanceof Vtree.Tree).toBeTruthy();
 			expect(res.id).toBe(other_tree.id);
 		});
-		
+
 		it("when passing a tree id", function() {
 			var res = Vtree.getTree(tree.id)
 			expect(res instanceof Vtree.Tree).toBeTruthy();
-			expect(res.id).toBe(tree.id);	
-			
+			expect(res.id).toBe(tree.id);
+
 			res = Vtree.getTree(other_tree.id)
 			expect(res instanceof Vtree.Tree).toBeTruthy();
-			expect(res.id).toBe(other_tree.id);		
+			expect(res.id).toBe(other_tree.id);
 		});
-		
+
 		it("when passing a container jquery element", function() {
 			var res = Vtree.getTree(container)
 			expect(res instanceof Vtree.Tree).toBeTruthy();
 			expect(res.id).toBe(tree.id);
-			
+
 			res = Vtree.getTree(container2)
 			expect(res instanceof Vtree.Tree).toBeTruthy();
 			expect(res.id).toBe(other_tree.id);
 		});
-		
+
 		it("when passing a container selector", function() {
 			var res = Vtree.getTree("#sandbox")
 			expect(res instanceof Vtree.Tree).toBeTruthy();
 			expect(res.id).toBe(tree.id);
-			
+
 			res = Vtree.getTree("#sandbox2")
 			expect(res instanceof Vtree.Tree).toBeTruthy();
 			expect(res.id).toBe(other_tree.id);
 		});
-		
-		
-		
+
+
+
 	});
 	describe("getting all trees", function() {
 		it("should return all trees", function() {
@@ -132,21 +292,21 @@ describe("Vtree manager functions", function() {
 				container:container2,
 				dataSource: data
 			})
-			
+
 			trees = Vtree.getTrees();
 			expect(trees.length).toBe(2);
 			expect(trees[0] instanceof Vtree.Tree).toBeTruthy();
 			expect(trees[1] instanceof Vtree.Tree).toBeTruthy();
-			expect(trees[0].id).toBe("tree");			
-			expect(trees[1].id).toBe("tree2");			
+			expect(trees[0].id).toBe("tree");
+			expect(trees[1].id).toBe("tree2");
 		});
-		
+
 	});
 	describe("generating an identificator for a tree", function() {
 		it("should generate an id with 12 caracteres composed of numbers and letters ", function() {
 			expect(/([a-z0-9]){12}/.test(Vtree._generateTreeId())).toBeTruthy();
 		});
-		
+
 	});
 });describe("Node core functions", function() {
 	describe("initialization", function() {
@@ -1424,46 +1584,596 @@ describe("NodeStore core functions", function() {
 		});
 
 	});
-});/*
-    Original script title: "Object.identical.js"; version 1.12
-    Copyright (c) 2011, Chris O'Brien, prettycode.org
-    http://github.com/prettycode/Object.identical.js
+});describe("ajax_loading plugin", function() {
+	var pluginName = "ajax_loading";
+	beforeEach(function() {
+		this.addMatchers(customMatchers);
+		appendSetFixtures(sandbox());
+		data = getJSONFixture('sourceData.json');
+		container = $('#sandbox');
+		tree = Vtree.create({
+			container:container,
+			dataSource: data,
+			plugins:[pluginName]
+		});
+	});
+	describe("tree plugin", function() {
+		var className = "tree";
+		it("should set default variables", function() {
+			expect(Vtree.plugins[pluginName][className].defaults).toBeObject({
+				ajaxUrl: "",
+				ajaxParameters:{},
+				asynchronous: true,
+				forceAjaxReload: false
+			});
+		});
+		describe("functions", function() {
 
-    Permission is hereby granted for unrestricted use, modification, and redistribution of this
-    script, only under the condition that this code comment is kept wholly complete, appearing
-    directly above the script's code body, in all original or modified non-minified representations
-*/
+		});
 
-Object.identical = function (a, b, sortArrays) {
-  
-    /* Requires ECMAScript 5 functions:
-           - Array.isArray()
-           - Object.keys()
-           - Array.prototype.forEach()
-           - JSON.stringify()
-    */
-  
-    function sort(object) {
-        
-        if (sortArrays === true && Array.isArray(object)) {
-            return object.sort();
-        }
-        else if (typeof object !== "object" || object === null) {
-            return object;
-        }
-        
-        var result = [];
-        
-        Object.keys(object).sort().forEach(function(key) {
-            result.push({
-                key: key,
-                value: sort(object[key])
-            });
-        });
-        
-        return result; 
-    }
-    
-    return JSON.stringify(sort(a)) === JSON.stringify(sort(b));
-};
+	});
+	describe("node plugin", function() {
+		var className = "node";
+		describe("functions", function() {
 
+		});
+
+	});
+
+});describe("bolding plugin", function() {
+	var pluginName = "bolding",
+		tree,
+		container,
+		data;
+	beforeEach(function() {
+  		this.addMatchers(customMatchers);
+  		appendSetFixtures(sandbox());
+		data = getJSONFixture('sourceData.json');
+		container = $('#sandbox');
+		tree = Vtree.create({
+			container:container,
+			dataSource: data,
+			plugins:[pluginName]
+		});
+	});
+	describe("tree plugin", function() {
+		var className = "tree";
+		it("should set default variables", function() {
+			expect(Vtree.plugins[pluginName][className].defaults).toBeObject({
+				initially_bold: [],
+				cascading_bold: false
+			});
+		});
+		describe("functions", function() {
+			it("should get currently bold nodes", function() {
+				spyOn(tree.nodeStore, "getBoldNodes");
+				expect(tree.getBoldNodes).toBeDefined();
+				expect(typeof tree.getBoldNodes).toBe("function");
+				tree.getBoldNodes()
+				expect(tree.nodeStore.getBoldNodes).toHaveBeenCalled();
+			});
+			describe("attaching new event", function() {
+				it("on click event it should get the node and toggle his bolding state", function() {
+					tree._attachEvents();
+					var node = tree.getNode("test_1");
+					spyOn(node, "toggleBold");
+					tree.getNode("test_1").getEl().click();
+					expect(node.toggleBold).toHaveBeenCalled();
+				});
+				it("should call all functions _attachEvens, the core and the plugin one", function() {
+					spyOn(tree.pluginFns._attachEvents[0], "apply").andCallThrough();
+					spyOn(tree.pluginFns._attachEvents[1], "apply").andCallThrough();
+					tree._attachEvents()
+					expect(tree.pluginFns._attachEvents[0].apply).toHaveBeenCalled();
+					expect(tree.pluginFns._attachEvents[1].apply).toHaveBeenCalled();
+				});
+
+
+			});
+
+		});
+
+	});
+	describe("node plugin", function() {
+		var className = "node",
+			node;
+		beforeEach(function() {
+			node = tree.getNode("test_1")
+		});
+		it("should set default variables", function() {
+			expect(Vtree.plugins[pluginName][className].defaults).toBeObject({
+				isBold:false
+			});
+		});
+		describe("functions", function() {
+			describe("toggling bolding state", function() {
+				beforeEach(function() {
+				  	spyOn(node, 'bold');
+					spyOn(node, 'unbold');
+				});
+				it("should call bold if it is unbold", function() {
+					node.toggleBold();
+					expect(node.bold).toHaveBeenCalled();
+					expect(node.unbold).not.toHaveBeenCalled();
+				});
+
+				it("should call unbold if it is bold", function() {
+					node.isBold = true
+					node.toggleBold();
+					expect(node.unbold).toHaveBeenCalled();
+					expect(node.bold).not.toHaveBeenCalled();
+
+				});
+			});
+			describe("bolding a node", function() {
+				var eventSpy;
+				beforeEach(function() {
+					eventSpy = spyOnEvent('#sandbox', 'bold.node');
+					node.bold();
+				});
+				it("should set a class 'bold' to the li element", function() {
+					expect(node.getEl()[0]).toHaveClass("bold")
+				});
+				it("should set the variable isBold to true", function() {
+					expect(node.isBold).toBeTruthy();
+				});
+				it("should trigger a bold.node event", function() {
+					expect(eventSpy).toHaveBeenTriggered();
+				});
+				it("should bold parents when cascading_bold is set to true", function() {
+					node.tree.cascading_bold = true;
+					node.bold();
+					for (var i=0, parents = node.parents, len = node.parents.length; i < len; i++) {
+						var parent = parents[i];
+						expect(parent.isBold).toBeTruthy();
+						if (parent.id !== "root") {
+							expect(parent.getEl()[0]).toHaveClass("bold");
+						}
+					}
+				});
+				it("should not bold parents when cascading_bold is false", function() {
+					node.tree.cascading_bold = false;
+					for (var i=0, parents = node.parents, len = node.parents.length; i < len; i++) {
+						var parent = parents[i];
+						expect(parent.isBold).toBeFalsy();
+						if (parent.id !== "root") {
+							expect(parent.getEl()[0]).not.toHaveClass("bold");
+						}
+					}
+				});
+			});
+			describe("unbolding a node", function() {
+				var eventSpy;
+				beforeEach(function() {
+					node.bold();
+					eventSpy = spyOnEvent('#sandbox', 'unbold.node');
+					node.open();
+					for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
+						var child = children[i];
+						child.bold();
+					}
+					node.unbold();
+				});
+				it("should remove the class 'bold' to the li element", function() {
+					expect(node.getEl()[0]).not.toHaveClass("bold")
+				});
+				it("should set the variable isBold to false", function() {
+					expect(node.isBold).toBeFalsy();
+				});
+				it("should trigger a unbold.node event", function() {
+					expect(eventSpy).toHaveBeenTriggered();
+				});
+				it("should unbold children when cascading_bold is set to true", function() {
+					node.tree.cascading_bold = true;
+
+					node.unbold();
+					for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
+						var child = children[i];
+						expect(child.isBold).toBeFalsy();
+						expect(child.getEl()[0]).not.toHaveClass("bold");
+					}
+				});
+				it("should not unbold children when cascading_bold is false", function() {
+					node.tree.cascading_bold = false;
+					for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
+						var child = children[i];
+						expect(child.isBold).toBeTruthy();
+						expect(child.getEl()[0]).toHaveClass("bold");
+					}
+				});
+
+			});
+			describe("getting the node html", function() {
+				it("should add a class bold if is_bold is set to true", function() {
+					node.bold();
+					var li = node.getHTML();
+					expect(li[0]).toHaveClass("bold");
+				});
+				it("should not add a class bold if is_bold is set to false", function() {
+					node.unbold();
+					var li = node.getHTML();
+					expect(li[0]).not.toHaveClass("bold");
+				});
+				it("should call all the functions getHTML of the node", function() {
+					spyOn(node.pluginFns.getHTML[0], "apply").andCallThrough();
+					spyOn(node.pluginFns.getHTML[1], "apply").andCallThrough();
+					node.getHTML()
+					expect(node.pluginFns.getHTML[0].apply).toHaveBeenCalled();
+					expect(node.pluginFns.getHTML[1].apply).toHaveBeenCalled();
+				});
+
+
+
+			});
+		});
+
+	});
+	describe("nodeStore plugin", function() {
+		var className = "nodeStore";
+		it("should set default variables", function() {
+			expect(Vtree.plugins[pluginName][className].defaults).toBeObject({});
+		});
+		describe("functions", function() {
+			var nodeStore,node;
+			beforeEach(function() {
+				nodeStore = tree.nodeStore;
+				node = "test_2"
+				nodeStore.tree.initially_bold = [node]
+			});
+			describe("initalizing the structure", function() {
+				it("should call all the functions initStructure", function() {
+					spyOn(nodeStore.pluginFns.initStructure[0], "apply").andCallThrough();
+					spyOn(nodeStore.pluginFns.initStructure[1], "apply").andCallThrough();
+					nodeStore.initStructure();
+					expect(nodeStore.pluginFns.initStructure[0].apply).toHaveBeenCalled();
+					expect(nodeStore.pluginFns.initStructure[1].apply).toHaveBeenCalled();
+				});
+				it("should bold the nodes that are in the initially_bold list", function() {
+					expect(tree.getNode(node).isBold).toBeFalsy();
+					nodeStore.initStructure();
+					expect(tree.getNode(node).isBold).toBeTruthy();
+				});
+				it("should also bold the parents of the nodes in the initially_bold list if cascading_bold is set to true", function() {
+					node = nodeStore.getNode("test_2");
+					for (var i=0, parents = node.parents, len = node.parents.length; i < len; i++) {
+						var parent = parents[i];
+						expect(parent.isBold).toBeFalsy();
+					}
+					nodeStore.tree.cascading_bold = true;
+
+					nodeStore.initStructure();
+					node = nodeStore.getNode("test_2");
+					for (var i=0, parents = node.parents, len = node.parents.length; i < len; i++) {
+						var parent = parents[i];
+						expect(parent.isBold).toBeTruthy();
+					}
+				});
+
+
+
+			});
+
+			describe("getting the list of bold nodes", function() {
+				var list;
+				beforeEach(function() {
+					nodeStore.initStructure();
+					list = nodeStore.getBoldNodes();
+				});
+				it("should return a list of bold nodes in the tree", function() {
+					expect(list.length).toBe(2);
+					var node = nodeStore.getNode("test_2");
+					expect(list[0].id).toBe(node.parent.id);
+					expect(list[0] instanceof Vtree.Node).toBeTruthy();
+					expect(list[1].id).toBe(node.id);
+					expect(list[1] instanceof Vtree.Node).toBeTruthy();
+				});
+
+			});
+		});
+
+	});
+});describe("checkbox plugin", function() {
+	var pluginName = "checkbox",
+		tree,
+		container,
+		data;
+	beforeEach(function() {
+  		this.addMatchers(customMatchers);
+  		appendSetFixtures(sandbox());
+		data = getJSONFixture('sourceData.json');
+		container = $('#sandbox');
+		tree = Vtree.create({
+			container:container,
+			dataSource: data,
+			plugins:[pluginName]
+		});
+	});
+	describe("tree plugin", function() {
+		var className = "tree";
+		it("should set default variables", function() {
+			expect(Vtree.plugins[pluginName][className].defaults).toBeObject({
+				initially_checked: [],
+				disabled_checkboxes: []
+			});
+		});
+		describe("functions", function() {
+			it("should get currently checked nodes", function() {
+				spyOn(tree.nodeStore, "getCheckedNodes");
+				expect(tree.getCheckedNodes).toBeDefined();
+				expect(typeof tree.getCheckedNodes).toBe("function");
+				tree.getCheckedNodes()
+				expect(tree.nodeStore.getCheckedNodes).toHaveBeenCalled();
+			});
+			describe("attaching new event", function() {
+				it("on click event it should get the node and toggle his checkbox state", function() {
+					tree._attachEvents();
+					var node = tree.getNode("test_1");
+					spyOn(node, "toggleCheck");
+					tree.getNode("test_1").getEl().find("input[type=checkbox]").click();
+					expect(node.toggleCheck).toHaveBeenCalled();
+				});
+				it("should call all functions _attachEvens", function() {
+					spyOn(tree.pluginFns._attachEvents[0], "apply").andCallThrough();
+					spyOn(tree.pluginFns._attachEvents[1], "apply").andCallThrough();
+					tree._attachEvents()
+					expect(tree.pluginFns._attachEvents[0].apply).toHaveBeenCalled();
+					expect(tree.pluginFns._attachEvents[1].apply).toHaveBeenCalled();
+				});
+
+
+			});
+
+		});
+
+	});
+	describe("node plugin", function() {
+		var className = "node",
+			node;
+		beforeEach(function() {
+			node = tree.getNode("test_1")
+		});
+		it("should set default variables", function() {
+			expect(Vtree.plugins[pluginName][className].defaults).toBeObject({
+				isChecked:false,
+				isDisabled: false
+			});
+		});
+		describe("functions", function() {
+			describe("toggling checkbox state", function() {
+				beforeEach(function() {
+				  	spyOn(node, 'check');
+					spyOn(node, 'uncheck');
+				});
+				it("should call check if it is uncheck", function() {
+					node.toggleCheck();
+					expect(node.check).toHaveBeenCalled();
+					expect(node.uncheck).not.toHaveBeenCalled();
+				});
+
+				it("should call uncheck if it is check", function() {
+					node.isChecked = true
+					node.toggleCheck();
+					expect(node.uncheck).toHaveBeenCalled();
+					expect(node.check).not.toHaveBeenCalled();
+
+				});
+			});
+			describe("checking a node", function() {
+				var eventSpy;
+				beforeEach(function() {
+					eventSpy = spyOnEvent('#sandbox', 'check.node');
+					node.check();
+				});
+
+				it("should set the variable isChecked to true", function() {
+					expect(node.isChecked).toBeTruthy();
+				});
+				it("should trigger a check.node event", function() {
+					expect(eventSpy).toHaveBeenTriggered();
+				});
+				it("should check parents", function() {
+					for (var i=0, parents = node.parents, len = node.parents.length; i < len; i++) {
+						var parent = parents[i];
+						expect(parent.isChecked).toBeTruthy();
+					}
+				});
+			});
+			describe("unchecking a node", function() {
+				var eventSpy;
+				beforeEach(function() {
+					node.check();
+					eventSpy = spyOnEvent('#sandbox', 'uncheck.node');
+					node.open();
+					for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
+						var child = children[i];
+						child.check();
+					}
+					node.uncheck();
+				});
+
+				it("should set the variable isChecked to false", function() {
+					expect(node.isChecked).toBeFalsy();
+				});
+				it("should trigger a uncheck.node event", function() {
+					expect(eventSpy).toHaveBeenTriggered();
+				});
+				it("should uncheck children", function() {
+					for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
+						var child = children[i];
+						expect(child.isChecked).toBeFalsy();
+					}
+				});
+
+			});
+			describe("getting the node html", function() {
+				var li;
+				beforeEach(function() {
+					li = node.getHTML();
+				});
+				it("should call all the functions getHTML of the node", function() {
+					spyOn(node.pluginFns.getHTML[0], "apply").andCallThrough();
+					spyOn(node.pluginFns.getHTML[1], "apply").andCallThrough();
+					node.getHTML()
+					expect(node.pluginFns.getHTML[0].apply).toHaveBeenCalled();
+					expect(node.pluginFns.getHTML[1].apply).toHaveBeenCalled();
+				});
+				it("should add checkbox", function() {
+					expect(li.children("label").children("input[type=checkbox]").length).toBe(1);
+
+				});
+				it("should check the checkbox if isChecked is true", function() {
+					var node = tree.getNode("test_4")
+					node.check();
+					var li = node.getHTML();
+					expect(node.isChecked).toBeTruthy();
+					expect(li.find("input[type='checkbox']").attr("checked")).toBeTruthy();
+				});
+				it("should check the checkbox if isChecked is false", function() {
+					expect(node.isChecked).toBeFalsy();
+					expect(li.find("input[type='checkbox']").attr("checked")).toBeFalsy();
+				});
+
+				it("should disable the checkbox if isDisabled is true", function() {
+					var node = tree.getNode("test_4")
+					node.isDisabled = true;
+					var li = node.getHTML();
+					expect(li.find("input[type='checkbox']").attr("disabled")).toBeTruthy();
+
+				});
+				it("should replace the a.title tag by a label tag", function() {
+					expect(li.children("label").length).toBe(1);
+				});
+
+
+			});
+		});
+
+	});
+	describe("nodeStore plugin", function() {
+		var className = "nodeStore";
+		describe("functions", function() {
+			var nodeStore,node;
+			beforeEach(function() {
+				nodeStore = tree.nodeStore;
+				node = "test_2"
+				nodeStore.tree.initially_checked = [node]
+			});
+			describe("initializing the structure", function() {
+				it("should call all the functions initStructure", function() {
+					spyOn(nodeStore.pluginFns.initStructure[0], "apply").andCallThrough();
+					spyOn(nodeStore.pluginFns.initStructure[1], "apply").andCallThrough();
+					nodeStore.initStructure();
+					expect(nodeStore.pluginFns.initStructure[0].apply).toHaveBeenCalled();
+					expect(nodeStore.pluginFns.initStructure[1].apply).toHaveBeenCalled();
+				});
+				it("should check nodes that are in the initially_checked list", function() {
+					expect(tree.getNode(node).isChecked).toBeFalsy();
+					nodeStore.initStructure();
+					expect(tree.getNode(node).isChecked).toBeTruthy();
+				});
+				it("should also check the parents of the nodes in the initially_checked list", function() {
+					node = nodeStore.getNode("test_2");
+					for (var i=0, parents = node.parents, len = node.parents.length; i < len; i++) {
+						var parent = parents[i];
+						expect(parent.isChecked).toBeFalsy();
+					}
+
+					nodeStore.initStructure();
+					node = nodeStore.getNode("test_2");
+					for (var i=0, parents = node.parents, len = node.parents.length; i < len; i++) {
+						var parent = parents[i];
+						expect(parent.isChecked).toBeTruthy();
+					}
+				});
+
+				it("should disable nodes that are in the disabled_checkboxes list", function() {
+					nodeStore.tree.disabled_checkboxes= [node]
+					nodeStore.tree.initially_checked = []
+
+					expect(tree.getNode(node).isDisabled).toBeFalsy();
+					nodeStore.initStructure();
+					expect(tree.getNode(node).isDisabled).toBeTruthy();
+				});
+				it("should also disabled the children of the nodes in the disabled_checkboxes list", function() {
+					nodeStore.tree.disabled_checkboxes= [node]
+					nodeStore.tree.initially_checked = []
+
+					node = nodeStore.getNode(node);
+					for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
+						var child = children[i];
+						expect(child.isDisabled).toBeFalsy();
+					}
+					nodeStore.initStructure();
+					node = nodeStore.getNode("test_2");
+					for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
+						var child = children[i];
+						expect(child.isDisabled).toBeTruthy();
+					}
+				});
+
+
+			});
+
+			describe("getting the list of checked nodes", function() {
+				var list;
+				beforeEach(function() {
+					nodeStore.initStructure();
+					list = nodeStore.getCheckedNodes();
+				});
+				it("should return a list of checked nodes in the tree", function() {
+					expect(list.length).toBe(2);
+					var node = nodeStore.getNode("test_2");
+					expect(list[0].id).toBe(node.parent.id);
+					expect(list[0] instanceof Vtree.Node).toBeTruthy();
+					expect(list[1].id).toBe(node.id);
+					expect(list[1] instanceof Vtree.Node).toBeTruthy();
+				});
+
+			});
+		});
+
+	});
+});describe("cookie plugin", function() {
+	var pluginName = "cookie";
+	beforeEach(function() {
+		this.addMatchers(customMatchers);
+		appendSetFixtures(sandbox());
+		data = getJSONFixture('sourceData.json');
+		container = $('#sandbox');
+		tree = Vtree.create({
+			container:container,
+			dataSource: data,
+			plugins:[pluginName]
+		});
+	});
+	describe("tree plugin", function() {
+		var className = "tree";
+
+		describe("functions", function() {
+
+		});
+
+	});
+});describe("xml source plugin", function() {
+	var pluginName = "xmlSource";
+	beforeEach(function() {
+		this.addMatchers(customMatchers);
+		appendSetFixtures(sandbox());
+		data = getJSONFixture('sourceData.json');
+		container = $('#sandbox');
+		tree = Vtree.create({
+			container:container,
+			dataSource: data,
+			plugins:[pluginName]
+		});
+	});
+
+
+	describe("nodeStore plugin", function() {
+		var className = "nodeStore";
+		describe("functions", function() {
+
+		});
+
+	});
+});

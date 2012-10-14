@@ -46,15 +46,15 @@ var container = jQuery("#treeContainer")
 var settings = {
 	container: container,
 	initially_bold: ["test_5"],
-	cascading_bold: false,
-	dataSource:jsonSource, 
+	cascading_bold: true,
+	dataSource:jsonSource,
 	plugins:["bolding"]
 }
 
 container.bind("bold.node", function(e,tree,node){
 	console.log("node bold", node.id)
 	console.log("get all bolded nodes:",tree.getBoldNodes())
-	
+
 })
 
 container.bind("unbold.node", function(e,tree,node){

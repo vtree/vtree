@@ -24,105 +24,109 @@
 								type: "GET",
 								url: that.ajaxUrl,
 								dataType: 'json',
-								data: data,	
+								data: data,
 								success: $.proxy(node.onAjaxResponse, node)
-							})
+							});
 						}else{
 							node.continueOpening();
 						}
-						
+
 					})
-					
+
 					// when we close a node and in case we force ajax relaod at each reopening, we clear the children nodes
 					.on("afterClose.node", function(e, tree, node){
 						if (that.forceAjaxReload) {
-							node.getEl().children("ul.children").remove()
+							node.getEl().children("ul.children").remove();
 						}
 					})
-					
+
 					// when we use the ajax plugin with the cookie plugin, we need to be careful to this special case
-					// if in the cookie some nodes are saved as opened, we need to ask for their children using ajax
-					// in order to display also the children and keep the state saved by the cookie					
+					// if some nodes are saved as opened in the cookie, we need to ask for their children using ajax
+					// in order to display also the children and keep the state saved by the cookie
 					.on("OpenNodesFromCookie.tree", function(e, tree){
 						var opened = tree.initially_open;
-						
+
 						if (opened.length) {
-							var data = $.extend(true, {
-								action:"getChildren",
-								nodes: opened.join(",")
-							}, tree.ajaxParameters );
-							$.ajax({
-								type: "GET",
-								url: that.ajaxUrl,
-								dataType: 'json',
-								data: data,	
-								success: $.proxy(tree.onAjaxResponse, tree)
-							})
+							tree.getChildrenNodes(opened);
 						}else{
 							tree.continueBuilding();
 						}
 					})
-					
-					// in the case we use ajax without the cookie plugin, we don't need to wait for the ajax response to 
+
+					// in the case we use ajax without the cookie plugin, we don't need to wait for the ajax response to
 					// continue the tree building
 					.on("beforeInit.tree", function(e, tree){
-						if ($.inArray("cookie", tree.plugins) == -1) {
+						var opened = tree.initially_open;
+
+						if (opened.length) {
+							tree.getChildrenNodes(opened);
+						}else if ($.inArray("cookie", tree.plugins) == -1) {
 							tree.continueBuilding();
 						}
-					})
-					
-					
+					});
+
+
 					return this._call_prev();
 				},
-				
-				getAjaxData:function(data){
-					return data
+
+				getChildrenNodes:function(nodes){
+					var data = $.extend(true, {
+						action:"getChildren",
+						nodes: nodes.join(",")
+					}, this.ajaxParameters );
+					$.ajax({
+						type: "GET",
+						url: this.ajaxUrl,
+						dataType: 'json',
+						data: data,
+						success: $.proxy(this.onAjaxResponse, this)
+					});
 				},
-				
+
+				getAjaxData:function(data){
+					return data;
+				},
+
 				onAjaxResponse: function(data, response, jqXHR){
 					nodesData = this.getAjaxData(data);
 					for (var nodeId in nodesData) {
-						 var nodeData = nodesData[nodeId];
-						this.addDataToNodeSource(nodeData)
+						var nodeData = nodesData[nodeId];
+						this.addDataToNodeSource(nodeData);
 					}
-					this.continueBuilding()
+					this.continueBuilding();
 				},
-				
+
 				addDataToNodeSource: function(nodeData){
 					findNode = function(nodes, id){
-						var node = false;
 						for (var i=0, len = nodes.length; i < len; i++) {
 							var node = nodes[i];
 							if (node.id == id) {
 								return node;
 							}else if (node.nodes && node.nodes.length) {
 								var rec = findNode(nodes[i].nodes, nodeData.id);
-								if (rec) {return rec}
+								if (rec) {return rec;}
 							}
 						}
-					}
+					};
 					var nodeSource = findNode(this.dataSource.tree.nodes, nodeData.id);
-					nodeSource = $.extend(true, nodeSource, nodeData)
-				},
+					nodeSource = $.extend(true, nodeSource, nodeData);
+				}
 			}
 		},
 		node:{
-			defaults:{
-							
-			},
 			_fn:{
-				onAjaxResponse: function(data, response, jqXHR){					
-					var nodeData = this.tree.getAjaxData(data);	
+				onAjaxResponse: function(data, response, jqXHR){
+					var nodeData = this.tree.getAjaxData(data);
 					if (typeof nodeData[this.id] == "undefined") {
-						throw "ajax response didn't send back node with id:"+ this.id
+						throw "ajax response didn't send back node with id:"+ this.id;
 					}
-					this.nodeStore._recBuildNodes( this, this.parents, nodeData[this.id].nodes);
+					this.nodeStore._recBuildNodes( this, this.parents.concat(this), nodeData[this.id].nodes);
 					this.continueOpening();
-					
+
 				}
 			}
 		}
-	}
-	
+	};
+
 
 })(jQuery);

@@ -17,7 +17,7 @@
 						});
 				},
 				getCheckedNodes: function(){
-					return this.nodeStore.getCheckedNodes()
+					return this.nodeStore.getCheckedNodes();
 				}
 			}
 		},
@@ -29,9 +29,9 @@
 			_fn:{
 				toggleCheck: function() {
 					return (this.isChecked)? this.uncheck(): this.check();
-			    },
+				},
 				check: function() {
-					// checking behaviour: 
+					// checking behaviour:
 					// checking a node checks all his parents until root node but doesn't affect children checkbox state
 
 					this.isChecked = true;
@@ -41,12 +41,12 @@
 						var parent = parents[i];
 						parent.isChecked = true;
 						parent.getEl().find("input[type=checkbox]").eq(0).prop("checked", true);
-					}	
-					// fire check event                                          
+					}
+					// fire check event
 					this.tree.container.trigger("check.node", [this.tree, this]);
-			    },
+				},
 				uncheck: function() {
-					// checking behaviour: 
+					// checking behaviour:
 					// unchecking a node unchecks all his children but doesn't affect parents state
 
 					this.isChecked = false;
@@ -65,25 +65,25 @@
 						}
 					};
 					_rec_uncheck(this);
-					
+
 					// fire check event
 					this.tree.container.trigger("uncheck.node", [this.tree, this]);
-					
-			    },
-				getHTML: function(){	
-					
-					var li = this._call_prev()
+
+				},
+				getHTML: function(){
+
+					var li = this._call_prev();
 					li.children("a.title")
 						.replaceWith(function(){
-					    	return $("<label />").append($(this).contents());
+							return $("<label />").append($(this).contents());
 						});
-											
+
 					li.children("label")
 						.prepend('<input type="checkbox">')
 						.find("input")
 							.attr("checked", this.isChecked)
-							.attr("disabled", this.isDisabled)
-					
+							.attr("disabled", this.isDisabled);
+
 					return li;
 				}
 			}
@@ -93,53 +93,54 @@
 				initStructure: function(){
 					this._call_prev();
 					var initially_checked = this.tree.initially_checked,
-						disabled_checkboxes = this.tree.disabled_checkboxes;
-					
-					for (var i=0, len = initially_checked.length; i < len; i++) {
-						var id = initially_checked[i];
-						var node = this.structure.id2NodeMap[id] 
-						var parents = node.parents;
+						disabled_checkboxes = this.tree.disabled_checkboxes,
+						i,j,id, node, children, parent;
+
+					for (i=0, len = initially_checked.length; i < len; i++) {
+						id = initially_checked[i];
+						node = this.structure.id2NodeMap[id];
+						parents = node.parents;
 						if (typeof node != "undefined"){
 							node.isChecked = true;
 						}
-						for (var j=0, lengh = parents.length; j < lengh; j++) {							
-							parents[j].isChecked = true
+						for (j=0, lengh = parents.length; j < lengh; j++) {
+							parents[j].isChecked = true;
 						}
 					}
-					
-					for (var i=0, len = disabled_checkboxes.length; i < len; i++) {
-						var id = disabled_checkboxes[i];	
-						var node = this.structure.id2NodeMap[id];
-						var children = node.children;
-						
+
+					for (i=0, len = disabled_checkboxes.length; i < len; i++) {
+						id = disabled_checkboxes[i];
+						node = this.structure.id2NodeMap[id];
+						children = node.children;
+
 						if (typeof node != "undefined"){
 							node.isDisabled = true;
 						}
-						for (var j=0, lengh = children.length; j < lengh; j++) {							
-							children[j].isDisabled = true
+						for (j=0, lengh = children.length; j < lengh; j++) {
+							children[j].isDisabled = true;
 						}
 					}
-					return true	
+					return true;
 				},
 				getCheckedNodes: function(){
 					var _rec_getCheckedNodes = function(nodes){
-						var checkedNodes = []
+						var checkedNodes = [];
 						for (var i=0, len = nodes.length; i < len; i++) {
 							node = nodes[i];
 							if (node.isChecked) {
-								checkedNodes.push(node)
+								checkedNodes.push(node);
 								if (node.hasChildren) {
-									checkedNodes = checkedNodes.concat(_rec_getCheckedNodes(node.children))
+									checkedNodes = checkedNodes.concat(_rec_getCheckedNodes(node.children));
 								}
 							}
 						}
 						return checkedNodes;
-					}
-					return _rec_getCheckedNodes(this.structure.tree.children)
+					};
+					return _rec_getCheckedNodes(this.structure.tree.children);
 				}
 			}
 		}
-	}
-	
+	};
+
 
 })(jQuery);
