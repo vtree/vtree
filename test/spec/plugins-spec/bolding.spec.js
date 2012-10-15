@@ -238,12 +238,10 @@ describe("bolding plugin", function() {
 					list = nodeStore.getBoldNodes();
 				});
 				it("should return a list of bold nodes in the tree", function() {
-					expect(list.length).toBe(2);
+					expect(list.length).toBe(1);
 					var node = nodeStore.getNode("test_2");
-					expect(list[0].id).toBe(node.parent.id);
+					expect(list[0].id).toBe(node.id);
 					expect(list[0] instanceof Vtree.Node).toBeTruthy();
-					expect(list[1].id).toBe(node.id);
-					expect(list[1] instanceof Vtree.Node).toBeTruthy();
 				});
 
 			});
