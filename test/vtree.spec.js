@@ -2186,6 +2186,20 @@ describe("NodeStore core functions", function() {
 
 					});
 					describe("when there is a Vtree cookie but not for the current tree", function() {
+						beforeEach(function() {
+							fakeCookie = {
+								Vtree:{
+									trees:{
+										anothertreeId:{}
+									}
+								}
+							};
+							tree = Vtree.create({
+								container:container,
+								dataSource: data,
+								plugins:[pluginName]
+							});
+						});
 						it("should create the cookie for the current tree and add it the list of initally open, check and bold nodes", function() {
 
 						});
