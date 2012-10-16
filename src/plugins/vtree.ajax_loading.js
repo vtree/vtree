@@ -46,22 +46,23 @@
 					.on("OpenNodesFromCookie.tree", function(e, tree){
 						var opened = tree.initially_open;
 
-						if (opened.length) {
-							tree.getChildrenNodes(opened);
-						}else{
+						if (opened.length === 0) {
 							tree.continueBuilding();
+						}else{
+							tree.getChildrenNodes(opened);
 						}
 					})
 
 					// in the case we use ajax without the cookie plugin, we don't need to wait for the ajax response to
 					// continue the tree building
 					.on("beforeInit.tree", function(e, tree){
-						var opened = tree.initially_open;
-
-						if (opened.length) {
-							tree.getChildrenNodes(opened);
-						}else if ($.inArray("cookie", tree.plugins) == -1) {
-							tree.continueBuilding();
+						if ($.inArray("cookie", tree.plugins) == -1) { // the cookie plugin is not in tree
+							var opened = tree.initially_open;
+							if (opened.length) {
+								tree.getChildrenNodes(opened);
+							}else{
+								tree.continueBuilding();
+							}
 						}
 					});
 
