@@ -46,22 +46,23 @@
 					.on("OpenNodesFromCookie.tree", function(e, tree){
 						var opened = tree.initially_open;
 
-						if (opened.length) {
-							tree.getChildrenNodes(opened);
-						}else{
+						if (opened.length === 0) {
 							tree.continueBuilding();
+						}else{
+							tree.getChildrenNodes(opened);
 						}
 					})
 
 					// in the case we use ajax without the cookie plugin, we don't need to wait for the ajax response to
 					// continue the tree building
 					.on("beforeInit.tree", function(e, tree){
-						var opened = tree.initially_open;
-
-						if (opened.length) {
-							tree.getChildrenNodes(opened);
-						}else if ($.inArray("cookie", tree.plugins) == -1) {
-							tree.continueBuilding();
+						if ($.inArray("cookie", tree.plugins) == -1) { // the cookie plugin is not in tree
+							var opened = tree.initially_open;
+							if (opened.length) {
+								tree.getChildrenNodes(opened);
+							}else{
+								tree.continueBuilding();
+							}
 						}
 					});
 
@@ -108,8 +109,23 @@
 							}
 						}
 					};
-					var nodeSource = findNode(this.dataSource.tree.nodes, nodeData.id);
-					nodeSource = $.extend(true, nodeSource, nodeData);
+					// if a child of the nodeData have the attribute 'nodes' empty (means without children),
+					// we need to remove it from the object
+					// if not removed, it could overwrite the children of the child when extending the dataSource...
+					// is that clear enough?! :/
+					if (nodeData.nodes && nodeData.nodes.length) {
+						for (var i = 0; i < nodeData.nodes.length; i++) {
+							var child = nodeData.nodes[i];
+							var greatChildren = child.nodes;
+							if(greatChildren && greatChildren.constructor==Array && greatChildren.length===0){
+								delete child.nodes;
+							}
+						}
+					}
+					if (nodeData.id) {
+						var nodeSource = findNode(this.dataSource.tree.nodes, nodeData.id);
+						nodeSource = $.extend(true, nodeSource, nodeData);
+					}
 				}
 			}
 		},
