@@ -111,7 +111,8 @@
 					};
 					// if a child of the nodeData have the attribute 'nodes' empty (means without children),
 					// we need to remove it from the object
-					// if not removed, it could overwrite the children of the child... is that clear enough?! :/
+					// if not removed, it could overwrite the children of the child when extending the dataSource...
+					// is that clear enough?! :/
 					if (nodeData.nodes && nodeData.nodes.length) {
 						for (var i = 0; i < nodeData.nodes.length; i++) {
 							var child = nodeData.nodes[i];
@@ -121,8 +122,10 @@
 							}
 						}
 					}
-					var nodeSource = findNode(this.dataSource.tree.nodes, nodeData.id);
-					nodeSource = $.extend(true, nodeSource, nodeData);
+					if (nodeData.id) {
+						var nodeSource = findNode(this.dataSource.tree.nodes, nodeData.id);
+						nodeSource = $.extend(true, nodeSource, nodeData);
+					}
 				}
 			}
 		},

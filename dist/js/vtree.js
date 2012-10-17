@@ -784,8 +784,10 @@ Vtree.plugins.defaults.core.node = {
 							}
 						}
 					}
-					var nodeSource = findNode(this.dataSource.tree.nodes, nodeData.id);
-					nodeSource = $.extend(true, nodeSource, nodeData);
+					if (nodeData.id) {
+						var nodeSource = findNode(this.dataSource.tree.nodes, nodeData.id);
+						nodeSource = $.extend(true, nodeSource, nodeData);
+					}
 				}
 			}
 		},
