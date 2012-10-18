@@ -179,9 +179,61 @@ describe("bolding plugin", function() {
 					expect(node.pluginFns.getHTML[0].apply).toHaveBeenCalled();
 					expect(node.pluginFns.getHTML[1].apply).toHaveBeenCalled();
 				});
+			});
+			describe("testing isOneDescendantBold", function() {
+				describe("when cascading is true", function() {
+					var node,
+						directChild,
+						greatChild;
+					beforeEach(function() {
+						tree = Vtree.create({
+							container:container,
+							dataSource: data,
+							cascading_bold:true,
+							plugins:[pluginName]
+						});
+						node = tree.getNode("test_1");
+						directChild = node.children[0];
+						greatChild = directChild.children[0];
+					});
+					it("should return true when a child is bold", function() {
+						greatChild.bold();
+						expect(node.isOneDescendantBold()).toBeTruthy();
+					});
+					it("should return false when no bold children", function() {
+						expect(node.isOneDescendantBold()).toBeFalsy();
+					});
+				});
+				describe("when cascading is false", function() {
+					var node,
+						directChild,
+						greatChild;
+					beforeEach(function() {
+						tree = Vtree.create({
+							container:container,
+							dataSource: data,
+							cascading_bold:false,
+							plugins:[pluginName]
+						});
+						node = tree.getNode("test_1");
+						directChild = node.children[0];
+						greatChild = directChild.children[0];
+					});
+					it("should return true if a direct child is bold", function() {
+						directChild.bold()
+						expect(node.isOneDescendantBold()).toBeTruthy();
+					});
+					it("should return true if no direct child is bold but a great children is", function() {
+						greatChild.bold();
+						expect(directChild.isBold).toBeFalsy();
+						expect(node.isOneDescendantBold()).toBeTruthy();
+					});
+					it("should return false if none of the ascendent nodes is bold", function() {
+						expect(node.isOneDescendantBold()).toBeFalsy();
+					});
 
 
-
+				});
 			});
 		});
 

@@ -58,9 +58,24 @@
 					.on("beforeInit.tree", function(e, tree){
 						if ($.inArray("cookie", tree.plugins) == -1) { // the cookie plugin is not in tree
 							var opened = tree.initially_open;
+
 							if (opened.length) {
+								// we remove the nodes that already have children
+								// we dont need to do an ajax request to get their children
+								opened = jQuery.grep(opened, function(id) {
+									var pass = true;
+									try{
+										var node = tree.getNode(id);
+										if (node && node.children) {
+											pass = false;
+										}
+									}catch(e){}
+									return pass;
+								});
+
 								tree.getChildrenNodes(opened);
 							}else{
+								//cookie plugin is not in the tree and there is no nodes initially open
 								tree.continueBuilding();
 							}
 						}
@@ -75,6 +90,7 @@
 						action:"getChildren",
 						nodes: nodes.join(",")
 					}, this.ajaxParameters );
+
 					$.ajax({
 						type: "GET",
 						url: this.ajaxUrl,

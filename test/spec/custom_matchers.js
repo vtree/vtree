@@ -7,6 +7,9 @@ customMatchers = {
 	},
 	toBeArray: function(arr) {
 		isSimilar = true;
+		if (!this.actual) {
+			isSimilar = false;
+		}
 		if (this.actual.constructor != Array) {
 			isSimilar = false;
 		}

@@ -1,3 +1,4 @@
+/*jshint multistr:true*/
 var xmlSource = '<?xml version="1.0" encoding="UTF-8"?>                               \
 <tree id="myDesktop">                                                                 \
   <nodes>                                                                             \
@@ -33,14 +34,14 @@ var xmlSource = '<?xml version="1.0" encoding="UTF-8"?>                         
       </node>                                                                         \
     </node>                                                                           \
   </nodes>                                                                            \
-</tree>'                                                                              
-var container = jQuery("#treeContainer")
+</tree>';
+var container = jQuery("#treeContainer");
 
 var settings = {
 	container: container,
 	dataSource: xmlSource,
 	plugins: ["xmlSource"]
-}
+};
 
 var start = (new Date).getTime();
 
@@ -49,11 +50,11 @@ var tree = Vtree.create(settings);
 
 var diff = (new Date).getTime() - start;
 
-console.log("diff:",diff)
+console.log("diff:",diff);
 
-var a = Vtree.getTree(container).nodeStore.structure.id2NodeMap
-var b = 0 ; for (var i in a){b++}
-console.log("nb nodes:",b)
+var a = Vtree.getTree(container).nodeStore.structure.id2NodeMap;
+var b = 0 ; for (var i in a){b++;}
+console.log("nb nodes:",b);
 
 
 

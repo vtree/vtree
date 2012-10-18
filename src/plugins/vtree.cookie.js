@@ -72,6 +72,12 @@
 					.bind("beforeClose.node", function(e, tree, node){
 						var VtreeCookie = JSON.parse(Vtree.readCookie("Vtree"));
 						var treeCookie = VtreeCookie.trees[tree.id];
+						if (typeof node.isOneDescendantBold === "function" && node.isOneDescendantBold()) {
+							return; // when one of his children is bold, they should remain open when reloading
+						}
+						if (typeof node.isOneDescendantChecked === "function" && node.isOneDescendantChecked()) {
+							return; // when one of his children is checked, they should remain open when reloading
+						}
 						treeCookie.opened = jQuery.grep(treeCookie.opened, function(value) {
 							var getOpenedChildrenIds = function(node){
 								var childrenIds = [];
@@ -88,7 +94,6 @@
 								}
 								return childrenIds;
 							};
-
 							return (value != node.id && $.inArray(value, getOpenedChildrenIds(node)) == -1);
 						});
 						Vtree.setCookie("Vtree",  JSON.stringify(VtreeCookie), 7); // stored for a week
@@ -113,23 +118,22 @@
 					.bind("uncheck.node", function(e, tree, node){
 						var VtreeCookie = JSON.parse(Vtree.readCookie("Vtree"));
 						var treeCookie = VtreeCookie.trees[tree.id];
-						treeCookie.checked = jQuery.grep(treeCookie.checked, function(value) {
-							var getCheckedChildrenIds = function(node){
-								var childrenIds = [];
-								if (node.hasChildren && node.hasVisibleChildren){
-									//check that a child wasn't opened
-									for (var i=0, len = node.children.length; i < len; i++) {
-										var child = node.children[i];
-										if (child.isChecked) {
-											childrenIds.push(child.id);
-											childrenIds = childrenIds.concat(getCheckedChildrenIds(child));
-										}
-
+						var getCheckedChildrenIds = function(node){
+							var childrenIds = [];
+							if (node.hasChildren && node.hasVisibleChildren){
+								//check that a child wasn't opened
+								for (var i=0, len = node.children.length; i < len; i++) {
+									var child = node.children[i];
+									if (child.isChecked) {
+										childrenIds.push(child.id);
+										childrenIds = childrenIds.concat(getCheckedChildrenIds(child));
 									}
-								}
-								return childrenIds;
-							};
 
+								}
+							}
+							return childrenIds;
+						};
+						treeCookie.checked = jQuery.grep(treeCookie.checked, function(value) {
 							return (value != node.id && $.inArray(value, getCheckedChildrenIds(node)) == -1);
 						});
 						Vtree.setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
@@ -181,12 +185,6 @@
 						Vtree.setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
 					});
 					return this._call_prev();
-				},
-
-				getOpenedNodes: function(){
-					var VtreeCookie = JSON.parse(Vtree.readCookie("Vtree"));
-					var treeCookie = VtreeCookie.trees[this.id];
-					return treeCookie.opened;
 				}
 			}
 		}

@@ -172,6 +172,28 @@ describe("checkbox plugin", function() {
 
 
 			});
+			describe("testing isOneDescendantChecked", function() {
+				var node,
+					directChild,
+					greatChild;
+				beforeEach(function() {
+					tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName]
+					});
+					node = tree.getNode("test_1");
+					directChild = node.children[0];
+					greatChild = directChild.children[0];
+				});
+				it("should return true when a child is checked", function() {
+					greatChild.check();
+					expect(node.isOneDescendantChecked()).toBeTruthy();
+				});
+				it("should return false when none of the children are checked", function() {
+					expect(node.isOneDescendantChecked()).toBeFalsy();
+				});
+			});
 		});
 
 	});
