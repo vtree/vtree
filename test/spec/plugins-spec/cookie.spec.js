@@ -1,6 +1,6 @@
 describe("cookie plugin", function() {
 	var pluginName = "cookie",
-	var fakeCookie = {};
+		fakeCookie = {};
 	beforeEach(function() {
 		this.addMatchers(customMatchers);
 		appendSetFixtures(sandbox());
@@ -10,7 +10,7 @@ describe("cookie plugin", function() {
 		// we fake cookies for easier testing,
 		// cookie is now a pure json object variable
 		spyOn(Vtree, "readCookie").andCallFake(function(cookieName){
-			return fakeCookie[cookieName];
+			return JSON.stringify(fakeCookie[cookieName]);
 		});
 		spyOn(Vtree, "setCookie").andCallFake(function(cookieName,cookieValue,nDays){
 			fakeCookie[cookieName] = JSON.parse(cookieValue)
@@ -101,7 +101,7 @@ describe("cookie plugin", function() {
 							});
 						});
 						it("should set the initally_open array from the cookie value", function() {
-							expect(tree.initally_open).toBeArray([1,2]);
+							expect(tree.initially_open).toBeArray([1,2]);
 						});
 						it("should set the initially_bold array from the cookie value", function() {
 							expect(tree.initially_checked).toBeArray([2,3]);
@@ -138,6 +138,67 @@ describe("cookie plugin", function() {
 				});
 
 			});
+			describe("closing a node that has a bold child", function() {
+				var node1,
+					node2,
+					node3;
+				beforeEach(function() {
+					fakeCookie = {};
+					tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName, "bolding"]
+					});
+					node1 = tree.getNode("test_1");
+					node2 = tree.getNode("test_2");
+					node3 = tree.getNode("test_3");
+					node1.open();
+					node2.open();
+					node3.bold();
+
+				});
+				it("should not remove it from the opened list", function() {
+					expect(node3.isBold).toBeTruthy();
+					expect(fakeCookie.Vtree.trees[tree.id].opened).toBeArray([node1.id, node2.id]);
+					node2.close();
+					expect(fakeCookie.Vtree.trees[tree.id].opened).toBeArray([node1.id, node2.id]);
+					node2.open();
+					node1.close();
+					expect(fakeCookie.Vtree.trees[tree.id].opened).toBeArray([node1.id, node2.id]);
+				});
+
+			});
+			describe("closing a node that has a checked child", function() {
+				var node1,
+					node2,
+					node3;
+				beforeEach(function() {
+					fakeCookie = {};
+					tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName, "checkbox"]
+					});
+					node1 = tree.getNode("test_1");
+					node2 = tree.getNode("test_2");
+					node3 = tree.getNode("test_3");
+					node1.open();
+					node2.open();
+					node3.check();
+
+				});
+				it("should not remove it from the opened list", function() {
+					expect(node3.isChecked).toBeTruthy();
+					expect(fakeCookie.Vtree.trees[tree.id].opened).toBeArray([node1.id, node2.id]);
+					node2.close();
+					expect(fakeCookie.Vtree.trees[tree.id].opened).toBeArray([node1.id, node2.id]);
+					node2.open();
+					node1.close();
+					expect(fakeCookie.Vtree.trees[tree.id].opened).toBeArray([node1.id, node2.id]);
+				});
+
+			});
+
 			describe("opening a node", function() {
 				var node1, node2;
 				beforeEach(function() {
@@ -264,24 +325,57 @@ describe("cookie plugin", function() {
 			});
 			describe("unbolding a node", function() {
 				describe("when cascading_bold is set to false", function() {
-					it("should remove it from the cookie list of bold nodes", function() {
+					var node1, node2, node3;
+					beforeEach(function() {
+						fakeCookie = {};
+						tree = Vtree.create({
+							container:container,
+							dataSource: data,
+							cascading_bold: false,
+							plugins:[pluginName, "bolding"]
+						});
+						node1 = tree.getNode("test_1");
+						node2 = tree.getNode("test_2");
+						node3 = tree.getNode("test_3");
+						node1.open();
+						node2.open();
+
+						node1.bold();
+						node2.bold();
+						node3.bold();
+					});
+					it("should remove it from the cookie list of bold nodes (without removing the children)", function() {
+						expect(fakeCookie.Vtree.trees[tree.id].bold).toBeArray([node1.id, node2.id, node3.id]);
+						node1.unbold();
+						expect(fakeCookie.Vtree.trees[tree.id].bold).toBeArray([node2.id, node3.id]);
 
 					});
-					it("if cascading_bold is set to true, it should also remove the bold children from the list ", function() {
 
-					});
 				});
 				describe("when cascading_bold is set to true", function() {
-					it("should remove it from the cookie list of bold nodes", function() {
-
+					var node1, node2, node3;
+					beforeEach(function() {
+						fakeCookie = {};
+						tree = Vtree.create({
+							container:container,
+							dataSource: data,
+							cascading_bold: true,
+							plugins:[pluginName, "bolding"]
+						});
+						node1 = tree.getNode("test_1");
+						node2 = tree.getNode("test_2");
+						node3 = tree.getNode("test_3");
+						node1.open();
+						node2.open();
+						node3.bold(); //should bold 2 and 1
 					});
-					it("if cascading_bold is set to true, it should also remove the bold children from the list ", function() {
+					it("should remove a node and his children from the cookie list of bold nodes (without removing the parents)", function() {
+						expect(fakeCookie.Vtree.trees[tree.id].bold).toBeArray([node3.id, node1.id, node2.id]);
+						node1.unbold();
+						expect(fakeCookie.Vtree.trees[tree.id].bold).toBeArray([]);
 
 					});
 				});
-
-			});
-			describe("getting the cookie list of opened nodes ", function() {
 
 			});
 		});

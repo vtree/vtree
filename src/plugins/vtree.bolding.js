@@ -46,7 +46,11 @@
 					this.tree.container.trigger("bold.node", [this.tree, this]);
 				},
 				unbold: function() {
+					// fire bold event
+					this.tree.container.trigger("unbold.node", [this.tree, this]);
+
 					// bolding behaviour:
+					// in case cascading_bold is true
 					// unbolding a node unbolds all his children but doesn't affect parents state
 
 					this.isBold = false;
@@ -70,8 +74,7 @@
 						_rec_unbold(this);
 					}
 
-					// fire bold event
-					this.tree.container.trigger("unbold.node", [this.tree, this]);
+
 
 				},
 				getHTML: function(){
@@ -82,6 +85,28 @@
 					}
 
 					return li;
+				},
+				isOneDescendantBold:function(){
+					var res = false;
+					if (!this.children) return res;
+					for (var i = 0; i < this.children.length; i++) {
+						var child = this.children[i];
+						if (child.isBold) {
+							res = true;
+							break;
+						}
+						// if cascading_bold is set to true
+						// we don't need to look deeper as a bold node must have his parents bold
+						// in the contrary, a node can be bold without having his parents bold
+						if (!this.tree.cascading_bold) {
+							res = child.isOneDescendantBold();
+							if (res) {
+								break;
+							}
+						}
+
+					}
+					return res;
 				}
 			}
 		},

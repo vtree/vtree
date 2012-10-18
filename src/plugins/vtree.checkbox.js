@@ -46,11 +46,12 @@
 					this.tree.container.trigger("check.node", [this.tree, this]);
 				},
 				uncheck: function() {
+					// fire check event
+					this.tree.container.trigger("uncheck.node", [this.tree, this]);
+
 					// checking behaviour:
 					// unchecking a node unchecks all his children but doesn't affect parents state
-
 					this.isChecked = false;
-
 					// uncheck children
 					_rec_uncheck = function(node){
 						if (node.hasChildren) {
@@ -66,8 +67,7 @@
 					};
 					_rec_uncheck(this);
 
-					// fire check event
-					this.tree.container.trigger("uncheck.node", [this.tree, this]);
+
 
 				},
 				getHTML: function(){
@@ -85,7 +85,21 @@
 							.attr("disabled", this.isDisabled);
 
 					return li;
+				},
+				isOneDescendantChecked:function(){
+					var res = false;
+					if (!this.children) return res;
+					for (var i = 0; i < this.children.length; i++) {
+						var child = this.children[i];
+						if (child.isChecked) {
+							res = true;
+							break;
+						}
+						// we don't need to look deeper as a checked node must have his parents checked
+					}
+					return res;
 				}
+
 			}
 		},
 		nodeStore:{

@@ -721,9 +721,24 @@ Vtree.plugins.defaults.core.node = {
 					.on("beforeInit.tree", function(e, tree){
 						if ($.inArray("cookie", tree.plugins) == -1) { // the cookie plugin is not in tree
 							var opened = tree.initially_open;
+
 							if (opened.length) {
+								// we remove the nodes that already have children
+								// we dont need to do an ajax request to get their children
+								opened = jQuery.grep(opened, function(id) {
+									var pass = true;
+									try{
+										var node = tree.getNode(id);
+										if (node && node.children) {
+											pass = false;
+										}
+									}catch(e){}
+									return pass;
+								});
+
 								tree.getChildrenNodes(opened);
 							}else{
+								//cookie plugin is not in the tree and there is no nodes initially open
 								tree.continueBuilding();
 							}
 						}
@@ -738,6 +753,7 @@ Vtree.plugins.defaults.core.node = {
 						action:"getChildren",
 						nodes: nodes.join(",")
 					}, this.ajaxParameters );
+
 					$.ajax({
 						type: "GET",
 						url: this.ajaxUrl,
@@ -774,7 +790,8 @@ Vtree.plugins.defaults.core.node = {
 					};
 					// if a child of the nodeData have the attribute 'nodes' empty (means without children),
 					// we need to remove it from the object
-					// if not removed, it could overwrite the children of the child... is that clear enough?! :/
+					// if not removed, it could overwrite the children of the child when extending the dataSource...
+					// is that clear enough?! :/
 					if (nodeData.nodes && nodeData.nodes.length) {
 						for (var i = 0; i < nodeData.nodes.length; i++) {
 							var child = nodeData.nodes[i];
@@ -855,7 +872,11 @@ Vtree.plugins.defaults.core.node = {
 					this.tree.container.trigger("bold.node", [this.tree, this]);
 				},
 				unbold: function() {
+					// fire bold event
+					this.tree.container.trigger("unbold.node", [this.tree, this]);
+
 					// bolding behaviour:
+					// in case cascading_bold is true
 					// unbolding a node unbolds all his children but doesn't affect parents state
 
 					this.isBold = false;
@@ -879,8 +900,7 @@ Vtree.plugins.defaults.core.node = {
 						_rec_unbold(this);
 					}
 
-					// fire bold event
-					this.tree.container.trigger("unbold.node", [this.tree, this]);
+
 
 				},
 				getHTML: function(){
@@ -891,6 +911,28 @@ Vtree.plugins.defaults.core.node = {
 					}
 
 					return li;
+				},
+				isOneDescendantBold:function(){
+					var res = false;
+					if (!this.children) return res;
+					for (var i = 0; i < this.children.length; i++) {
+						var child = this.children[i];
+						if (child.isBold) {
+							res = true;
+							break;
+						}
+						// if cascading_bold is set to true
+						// we don't need to look deeper as a bold node must have his parents bold
+						// in the contrary, a node can be bold without having his parents bold
+						if (!this.tree.cascading_bold) {
+							res = child.isOneDescendantBold();
+							if (res) {
+								break;
+							}
+						}
+
+					}
+					return res;
 				}
 			}
 		},
@@ -985,11 +1027,12 @@ Vtree.plugins.defaults.core.node = {
 					this.tree.container.trigger("check.node", [this.tree, this]);
 				},
 				uncheck: function() {
+					// fire check event
+					this.tree.container.trigger("uncheck.node", [this.tree, this]);
+
 					// checking behaviour:
 					// unchecking a node unchecks all his children but doesn't affect parents state
-
 					this.isChecked = false;
-
 					// uncheck children
 					_rec_uncheck = function(node){
 						if (node.hasChildren) {
@@ -1005,8 +1048,7 @@ Vtree.plugins.defaults.core.node = {
 					};
 					_rec_uncheck(this);
 
-					// fire check event
-					this.tree.container.trigger("uncheck.node", [this.tree, this]);
+
 
 				},
 				getHTML: function(){
@@ -1024,7 +1066,21 @@ Vtree.plugins.defaults.core.node = {
 							.attr("disabled", this.isDisabled);
 
 					return li;
+				},
+				isOneDescendantChecked:function(){
+					var res = false;
+					if (!this.children) return res;
+					for (var i = 0; i < this.children.length; i++) {
+						var child = this.children[i];
+						if (child.isChecked) {
+							res = true;
+							break;
+						}
+						// we don't need to look deeper as a checked node must have his parents checked
+					}
+					return res;
 				}
+
 			}
 		},
 		nodeStore:{
@@ -1156,6 +1212,12 @@ Vtree.plugins.defaults.core.node = {
 					.bind("beforeClose.node", function(e, tree, node){
 						var VtreeCookie = JSON.parse(Vtree.readCookie("Vtree"));
 						var treeCookie = VtreeCookie.trees[tree.id];
+						if (typeof node.isOneDescendantBold === "function" && node.isOneDescendantBold()) {
+							return; // when one of his children is bold, they should remain open when reloading
+						}
+						if (typeof node.isOneDescendantChecked === "function" && node.isOneDescendantChecked()) {
+							return; // when one of his children is checked, they should remain open when reloading
+						}
 						treeCookie.opened = jQuery.grep(treeCookie.opened, function(value) {
 							var getOpenedChildrenIds = function(node){
 								var childrenIds = [];
@@ -1172,7 +1234,6 @@ Vtree.plugins.defaults.core.node = {
 								}
 								return childrenIds;
 							};
-
 							return (value != node.id && $.inArray(value, getOpenedChildrenIds(node)) == -1);
 						});
 						Vtree.setCookie("Vtree",  JSON.stringify(VtreeCookie), 7); // stored for a week
@@ -1197,23 +1258,22 @@ Vtree.plugins.defaults.core.node = {
 					.bind("uncheck.node", function(e, tree, node){
 						var VtreeCookie = JSON.parse(Vtree.readCookie("Vtree"));
 						var treeCookie = VtreeCookie.trees[tree.id];
-						treeCookie.checked = jQuery.grep(treeCookie.checked, function(value) {
-							var getCheckedChildrenIds = function(node){
-								var childrenIds = [];
-								if (node.hasChildren && node.hasVisibleChildren){
-									//check that a child wasn't opened
-									for (var i=0, len = node.children.length; i < len; i++) {
-										var child = node.children[i];
-										if (child.isChecked) {
-											childrenIds.push(child.id);
-											childrenIds = childrenIds.concat(getCheckedChildrenIds(child));
-										}
-
+						var getCheckedChildrenIds = function(node){
+							var childrenIds = [];
+							if (node.hasChildren && node.hasVisibleChildren){
+								//check that a child wasn't opened
+								for (var i=0, len = node.children.length; i < len; i++) {
+									var child = node.children[i];
+									if (child.isChecked) {
+										childrenIds.push(child.id);
+										childrenIds = childrenIds.concat(getCheckedChildrenIds(child));
 									}
-								}
-								return childrenIds;
-							};
 
+								}
+							}
+							return childrenIds;
+						};
+						treeCookie.checked = jQuery.grep(treeCookie.checked, function(value) {
 							return (value != node.id && $.inArray(value, getCheckedChildrenIds(node)) == -1);
 						});
 						Vtree.setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
@@ -1265,12 +1325,6 @@ Vtree.plugins.defaults.core.node = {
 						Vtree.setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
 					});
 					return this._call_prev();
-				},
-
-				getOpenedNodes: function(){
-					var VtreeCookie = JSON.parse(Vtree.readCookie("Vtree"));
-					var treeCookie = VtreeCookie.trees[this.id];
-					return treeCookie.opened;
 				}
 			}
 		}
