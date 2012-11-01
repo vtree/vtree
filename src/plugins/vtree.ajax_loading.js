@@ -5,16 +5,17 @@
 			defaults:{
 				ajaxUrl: "",
 				ajaxParameters:{},
-				asynchronous: true,
+				asynchronous: true, //can't be overwritten
 				forceAjaxReload: false
 			},
 			_fn:{
 				build: function(){
 					var that = this;
-					// when we open a node we need to get his children from the server unless they are already on the page.
-					// we can specify a forceAjaxReload setting to true, if we always want to realod the children even if they are already loaded from a previous opening
 					this.container.on("beforeOpen.node", function(e, tree, node){
-						if (node.hasChildren && !node.children.length && (!node.hasRenderedChildren || (node.hasRenderedChildren && that.forceAjaxReload))) {
+						// when opening a node we get his children from the server
+						// in the case that we force the ajax relaod
+					// or that the list of children is empty
+						if (node.hasChildren && (!node.children.length || that.forceAjaxReload)) {
 							var data = $.extend(true, {
 								action:"getChildren",
 								nodes: node.id
@@ -44,40 +45,15 @@
 					// if some nodes are saved as opened in the cookie, we need to ask for their children using ajax
 					// in order to display also the children and keep the state saved by the cookie
 					.on("OpenNodesFromCookie.tree", function(e, tree){
-						var opened = tree.initially_open;
-
-						if (opened.length === 0) {
-							tree.continueBuilding();
-						}else{
-							tree.getChildrenNodes(opened);
-						}
+						tree.fetchChildren(tree.initially_open);
 					})
 
 					// in the case we use ajax without the cookie plugin, we don't need to wait for the ajax response to
 					// continue the tree building
 					.on("beforeInit.tree", function(e, tree){
 						if ($.inArray("cookie", tree.plugins) == -1) { // the cookie plugin is not in tree
-							var opened = tree.initially_open;
+							tree.fetchChildren(tree.initially_open);
 
-							if (opened.length) {
-								// we remove the nodes that already have children
-								// we dont need to do an ajax request to get their children
-								opened = jQuery.grep(opened, function(id) {
-									var pass = true;
-									try{
-										var node = tree.getNode(id);
-										if (node && node.children) {
-											pass = false;
-										}
-									}catch(e){}
-									return pass;
-								});
-
-								tree.getChildrenNodes(opened);
-							}else{
-								//cookie plugin is not in the tree and there is no nodes initially open
-								tree.continueBuilding();
-							}
 						}
 					});
 
@@ -85,19 +61,37 @@
 					return this._call_prev();
 				},
 
-				getChildrenNodes:function(nodes){
-					var data = $.extend(true, {
-						action:"getChildren",
-						nodes: nodes.join(",")
-					}, this.ajaxParameters );
-
-					$.ajax({
-						type: "GET",
-						url: this.ajaxUrl,
-						dataType: 'json',
-						data: data,
-						success: $.proxy(this.onAjaxResponse, this)
+				fetchChildren:function(nodes){
+					var that = this;
+					// we filter nodes that already have their children loaded
+					nodes = jQuery.grep(nodes, function(id) {
+						var pass = true;
+						try{
+							var node = that.getNode(id);
+							if (node && node.children.length) {
+								pass = false;
+							}
+						}catch(e){}
+						return pass;
 					});
+
+					if (!nodes.length) {
+						this.continueBuilding();
+					}else{
+
+						var data = $.extend(true, {
+							action:"getChildren",
+							nodes: nodes.join(",")
+						}, this.ajaxParameters );
+
+						$.ajax({
+							type: "GET",
+							url: this.ajaxUrl,
+							dataType: 'json',
+							data: data,
+							success: $.proxy(this.onAjaxResponse, this)
+						});
+					}
 				},
 
 				getAjaxData:function(data){
@@ -105,7 +99,7 @@
 				},
 
 				onAjaxResponse: function(data, response, jqXHR){
-					nodesData = this.getAjaxData(data);
+					var nodesData = this.getAjaxData(data);
 					for (var nodeId in nodesData) {
 						var nodeData = nodesData[nodeId];
 						this.addDataToNodeSource(nodeData);
@@ -114,20 +108,9 @@
 				},
 
 				addDataToNodeSource: function(nodeData){
-					findNode = function(nodes, id){
-						for (var i=0, len = nodes.length; i < len; i++) {
-							var node = nodes[i];
-							if (node.id == id) {
-								return node;
-							}else if (node.nodes && node.nodes.length) {
-								var rec = findNode(nodes[i].nodes, nodeData.id);
-								if (rec) {return rec;}
-							}
-						}
-					};
 					// if a child of the nodeData have the attribute 'nodes' empty (means without children),
-					// we need to remove it from the object
-					// if not removed, it could overwrite the children of the child when extending the dataSource...
+					// we need to remove the attribute nodes from the child
+					// if not removed, it could overwrite the dataSource child tha might have the nodes not empty...
 					// is that clear enough?! :/
 					if (nodeData.nodes && nodeData.nodes.length) {
 						for (var i = 0; i < nodeData.nodes.length; i++) {
@@ -139,8 +122,8 @@
 						}
 					}
 					if (nodeData.id) {
-						var nodeSource = findNode(this.dataSource.tree.nodes, nodeData.id);
-						nodeSource = $.extend(true, nodeSource, nodeData);
+						nodeSource = this.getNode(nodeData.id);
+						this.nodeStore._recBuildNodes( nodeSource, nodeSource.parents.concat(nodeSource), nodeData.nodes);
 					}
 				}
 			}

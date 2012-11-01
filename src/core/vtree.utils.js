@@ -8,9 +8,3 @@ if(typeof console === "undefined") {
 		log:function(){}
 	};
 }
-
-
-
-Vtree.utils = {
-
-};

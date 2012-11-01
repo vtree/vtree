@@ -16,10 +16,10 @@ Vtree.utils = {
 };// a singleton for managing trees on the page
 
 (function ($) {
-	
+
 	Vtree = (function(){
 		var trees = [];
-			
+
 		return{
 			plugins: {
 				defaults:{core:{}}
@@ -84,21 +84,19 @@ Vtree.utils = {
 				}
 			},
 			create: function (settings) {
-				//build tree
-				var tree = new Vtree.Tree(settings);
-				// keep it internally and remove the previous one if it is using the same container
+				// remove the previous one if it is using the same container
 				sameContainer = false;
 				for (var i=0, len = trees.length; i < len; i++) {
 					var internalTree = trees[i];
-					if (tree.container.is(internalTree.container)) {
+					if (settings.container.is(internalTree.container)) {
 						sameContainer = true;
-						internalTree.destroy();
-						trees[i] = tree;
+						this.destroy(internalTree);
 					}
 				}
-				if (!sameContainer) {
-					trees.push(tree);
-				}
+				//build tree
+				var tree = new Vtree.Tree(settings);
+				//add it to the list
+				trees.push(tree);
 				return tree;
 			},
 			destroy: function(mixed_tree){
@@ -145,7 +143,7 @@ Vtree.utils = {
 				};
 				return S4()+S4()+S4();
 			}
-			
+
 		};
 	})();
 })(jQuery);
@@ -668,16 +666,17 @@ Vtree.plugins.defaults.core.node = {
 			defaults:{
 				ajaxUrl: "",
 				ajaxParameters:{},
-				asynchronous: true,
+				asynchronous: true, //can't be overwritten
 				forceAjaxReload: false
 			},
 			_fn:{
 				build: function(){
 					var that = this;
-					// when we open a node we need to get his children from the server unless they are already on the page.
-					// we can specify a forceAjaxReload setting to true, if we always want to realod the children even if they are already loaded from a previous opening
 					this.container.on("beforeOpen.node", function(e, tree, node){
-						if (node.hasChildren && !node.children.length && (!node.hasRenderedChildren || (node.hasRenderedChildren && that.forceAjaxReload))) {
+						// when opening a node we get his children from the server
+						// in the case that we force the ajax relaod
+					// or that the list of children is empty
+						if (node.hasChildren && (!node.children.length || that.forceAjaxReload)) {
 							var data = $.extend(true, {
 								action:"getChildren",
 								nodes: node.id
@@ -707,40 +706,15 @@ Vtree.plugins.defaults.core.node = {
 					// if some nodes are saved as opened in the cookie, we need to ask for their children using ajax
 					// in order to display also the children and keep the state saved by the cookie
 					.on("OpenNodesFromCookie.tree", function(e, tree){
-						var opened = tree.initially_open;
-
-						if (opened.length === 0) {
-							tree.continueBuilding();
-						}else{
-							tree.getChildrenNodes(opened);
-						}
+						tree.fetchChildren(tree.initially_open);
 					})
 
 					// in the case we use ajax without the cookie plugin, we don't need to wait for the ajax response to
 					// continue the tree building
 					.on("beforeInit.tree", function(e, tree){
 						if ($.inArray("cookie", tree.plugins) == -1) { // the cookie plugin is not in tree
-							var opened = tree.initially_open;
+							tree.fetchChildren(tree.initially_open);
 
-							if (opened.length) {
-								// we remove the nodes that already have children
-								// we dont need to do an ajax request to get their children
-								opened = jQuery.grep(opened, function(id) {
-									var pass = true;
-									try{
-										var node = tree.getNode(id);
-										if (node && node.children) {
-											pass = false;
-										}
-									}catch(e){}
-									return pass;
-								});
-
-								tree.getChildrenNodes(opened);
-							}else{
-								//cookie plugin is not in the tree and there is no nodes initially open
-								tree.continueBuilding();
-							}
 						}
 					});
 
@@ -748,19 +722,37 @@ Vtree.plugins.defaults.core.node = {
 					return this._call_prev();
 				},
 
-				getChildrenNodes:function(nodes){
-					var data = $.extend(true, {
-						action:"getChildren",
-						nodes: nodes.join(",")
-					}, this.ajaxParameters );
-
-					$.ajax({
-						type: "GET",
-						url: this.ajaxUrl,
-						dataType: 'json',
-						data: data,
-						success: $.proxy(this.onAjaxResponse, this)
+				fetchChildren:function(nodes){
+					var that = this;
+					// we filter nodes that already have their children loaded
+					nodes = jQuery.grep(nodes, function(id) {
+						var pass = true;
+						try{
+							var node = that.getNode(id);
+							if (node && node.children.length) {
+								pass = false;
+							}
+						}catch(e){}
+						return pass;
 					});
+
+					if (!nodes.length) {
+						this.continueBuilding();
+					}else{
+
+						var data = $.extend(true, {
+							action:"getChildren",
+							nodes: nodes.join(",")
+						}, this.ajaxParameters );
+
+						$.ajax({
+							type: "GET",
+							url: this.ajaxUrl,
+							dataType: 'json',
+							data: data,
+							success: $.proxy(this.onAjaxResponse, this)
+						});
+					}
 				},
 
 				getAjaxData:function(data){
@@ -768,7 +760,7 @@ Vtree.plugins.defaults.core.node = {
 				},
 
 				onAjaxResponse: function(data, response, jqXHR){
-					nodesData = this.getAjaxData(data);
+					var nodesData = this.getAjaxData(data);
 					for (var nodeId in nodesData) {
 						var nodeData = nodesData[nodeId];
 						this.addDataToNodeSource(nodeData);
@@ -777,20 +769,9 @@ Vtree.plugins.defaults.core.node = {
 				},
 
 				addDataToNodeSource: function(nodeData){
-					findNode = function(nodes, id){
-						for (var i=0, len = nodes.length; i < len; i++) {
-							var node = nodes[i];
-							if (node.id == id) {
-								return node;
-							}else if (node.nodes && node.nodes.length) {
-								var rec = findNode(nodes[i].nodes, nodeData.id);
-								if (rec) {return rec;}
-							}
-						}
-					};
 					// if a child of the nodeData have the attribute 'nodes' empty (means without children),
-					// we need to remove it from the object
-					// if not removed, it could overwrite the children of the child when extending the dataSource...
+					// we need to remove the attribute nodes from the child
+					// if not removed, it could overwrite the dataSource child tha might have the nodes not empty...
 					// is that clear enough?! :/
 					if (nodeData.nodes && nodeData.nodes.length) {
 						for (var i = 0; i < nodeData.nodes.length; i++) {
@@ -802,8 +783,8 @@ Vtree.plugins.defaults.core.node = {
 						}
 					}
 					if (nodeData.id) {
-						var nodeSource = findNode(this.dataSource.tree.nodes, nodeData.id);
-						nodeSource = $.extend(true, nodeSource, nodeData);
+						nodeSource = this.getNode(nodeData.id);
+						this.nodeStore._recBuildNodes( nodeSource, nodeSource.parents.concat(nodeSource), nodeData.nodes);
 					}
 				}
 			}
@@ -1330,202 +1311,5 @@ Vtree.plugins.defaults.core.node = {
 		}
 	};
 
-
-})(jQuery);(function($) {
-
-
-/*	This work is licensed under Creative Commons GNU LGPL License.
-
-	License: http://creativecommons.org/licenses/LGPL/2.1/
-   Version: 0.9
-	Author:  Stefan Goessner/2006
-	Web:     http://goessner.net/
-*/
-function xml2json(xml, tab) {
-   var X = {
-      toObj: function(xml) {
-         var o = {};
-         if (xml.nodeType==1) {   // element node ..
-            if (xml.attributes.length)   // element with attributes  ..
-               for (var i=0; i<xml.attributes.length; i++)
-                  o["@"+xml.attributes[i].nodeName] = (xml.attributes[i].nodeValue||"").toString();
-            if (xml.firstChild) { // element has child nodes ..
-               var textChild=0, cdataChild=0, hasElementChild=false;
-               for (var n=xml.firstChild; n; n=n.nextSibling) {
-                  if (n.nodeType==1) hasElementChild = true;
-                  else if (n.nodeType==3 && n.nodeValue.match(/[^ \f\n\r\t\v]/)) textChild++; // non-whitespace text
-                  else if (n.nodeType==4) cdataChild++; // cdata section node
-               }
-               if (hasElementChild) {
-                  if (textChild < 2 && cdataChild < 2) { // structured element with evtl. a single text or/and cdata node ..
-                     X.removeWhite(xml);
-                     for (var n=xml.firstChild; n; n=n.nextSibling) {
-                        if (n.nodeType == 3)  // text node
-                           o["#text"] = X.escape(n.nodeValue);
-                        else if (n.nodeType == 4)  // cdata node
-                           o["#cdata"] = X.escape(n.nodeValue);
-                        else if (o[n.nodeName]) {  // multiple occurence of element ..
-                           if (o[n.nodeName] instanceof Array)
-                              o[n.nodeName][o[n.nodeName].length] = X.toObj(n);
-                           else
-                              o[n.nodeName] = [o[n.nodeName], X.toObj(n)];
-                        }
-                        else  // first occurence of element..
-                           o[n.nodeName] = X.toObj(n);
-                     }
-                  }
-                  else { // mixed content
-                     if (!xml.attributes.length)
-                        o = X.escape(X.innerXml(xml));
-                     else
-                        o["#text"] = X.escape(X.innerXml(xml));
-                  }
-               }
-               else if (textChild) { // pure text
-                  if (!xml.attributes.length)
-                     o = X.escape(X.innerXml(xml));
-                  else
-                     o["#text"] = X.escape(X.innerXml(xml));
-               }
-               else if (cdataChild) { // cdata
-                  if (cdataChild > 1)
-                     o = X.escape(X.innerXml(xml));
-                  else
-                     for (var n=xml.firstChild; n; n=n.nextSibling)
-                        o["#cdata"] = X.escape(n.nodeValue);
-               }
-            }
-            if (!xml.attributes.length && !xml.firstChild) o = null;
-         }
-         else if (xml.nodeType==9) { // document.node
-            o = X.toObj(xml.documentElement);
-         }
-         else
-            alert("unhandled node type: " + xml.nodeType);
-         return o;
-      },
-      toJson: function(o, name, ind) {
-         var json = name ? ("\""+name+"\"") : "";
-         if (o instanceof Array) {
-            for (var i=0,n=o.length; i<n; i++)
-               o[i] = X.toJson(o[i], "", ind+"\t");
-            json += (name?":[":"[") + (o.length > 1 ? ("\n"+ind+"\t"+o.join(",\n"+ind+"\t")+"\n"+ind) : o.join("")) + "]";
-         }
-         else if (o == null)
-            json += (name&&":") + "null";
-         else if (typeof(o) == "object") {
-            var arr = [];
-            for (var m in o)
-               arr[arr.length] = X.toJson(o[m], m, ind+"\t");
-            json += (name?":{":"{") + (arr.length > 1 ? ("\n"+ind+"\t"+arr.join(",\n"+ind+"\t")+"\n"+ind) : arr.join("")) + "}";
-         }
-         else if (typeof(o) == "string")
-            json += (name&&":") + "\"" + o.toString() + "\"";
-         else
-            json += (name&&":") + o.toString();
-         return json;
-      },
-      innerXml: function(node) {
-         var s = ""
-         if ("innerHTML" in node)
-            s = node.innerHTML;
-         else {
-            var asXml = function(n) {
-               var s = "";
-               if (n.nodeType == 1) {
-                  s += "<" + n.nodeName;
-                  for (var i=0; i<n.attributes.length;i++)
-                     s += " " + n.attributes[i].nodeName + "=\"" + (n.attributes[i].nodeValue||"").toString() + "\"";
-                  if (n.firstChild) {
-                     s += ">";
-                     for (var c=n.firstChild; c; c=c.nextSibling)
-                        s += asXml(c);
-                     s += "</"+n.nodeName+">";
-                  }
-                  else
-                     s += "/>";
-               }
-               else if (n.nodeType == 3)
-                  s += n.nodeValue;
-               else if (n.nodeType == 4)
-                  s += "<![CDATA[" + n.nodeValue + "]]>";
-               return s;
-            };
-            for (var c=node.firstChild; c; c=c.nextSibling)
-               s += asXml(c);
-         }
-         return s;
-      },
-      escape: function(txt) {
-         return txt.replace(/[\\]/g, "\\\\")
-                   .replace(/[\"]/g, '\\"')
-                   .replace(/[\n]/g, '\\n')
-                   .replace(/[\r]/g, '\\r');
-      },
-      removeWhite: function(e) {
-         e.normalize();
-         for (var n = e.firstChild; n; ) {
-            if (n.nodeType == 3) {  // text node
-               if (!n.nodeValue.match(/[^ \f\n\r\t\v]/)) { // pure whitespace text node
-                  var nxt = n.nextSibling;
-                  e.removeChild(n);
-                  n = nxt;
-               }
-               else
-                  n = n.nextSibling;
-            }
-            else if (n.nodeType == 1) {  // element node
-               X.removeWhite(n);
-               n = n.nextSibling;
-            }
-            else                      // any other node
-               n = n.nextSibling;
-         }
-         return e;
-      }
-   };
-   if (xml.nodeType == 9) // document node
-      xml = xml.documentElement;
-   var json = X.toJson(X.toObj(X.removeWhite(xml)), xml.nodeName, "\t");
-   return "{\n" + tab + (tab ? json.replace(/\t/g, tab) : json.replace(/\t|\n/g, "")) + "\n}";
-}
-
-function parseXml(xml) {
-   var dom = null;
-   if (window.DOMParser) {
-      try {
-         dom = (new DOMParser()).parseFromString(xml, "text/xml");
-      }
-      catch (e) { dom = null; }
-   }
-   else if (window.ActiveXObject) {
-      try {
-         dom = new ActiveXObject('Microsoft.XMLDOM');
-         dom.async = false;
-         if (!dom.loadXML(xml)) // parse error ..
-
-            window.alert(dom.parseError.reason + dom.parseError.srcText);
-      }
-      catch (e) { dom = null; }
-   }
-   else
-      alert("cannot parse xml string!");
-   return dom;
-}
-
-	Vtree.plugins.xmlSource = {
-		nodeStore: {
-			_fn: {
-				getDataSource: function(attribute) {
-					//var res = new Transformation().setXml(this.tree.dataSource).setXslt(this.xslt).transform();
-					var dom = parseXml(this.tree.dataSource);
-    				var json = xml2json(dom, "");
-    				console.log(json)
-					this.tree.dataSource = JSON.parse(json);
-					return this._call_prev();
-				}
-			}
-		}
-	};
 
 })(jQuery);

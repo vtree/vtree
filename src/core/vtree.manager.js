@@ -1,10 +1,20 @@
-// a singleton for managing trees on the page
+/*
+ * Vtree 1.0.0
+ *
+ * Copyright (c) 2012-2013 Loic Ginoux (loicginoux.com)
+ * Copyright (c) 2012-2013 Vyre ltd. (vyre.com)
+ *
+ * Licensed under the terms of the MIT License
+ *   http://www.opensource.org/licenses/mit-license.php
+ *
+ */
+
 
 (function ($) {
-	
+
 	Vtree = (function(){
 		var trees = [];
-			
+
 		return{
 			plugins: {
 				defaults:{core:{}}
@@ -69,21 +79,19 @@
 				}
 			},
 			create: function (settings) {
-				//build tree
-				var tree = new Vtree.Tree(settings);
-				// keep it internally and remove the previous one if it is using the same container
+				// remove the previous one if it is using the same container
 				sameContainer = false;
 				for (var i=0, len = trees.length; i < len; i++) {
 					var internalTree = trees[i];
-					if (tree.container.is(internalTree.container)) {
+					if (settings.container.is(internalTree.container)) {
 						sameContainer = true;
-						internalTree.destroy();
-						trees[i] = tree;
+						this.destroy(internalTree);
 					}
 				}
-				if (!sameContainer) {
-					trees.push(tree);
-				}
+				//build tree
+				var tree = new Vtree.Tree(settings);
+				//add it to the list
+				trees.push(tree);
 				return tree;
 			},
 			destroy: function(mixed_tree){
@@ -130,7 +138,7 @@
 				};
 				return S4()+S4()+S4();
 			}
-			
+
 		};
 	})();
 })(jQuery);
