@@ -7,13 +7,17 @@ if(typeof console === "undefined") {
 	console = {
 		log:function(){}
 	};
-}
+}/*
+ * Vtree 1.0.0
+ *
+ * Copyright (c) 2012-2013 Loic Ginoux (loicginoux.com)
+ * Copyright (c) 2012-2013 Vyre ltd. (vyre.com)
+ *
+ * Licensed under the terms of the MIT License
+ *   http://www.opensource.org/licenses/mit-license.php
+ *
+ */
 
-
-
-Vtree.utils = {
-
-};// a singleton for managing trees on the page
 
 (function ($) {
 
@@ -445,11 +449,11 @@ Vtree.plugins.defaults.core.node = {
 			},
 
 			toggleLoading: function (){
-				var titleTag = (this.customClass.indexOf("title") !== -1)? "h3" : "em";
+				// var titleTag = (this.customClass.indexOf("title") !== -1)? "h3" : "em";
 				var el = this.getEl();
 				var text = (el.hasClass("loading"))?this.title:"Loading...";
 				var title = el.toggleClass("loading").children("a.title, label");
-				var child = title.children(titleTag);
+				var child = title.children("h3, em, span");
 				if (child.length) {
 					child.text(text);
 				}else{
@@ -1041,6 +1045,7 @@ Vtree.plugins.defaults.core.node = {
 						});
 
 					li.children("label")
+						.wrapInner("<span>")
 						.prepend('<input type="checkbox">')
 						.find("input")
 							.attr("checked", this.isChecked)

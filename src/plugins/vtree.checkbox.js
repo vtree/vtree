@@ -79,6 +79,7 @@
 						});
 
 					li.children("label")
+						.wrapInner("<span>")
 						.prepend('<input type="checkbox">')
 						.find("input")
 							.attr("checked", this.isChecked)

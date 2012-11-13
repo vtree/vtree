@@ -2000,8 +2000,6 @@ describe("NodeStore core functions", function() {
 					node1.onAjaxResponse(nodeData);
 					expect(node1.continueOpening).toHaveBeenCalled();
 				});
-
-
 			});
 		});
 	});
