@@ -13,7 +13,7 @@
 			id: "",
 			initially_open: [],
 			nodeStore: null,
-			container: "body",
+			container: $("body"),
 			dataSource: {},
 			asynchronous: false
 		},
