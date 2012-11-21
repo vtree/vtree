@@ -7,4 +7,4 @@ For Docs and downloads (under construction), see:
 http://loicginoux.github.com/vtree/
 
 Many thanks to Vyre ltd. for sponsoring this component
-https://www.vyre.com
+http://www.vyre.com
