@@ -113,7 +113,12 @@ describe("Vtree manager functions", function() {
 			for (var attr in coreDefaults) {
 				 var attrVal = coreDefaults[attr];
 				 expect(testObject[attr]).toBeDefined();
-				 expect(testObject[attr]).toBe(attrVal);
+				 if (testObject[attr] && typeof testObject[attr].is == "function" ) {
+				 	expect(testObject[attr].is(attrVal)).toBeTruthy();
+				 }else{
+				 	expect(testObject[attr]).toBe(attrVal);
+				 }
+
 			}
 
 		});
@@ -2961,6 +2966,7 @@ describe("NodeStore core functions", function() {
 					});
 					it("should remove a node and his children from the cookie list of bold nodes (without removing the parents)", function() {
 						expect(fakeCookie.Vtree.trees[tree.id].bold).toBeArray([node3.id, node1.id, node2.id]);
+						debugger
 						node1.unbold();
 						expect(fakeCookie.Vtree.trees[tree.id].bold).toBeArray([]);
 

@@ -371,6 +371,7 @@ describe("cookie plugin", function() {
 					});
 					it("should remove a node and his children from the cookie list of bold nodes (without removing the parents)", function() {
 						expect(fakeCookie.Vtree.trees[tree.id].bold).toBeArray([node3.id, node1.id, node2.id]);
+						debugger
 						node1.unbold();
 						expect(fakeCookie.Vtree.trees[tree.id].bold).toBeArray([]);
 

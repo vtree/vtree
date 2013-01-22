@@ -167,7 +167,7 @@ if(typeof console === "undefined") {
 			id: "",
 			initially_open: [],
 			nodeStore: null,
-			container: "body",
+			container: $("body"),
 			dataSource: {},
 			asynchronous: false
 		},
@@ -857,8 +857,6 @@ Vtree.plugins.defaults.core.node = {
 					this.tree.container.trigger("bold.node", [this.tree, this]);
 				},
 				unbold: function() {
-					// fire bold event
-					this.tree.container.trigger("unbold.node", [this.tree, this]);
 
 					// bolding behaviour:
 					// in case cascading_bold is true
@@ -873,9 +871,10 @@ Vtree.plugins.defaults.core.node = {
 							for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
 								var child = children[i];
 								if (child.isBold) {
-									child.isBold = false;
-									child.getEl().removeClass("bold");
-									_rec_unbold(child);
+									// child.isBold = false;
+									// child.getEl().removeClass("bold");
+									// _rec_unbold(child);
+									child.unbold();
 								}
 							}
 						}
@@ -885,6 +884,8 @@ Vtree.plugins.defaults.core.node = {
 						_rec_unbold(this);
 					}
 
+					// fire bold event
+					this.tree.container.trigger("unbold.node", [this.tree, this]);
 
 
 				},
