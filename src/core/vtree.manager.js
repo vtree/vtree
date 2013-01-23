@@ -1,14 +1,3 @@
-/*
- * Vtree 1.0.0
- *
- * Copyright (c) 2012-2013 Loic Ginoux (loicginoux.com)
- * Copyright (c) 2012-2013 Vyre ltd. (vyre.com)
- *
- * Licensed under the terms of the MIT License
- *   http://www.opensource.org/licenses/mit-license.php
- *
- */
-
 
 (function ($) {
 

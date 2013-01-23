@@ -63,6 +63,7 @@
 
 				fetchChildren:function(nodes){
 					var that = this;
+
 					// we filter nodes that already have their children loaded
 					nodes = jQuery.grep(nodes, function(id) {
 						var pass = true;
@@ -71,7 +72,11 @@
 							if (node && node.children.length) {
 								pass = false;
 							}
-						}catch(e){}
+						}catch(e){
+							if ($.inArray(id, that.initiallyLoadedNodes) !== -1){
+								pass = false;
+							}
+						}
 						return pass;
 					});
 
@@ -122,8 +127,34 @@
 						}
 					}
 					if (nodeData.id) {
-						nodeSource = this.getNode(nodeData.id);
-						this.nodeStore._recBuildNodes( nodeSource, nodeSource.parents.concat(nodeSource), nodeData.nodes);
+						try{
+							nodeSource = this.getNode(nodeData.id);
+							this.nodeStore._recBuildNodes( nodeSource, nodeSource.parents.concat(nodeSource), nodeData.nodes);
+						}catch(e){
+							// this is the case where we can't find the node in the nodeStore
+							// this happens if we run the ajax request before having building the node store.
+							// For example when the ajax call comes from the fetchChildren function
+							// which happens on the beforeInit.tree event
+							// in this case we don't add the node requested to the nodeStore but directly
+							// to the dataSource object
+
+							// so what we do here is just finding the node and adding his children
+							var that = this;
+							var fn = function (nodes, nodeId, children){
+								for (var i = 0; i < nodes.length; i++) {
+									node = nodes[i];
+									if (node.id === nodeId){
+										node.nodes = children;
+									}else if (node.hasChildren && node.nodes && node.nodes.length > 0 ){
+										fn(node.nodes, nodeId, children);
+									}
+								}
+							};
+							if (this.dataSource && this.dataSource.tree && this.dataSource.tree.nodes) {
+								fn(this.dataSource.tree.nodes, nodeData.id, nodeData.nodes);
+							}
+
+						}
 					}
 				}
 			}

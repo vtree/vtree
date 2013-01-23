@@ -1,3 +1,22 @@
+// Vtree 1.0.0
+//
+
+
+// Copyright (c) 2012-2013 Loic Ginoux, Vyre ltd.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
 if (typeof Vtree === "undefined") {
 	Vtree = {};
 }
@@ -7,18 +26,7 @@ if(typeof console === "undefined") {
 	console = {
 		log:function(){}
 	};
-}/*
- * Vtree 1.0.0
- *
- * Copyright (c) 2012-2013 Loic Ginoux (loicginoux.com)
- * Copyright (c) 2012-2013 Vyre ltd. (vyre.com)
- *
- * Licensed under the terms of the MIT License
- *   http://www.opensource.org/licenses/mit-license.php
- *
- */
-
-
+}
 (function ($) {
 
 	Vtree = (function(){
@@ -166,6 +174,7 @@ if(typeof console === "undefined") {
 		defaults: {
 			id: "",
 			initially_open: [],
+			initiallyLoadedNodes: [],
 			nodeStore: null,
 			container: $("body"),
 			dataSource: {},
@@ -177,6 +186,9 @@ if(typeof console === "undefined") {
 				if (!this.container.length) {
 					throw "container is empty. Check that the element is on the page or that you run your code when the document is ready.";
 				}
+				// get a reference to the initially loaded nodes
+				this.getInitiallyLoadedNodes();
+
 				// fires a beforeInit event
 				this.container.trigger("beforeInit.tree", [this]);
 
@@ -213,6 +225,24 @@ if(typeof console === "undefined") {
 				}
 			},
 
+			getInitiallyLoadedNodes: function(){
+				var that = this;
+				var fn = function (nodes){
+					for (var i = 0; i < nodes.length; i++) {
+						node = nodes[i];
+						if (!node.hasChildren){
+							that.initiallyLoadedNodes.push(node.id);
+						}else if (node.hasChildren && node.nodes && node.nodes.length>0 ){
+							that.initiallyLoadedNodes.push(node.id);
+							fn(node.nodes);
+						}
+					}
+				};
+				if (this.dataSource && this.dataSource.tree && this.dataSource.tree.nodes) {
+					fn(this.dataSource.tree.nodes);
+				}
+			},
+
 			refresh: function(){
 				this.container
 					.empty() // clean the container
@@ -231,8 +261,15 @@ if(typeof console === "undefined") {
 				this.container
 					.delegate("li","click", fn)
 					.delegate("li","dblclick",fn)
-					.delegate("li","contextmenu",fn)
 					.delegate("li","hover",fn)
+					.delegate("li","contextmenu",function(e){
+						try{
+							fn(e);
+						}
+						catch(event){}
+						// prevent from opening the browser context menu
+						e.preventDefault();
+					})
 					.delegate(".openClose","click",function(e){
 						var node = that.getNode($(this).parent().attr("data-nodeid"));
 						node.toggleOpen();
@@ -728,6 +765,7 @@ Vtree.plugins.defaults.core.node = {
 
 				fetchChildren:function(nodes){
 					var that = this;
+
 					// we filter nodes that already have their children loaded
 					nodes = jQuery.grep(nodes, function(id) {
 						var pass = true;
@@ -736,7 +774,11 @@ Vtree.plugins.defaults.core.node = {
 							if (node && node.children.length) {
 								pass = false;
 							}
-						}catch(e){}
+						}catch(e){
+							if ($.inArray(id, that.initiallyLoadedNodes) !== -1){
+								pass = false;
+							}
+						}
 						return pass;
 					});
 
@@ -787,8 +829,34 @@ Vtree.plugins.defaults.core.node = {
 						}
 					}
 					if (nodeData.id) {
-						nodeSource = this.getNode(nodeData.id);
-						this.nodeStore._recBuildNodes( nodeSource, nodeSource.parents.concat(nodeSource), nodeData.nodes);
+						try{
+							nodeSource = this.getNode(nodeData.id);
+							this.nodeStore._recBuildNodes( nodeSource, nodeSource.parents.concat(nodeSource), nodeData.nodes);
+						}catch(e){
+							// this is the case where we can't find the node in the nodeStore
+							// this happens if we run the ajax request before having building the node store.
+							// For example when the ajax call comes from the fetchChildren function
+							// which happens on the beforeInit.tree event
+							// in this case we don't add the node requested to the nodeStore but directly
+							// to the dataSource object
+
+							// so what we do here is just finding the node and adding his children
+							var that = this;
+							var fn = function (nodes, nodeId, children){
+								for (var i = 0; i < nodes.length; i++) {
+									node = nodes[i];
+									if (node.id === nodeId){
+										node.nodes = children;
+									}else if (node.hasChildren && node.nodes && node.nodes.length > 0 ){
+										fn(node.nodes, nodeId, children);
+									}
+								}
+							};
+							if (this.dataSource && this.dataSource.tree && this.dataSource.tree.nodes) {
+								fn(this.dataSource.tree.nodes, nodeData.id, nodeData.nodes);
+							}
+
+						}
 					}
 				}
 			}

@@ -12,6 +12,7 @@
 		defaults: {
 			id: "",
 			initially_open: [],
+			initiallyLoadedNodes: [],
 			nodeStore: null,
 			container: $("body"),
 			dataSource: {},
@@ -23,6 +24,9 @@
 				if (!this.container.length) {
 					throw "container is empty. Check that the element is on the page or that you run your code when the document is ready.";
 				}
+				// get a reference to the initially loaded nodes
+				this.getInitiallyLoadedNodes();
+
 				// fires a beforeInit event
 				this.container.trigger("beforeInit.tree", [this]);
 
@@ -59,6 +63,24 @@
 				}
 			},
 
+			getInitiallyLoadedNodes: function(){
+				var that = this;
+				var fn = function (nodes){
+					for (var i = 0; i < nodes.length; i++) {
+						node = nodes[i];
+						if (!node.hasChildren){
+							that.initiallyLoadedNodes.push(node.id);
+						}else if (node.hasChildren && node.nodes && node.nodes.length>0 ){
+							that.initiallyLoadedNodes.push(node.id);
+							fn(node.nodes);
+						}
+					}
+				};
+				if (this.dataSource && this.dataSource.tree && this.dataSource.tree.nodes) {
+					fn(this.dataSource.tree.nodes);
+				}
+			},
+
 			refresh: function(){
 				this.container
 					.empty() // clean the container
@@ -77,8 +99,15 @@
 				this.container
 					.delegate("li","click", fn)
 					.delegate("li","dblclick",fn)
-					.delegate("li","contextmenu",fn)
 					.delegate("li","hover",fn)
+					.delegate("li","contextmenu",function(e){
+						try{
+							fn(e);
+						}
+						catch(event){}
+						// prevent from opening the browser context menu
+						e.preventDefault();
+					})
 					.delegate(".openClose","click",function(e){
 						var node = that.getNode($(this).parent().attr("data-nodeid"));
 						node.toggleOpen();
