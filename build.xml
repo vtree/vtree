@@ -17,6 +17,8 @@
 				<include name="vtree.utils.js"/>
 				<include name="vtree.utils.js"/>
 			</fileset> -->
+			<fileset file="VERSION" />
+			<fileset file="NOTICE" />
 			<filelist dir="${src}/core">
 		        <file name="vtree.utils.js" />
 		        <file name="vtree.manager.js" />

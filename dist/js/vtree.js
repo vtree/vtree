@@ -1,3 +1,22 @@
+// Vtree 1.0.0
+//
+
+
+// Copyright (c) 2012-2013 Loic Ginoux, Vyre ltd.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
 if (typeof Vtree === "undefined") {
 	Vtree = {};
 }
@@ -8,18 +27,11 @@ if(typeof console === "undefined") {
 		log:function(){}
 	};
 }
-
-
-
-Vtree.utils = {
-
-};// a singleton for managing trees on the page
-
 (function ($) {
-	
+
 	Vtree = (function(){
 		var trees = [];
-			
+
 		return{
 			plugins: {
 				defaults:{core:{}}
@@ -84,21 +96,19 @@ Vtree.utils = {
 				}
 			},
 			create: function (settings) {
-				//build tree
-				var tree = new Vtree.Tree(settings);
-				// keep it internally and remove the previous one if it is using the same container
+				// remove the previous one if it is using the same container
 				sameContainer = false;
 				for (var i=0, len = trees.length; i < len; i++) {
 					var internalTree = trees[i];
-					if (tree.container.is(internalTree.container)) {
+					if (settings.container.is(internalTree.container)) {
 						sameContainer = true;
-						internalTree.destroy();
-						trees[i] = tree;
+						this.destroy(internalTree);
 					}
 				}
-				if (!sameContainer) {
-					trees.push(tree);
-				}
+				//build tree
+				var tree = new Vtree.Tree(settings);
+				//add it to the list
+				trees.push(tree);
 				return tree;
 			},
 			destroy: function(mixed_tree){
@@ -145,7 +155,7 @@ Vtree.utils = {
 				};
 				return S4()+S4()+S4();
 			}
-			
+
 		};
 	})();
 })(jQuery);
@@ -164,8 +174,9 @@ Vtree.utils = {
 		defaults: {
 			id: "",
 			initially_open: [],
+			initiallyLoadedNodes: [],
 			nodeStore: null,
-			container: "body",
+			container: $("body"),
 			dataSource: {},
 			asynchronous: false
 		},
@@ -175,6 +186,9 @@ Vtree.utils = {
 				if (!this.container.length) {
 					throw "container is empty. Check that the element is on the page or that you run your code when the document is ready.";
 				}
+				// get a reference to the initially loaded nodes
+				this.getInitiallyLoadedNodes();
+
 				// fires a beforeInit event
 				this.container.trigger("beforeInit.tree", [this]);
 
@@ -211,6 +225,24 @@ Vtree.utils = {
 				}
 			},
 
+			getInitiallyLoadedNodes: function(){
+				var that = this;
+				var fn = function (nodes){
+					for (var i = 0; i < nodes.length; i++) {
+						node = nodes[i];
+						if (!node.hasChildren){
+							that.initiallyLoadedNodes.push(node.id);
+						}else if (node.hasChildren && node.nodes && node.nodes.length>0 ){
+							that.initiallyLoadedNodes.push(node.id);
+							fn(node.nodes);
+						}
+					}
+				};
+				if (this.dataSource && this.dataSource.tree && this.dataSource.tree.nodes) {
+					fn(this.dataSource.tree.nodes);
+				}
+			},
+
 			refresh: function(){
 				this.container
 					.empty() // clean the container
@@ -229,8 +261,15 @@ Vtree.utils = {
 				this.container
 					.delegate("li","click", fn)
 					.delegate("li","dblclick",fn)
-					.delegate("li","contextmenu",fn)
 					.delegate("li","hover",fn)
+					.delegate("li","contextmenu",function(e){
+						try{
+							fn(e);
+						}
+						catch(event){}
+						// prevent from opening the browser context menu
+						e.preventDefault();
+					})
 					.delegate(".openClose","click",function(e){
 						var node = that.getNode($(this).parent().attr("data-nodeid"));
 						node.toggleOpen();
@@ -447,11 +486,11 @@ Vtree.plugins.defaults.core.node = {
 			},
 
 			toggleLoading: function (){
-				var titleTag = (this.customClass.indexOf("title") !== -1)? "h3" : "em";
+				// var titleTag = (this.customClass.indexOf("title") !== -1)? "h3" : "em";
 				var el = this.getEl();
 				var text = (el.hasClass("loading"))?this.title:"Loading...";
 				var title = el.toggleClass("loading").children("a.title, label");
-				var child = title.children(titleTag);
+				var child = title.children("h3, em, span");
 				if (child.length) {
 					child.text(text);
 				}else{
@@ -668,16 +707,17 @@ Vtree.plugins.defaults.core.node = {
 			defaults:{
 				ajaxUrl: "",
 				ajaxParameters:{},
-				asynchronous: true,
+				asynchronous: true, //can't be overwritten
 				forceAjaxReload: false
 			},
 			_fn:{
 				build: function(){
 					var that = this;
-					// when we open a node we need to get his children from the server unless they are already on the page.
-					// we can specify a forceAjaxReload setting to true, if we always want to realod the children even if they are already loaded from a previous opening
 					this.container.on("beforeOpen.node", function(e, tree, node){
-						if (node.hasChildren && !node.children.length && (!node.hasRenderedChildren || (node.hasRenderedChildren && that.forceAjaxReload))) {
+						// when opening a node we get his children from the server
+						// in the case that we force the ajax relaod
+					// or that the list of children is empty
+						if (node.hasChildren && (!node.children.length || that.forceAjaxReload)) {
 							var data = $.extend(true, {
 								action:"getChildren",
 								nodes: node.id
@@ -707,40 +747,15 @@ Vtree.plugins.defaults.core.node = {
 					// if some nodes are saved as opened in the cookie, we need to ask for their children using ajax
 					// in order to display also the children and keep the state saved by the cookie
 					.on("OpenNodesFromCookie.tree", function(e, tree){
-						var opened = tree.initially_open;
-
-						if (opened.length === 0) {
-							tree.continueBuilding();
-						}else{
-							tree.getChildrenNodes(opened);
-						}
+						tree.fetchChildren(tree.initially_open);
 					})
 
 					// in the case we use ajax without the cookie plugin, we don't need to wait for the ajax response to
 					// continue the tree building
 					.on("beforeInit.tree", function(e, tree){
 						if ($.inArray("cookie", tree.plugins) == -1) { // the cookie plugin is not in tree
-							var opened = tree.initially_open;
+							tree.fetchChildren(tree.initially_open);
 
-							if (opened.length) {
-								// we remove the nodes that already have children
-								// we dont need to do an ajax request to get their children
-								opened = jQuery.grep(opened, function(id) {
-									var pass = true;
-									try{
-										var node = tree.getNode(id);
-										if (node && node.children) {
-											pass = false;
-										}
-									}catch(e){}
-									return pass;
-								});
-
-								tree.getChildrenNodes(opened);
-							}else{
-								//cookie plugin is not in the tree and there is no nodes initially open
-								tree.continueBuilding();
-							}
 						}
 					});
 
@@ -748,19 +763,42 @@ Vtree.plugins.defaults.core.node = {
 					return this._call_prev();
 				},
 
-				getChildrenNodes:function(nodes){
-					var data = $.extend(true, {
-						action:"getChildren",
-						nodes: nodes.join(",")
-					}, this.ajaxParameters );
+				fetchChildren:function(nodes){
+					var that = this;
 
-					$.ajax({
-						type: "GET",
-						url: this.ajaxUrl,
-						dataType: 'json',
-						data: data,
-						success: $.proxy(this.onAjaxResponse, this)
+					// we filter nodes that already have their children loaded
+					nodes = jQuery.grep(nodes, function(id) {
+						var pass = true;
+						try{
+							var node = that.getNode(id);
+							if (node && node.children.length) {
+								pass = false;
+							}
+						}catch(e){
+							if ($.inArray(id, that.initiallyLoadedNodes) !== -1){
+								pass = false;
+							}
+						}
+						return pass;
 					});
+
+					if (!nodes.length) {
+						this.continueBuilding();
+					}else{
+
+						var data = $.extend(true, {
+							action:"getChildren",
+							nodes: nodes.join(",")
+						}, this.ajaxParameters );
+
+						$.ajax({
+							type: "GET",
+							url: this.ajaxUrl,
+							dataType: 'json',
+							data: data,
+							success: $.proxy(this.onAjaxResponse, this)
+						});
+					}
 				},
 
 				getAjaxData:function(data){
@@ -768,7 +806,7 @@ Vtree.plugins.defaults.core.node = {
 				},
 
 				onAjaxResponse: function(data, response, jqXHR){
-					nodesData = this.getAjaxData(data);
+					var nodesData = this.getAjaxData(data);
 					for (var nodeId in nodesData) {
 						var nodeData = nodesData[nodeId];
 						this.addDataToNodeSource(nodeData);
@@ -777,20 +815,9 @@ Vtree.plugins.defaults.core.node = {
 				},
 
 				addDataToNodeSource: function(nodeData){
-					findNode = function(nodes, id){
-						for (var i=0, len = nodes.length; i < len; i++) {
-							var node = nodes[i];
-							if (node.id == id) {
-								return node;
-							}else if (node.nodes && node.nodes.length) {
-								var rec = findNode(nodes[i].nodes, nodeData.id);
-								if (rec) {return rec;}
-							}
-						}
-					};
 					// if a child of the nodeData have the attribute 'nodes' empty (means without children),
-					// we need to remove it from the object
-					// if not removed, it could overwrite the children of the child when extending the dataSource...
+					// we need to remove the attribute nodes from the child
+					// if not removed, it could overwrite the dataSource child tha might have the nodes not empty...
 					// is that clear enough?! :/
 					if (nodeData.nodes && nodeData.nodes.length) {
 						for (var i = 0; i < nodeData.nodes.length; i++) {
@@ -802,8 +829,34 @@ Vtree.plugins.defaults.core.node = {
 						}
 					}
 					if (nodeData.id) {
-						var nodeSource = findNode(this.dataSource.tree.nodes, nodeData.id);
-						nodeSource = $.extend(true, nodeSource, nodeData);
+						try{
+							nodeSource = this.getNode(nodeData.id);
+							this.nodeStore._recBuildNodes( nodeSource, nodeSource.parents.concat(nodeSource), nodeData.nodes);
+						}catch(e){
+							// this is the case where we can't find the node in the nodeStore
+							// this happens if we run the ajax request before having building the node store.
+							// For example when the ajax call comes from the fetchChildren function
+							// which happens on the beforeInit.tree event
+							// in this case we don't add the node requested to the nodeStore but directly
+							// to the dataSource object
+
+							// so what we do here is just finding the node and adding his children
+							var that = this;
+							var fn = function (nodes, nodeId, children){
+								for (var i = 0; i < nodes.length; i++) {
+									node = nodes[i];
+									if (node.id === nodeId){
+										node.nodes = children;
+									}else if (node.hasChildren && node.nodes && node.nodes.length > 0 ){
+										fn(node.nodes, nodeId, children);
+									}
+								}
+							};
+							if (this.dataSource && this.dataSource.tree && this.dataSource.tree.nodes) {
+								fn(this.dataSource.tree.nodes, nodeData.id, nodeData.nodes);
+							}
+
+						}
 					}
 				}
 			}
@@ -872,8 +925,6 @@ Vtree.plugins.defaults.core.node = {
 					this.tree.container.trigger("bold.node", [this.tree, this]);
 				},
 				unbold: function() {
-					// fire bold event
-					this.tree.container.trigger("unbold.node", [this.tree, this]);
 
 					// bolding behaviour:
 					// in case cascading_bold is true
@@ -888,9 +939,10 @@ Vtree.plugins.defaults.core.node = {
 							for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
 								var child = children[i];
 								if (child.isBold) {
-									child.isBold = false;
-									child.getEl().removeClass("bold");
-									_rec_unbold(child);
+									// child.isBold = false;
+									// child.getEl().removeClass("bold");
+									// _rec_unbold(child);
+									child.unbold();
 								}
 							}
 						}
@@ -900,6 +952,8 @@ Vtree.plugins.defaults.core.node = {
 						_rec_unbold(this);
 					}
 
+					// fire bold event
+					this.tree.container.trigger("unbold.node", [this.tree, this]);
 
 
 				},
@@ -1060,6 +1114,7 @@ Vtree.plugins.defaults.core.node = {
 						});
 
 					li.children("label")
+						.wrapInner("<span>")
 						.prepend('<input type="checkbox">')
 						.find("input")
 							.attr("checked", this.isChecked)
@@ -1330,315 +1385,5 @@ Vtree.plugins.defaults.core.node = {
 		}
 	};
 
-
-})(jQuery);(function($) {
-
-
-/**
- * jQuery client-side XSLT plugins.
- *
- * @author <a href="mailto:jb@eaio.com">Johann Burkard</a>
- * @version $Id: jquery.xslt.js,v 1.10 2008/08/29 21:34:24 Johann Exp $
- */
-/*
- * xslt.js
- *
- * Copyright (c) 2005-2008 Johann Burkard (<mailto:jb@eaio.com>)
- * <http://eaio.com>
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included
- * in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
- * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
- * NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
- * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
- * USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- */
-
-/**
- * Constructor for client-side XSLT transformations.
- *
- * @author <a href="mailto:jb@eaio.com">Johann Burkard</a>
- * @version $Id: xslt.js,v 1.7 2008/08/29 21:22:55 Johann Exp $
- * @constructor
- */
-	var Transformation = function() {
-
-		var xml;
-
-		var xmlDoc;
-
-		var xslt;
-
-		var xsltDoc;
-
-		var callback = function() {};
-
-		/**
-		 * Sort of like a fix for Opera who doesn't always get readyStates right.
-		 */
-		var transformed = false;
-
-		/**
-		 * Returns the URL of the XML document.
-		 *
-		 * @return the URL of the XML document
-		 * @type String
-		 */
-		this.getXml = function() {
-			return xml;
-		};
-
-		/**
-		 * Returns the XML document.
-		 *
-		 * @return the XML document
-		 */
-		this.getXmlDocument = function() {
-			return xmlDoc;
-		};
-
-		/**
-		 * Sets the URL of the XML document.
-		 *
-		 * @param x the URL of the XML document
-		 * @return this
-		 * @type Transformation
-		 */
-		this.setXml = function(x) {
-			xml = x;
-			return this;
-		};
-
-		/**
-		 * Returns the URL of the XSLT document.
-		 *
-		 * @return the URL of the XSLT document
-		 * @type String
-		 */
-		this.getXslt = function() {
-			return xslt;
-		};
-
-		/**
-		 * Returns the XSLT document.
-		 *
-		 * @return the XSLT document
-		 */
-		this.getXsltDocument = function() {
-			return xsltDoc;
-		};
-
-		/**
-		 * Sets the URL of the XSLT document.
-		 *
-		 * @param x the URL of the XML document
-		 * @return this
-		 * @type Transformation
-		 */
-		this.setXslt = function(x) {
-			xslt = x;
-			return this;
-		};
-
-		/**
-		 * Returns the callback function.
-		 *
-		 * @return the callback function
-		 */
-		this.getCallback = function() {
-			return callback;
-		};
-
-		/**
-		 * Sets the callback function
-		 *
-		 * @param c the callback function
-		 * @return this
-		 * @type Transformation
-		 */
-		this.setCallback = function(c) {
-			callback = c;
-			return this;
-		};
-
-		/**
-		 *
-		 * This method may only be called after {@link #setXml} and {@link #setXslt} have
-		 * been called.
-		 * <p>
-		 *
-		 * @return the result of the transformation
-		 */
-		this.transform = function() {
-			if(!browserSupportsXSLT()) {
-				return;
-			}
-			var str = /^\s*</;
-			var t = this,
-				res,
-				change,
-				xm,
-				xs;
-			if(document.recalc) {
-				change = function() {
-						var c = 'complete';
-						if(xm.readyState == c && xs.readyState == c) {
-							window.setTimeout(function() {
-								xmlDoc = xm.XMLDocument;
-								xsltDoc = xs.XMLDocument;
-								callback(t);
-								res = xm.transformNode(xs.XMLDocument);
-							}, 50);
-						}
-					};
-
-				xm = document.createElement('xml');
-				xm.onreadystatechange = change;
-				xm[str.test(xml) ? "innerHTML" : "src"] = xml;
-
-				xs = document.createElement('xml');
-				xs.onreadystatechange = change;
-				xs[str.test(xslt) ? "innerHTML" : "src"] = xslt;
-
-				document.body.insertBefore(xm);
-				document.body.insertBefore(xs);
-
-			} else {
-				var transformed = false;
-
-				xm = {
-					readyState: 4
-				};
-				xs = {
-					readyState: 4
-				};
-				change = function() {
-						if(xm.readyState == 4 && xs.readyState == 4 && !transformed) {
-							xmlDoc = xm.responseXML;
-							xsltDoc = xs.responseXML;
-							var resultDoc;
-							var processor = new XSLTProcessor();
-
-							if(typeof processor.transformDocument == 'function') {
-								// obsolete Mozilla interface
-								resultDoc = document.implementation.createDocument("", "", null);
-								processor.transformDocument(xm.responseXML, xs.responseXML, resultDoc, null);
-								var out = new XMLSerializer().serializeToString(resultDoc);
-								callback(t);
-								res = out;
-							} else {
-								processor.importStylesheet(xs.responseXML);
-								resultDoc = processor.transformToFragment(xm.responseXML, document);
-								callback(t);
-								res = resultDoc;
-							}
-
-							transformed = true;
-						}
-					};
-
-				if(str.test(xml)) {
-					xm.responseXML = new DOMParser().parseFromString(xml, "text/xml");
-				} else {
-					xm = new XMLHttpRequest();
-					xm.onreadystatechange = change;
-					xm.open("GET", xml);
-					xm.send(null);
-				}
-
-				if(str.test(xslt)) {
-					xs.responseXML = new DOMParser().parseFromString(xslt, "text/xml");
-					change();
-				} else {
-					xs = new XMLHttpRequest();
-					xs.onreadystatechange = change;
-					xs.open("GET", xslt);
-					xs.send(null);
-				}
-			}
-			return res;
-		};
-
-	};
-
-	/**
-	 * Returns whether the browser supports XSLT.
-	 *
-	 * @return the browser supports XSLT
-	 * @type boolean
-	 */
-	var browserSupportsXSLT = function() {
-		var support = false;
-		if(document.recalc) { // IE 5+
-			support = true;
-		} else if(window.XMLHttpRequest !== undefined && window.XSLTProcessor !== undefined) { // Mozilla 0.9.4+, Opera 9+
-			var processor = new XSLTProcessor();
-			if(typeof processor.transformDocument == 'function') {
-				support = window.XMLSerializer !== undefined;
-			} else {
-				support = true;
-			}
-		}
-		return support;
-	};
-
-
-	Vtree.plugins.xmlSource = {
-		nodeStore: {
-			defaults: {
-				xslt: '' +
-				'<?xml version="1.0" encoding="utf-8" ?>' +
-				'<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" >' +
-				'<xsl:output encoding="utf-8"  indent="no" omit-xml-declaration="yes" method="text" />' +
-				'' +
-				'<xsl:strip-space elements="*" />' +
-				'<xsl:template match="/">' +
-				'	<xsl:apply-templates select="tree"/>' +
-				'</xsl:template>' +
-				'' +
-				'<xsl:template match="tree">' +
-				'	{"tree":{' +
-				'		"id": "<xsl:value-of select="@id"/>",' +
-				'	"nodes": <xsl:apply-templates select="nodes"/> }' +
-				'	}' +
-				'</xsl:template>' +
-				'' +
-				'<xsl:template match="nodes">' +
-				' [<xsl:apply-templates select="node"/>]' +
-				'</xsl:template>' +
-				'' +
-				'<xsl:template match="node">' +
-				'	{"id": "<xsl:value-of select="id"/>",' +
-				'	"title": "<xsl:value-of select="label|title"/>",' +
-				'	"description": "<xsl:value-of select="description"/>",' +
-				'	"hasChildren": <xsl:value-of select="hasChildren"/>,' +
-				'	"iconPath": "<xsl:value-of select="icon"/>",' +
-				'	"nodes":[<xsl:apply-templates select="node"/>]' +
-				'	}<xsl:if test="position()!=last()">,</xsl:if>' +
-				'</xsl:template>' +
-				'</xsl:stylesheet>'
-			},
-			_fn: {
-				getDataSource: function(attribute) {
-					var res = new Transformation().setXml(this.tree.dataSource).setXslt(this.xslt).transform();
-
-					this.tree.dataSource = JSON.parse(res.textContent);
-					return this._call_prev();
-				}
-			}
-		}
-	};
 
 })(jQuery);

@@ -1,0 +1,10 @@
+{
+  "name"          : "vtree",
+  "description"   : "javascript component for building trees",
+  "homepage"      : "http://vtreejs.com",
+  "keywords"      : ["tree", "component", "plugins", "client", "browser"],
+  "author"        : "Loic Ginoux <lginoux@gmail.com>",
+  "repository"    : {"type": "git", "url": "git://github.com/vtree/vtree.git"},
+  "main"          : "vtree.js",
+  "version"       : "1.0.0"
+}

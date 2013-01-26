@@ -46,8 +46,6 @@
 					this.tree.container.trigger("bold.node", [this.tree, this]);
 				},
 				unbold: function() {
-					// fire bold event
-					this.tree.container.trigger("unbold.node", [this.tree, this]);
 
 					// bolding behaviour:
 					// in case cascading_bold is true
@@ -62,9 +60,10 @@
 							for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
 								var child = children[i];
 								if (child.isBold) {
-									child.isBold = false;
-									child.getEl().removeClass("bold");
-									_rec_unbold(child);
+									// child.isBold = false;
+									// child.getEl().removeClass("bold");
+									// _rec_unbold(child);
+									child.unbold();
 								}
 							}
 						}
@@ -74,6 +73,8 @@
 						_rec_unbold(this);
 					}
 
+					// fire bold event
+					this.tree.container.trigger("unbold.node", [this.tree, this]);
 
 
 				},

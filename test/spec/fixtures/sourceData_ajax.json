@@ -1,0 +1,19 @@
+{"tree":{
+	"nodes": [
+		{
+			"id":"test_1",
+			"title": "title_1",
+			"description": "title_1",
+			"customClass": "title",
+			"hasChildren": true,
+			"nodes":[]
+		},{
+			"id":"test_4",
+			"title": "title_4",
+			"description": "title_4",
+			"hasChildren": false
+		}
+	],
+	"id": "tree"
+}
+}

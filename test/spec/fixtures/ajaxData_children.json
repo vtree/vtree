@@ -1,0 +1,16 @@
+[{
+	"id":"test_2",
+	"title": "title_2",
+	"description": "title_2",
+	"iconClass": "default",
+	"hasChildren": true,
+	"nodes":[{
+		"id":"test_3",
+		"title": "title_3",
+		"description": "title_3",
+		"iconClass": "default",
+		"hasChildren": false,
+		"nodes":[]
+	}
+}]
+
