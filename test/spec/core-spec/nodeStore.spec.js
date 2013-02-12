@@ -8,12 +8,12 @@ describe("NodeStore core functions", function() {
 			dataSource: data
 		};
 	});
-	
+
 	describe("intialisation", function() {
 		var ns;
-		beforeEach(function() {	
+		beforeEach(function() {
 		  	ns = new Vtree.NodeStore({
-				tree: tree 
+				tree: tree
 			});
 		});
 		it("should create the root node", function() {
@@ -22,54 +22,54 @@ describe("NodeStore core functions", function() {
 		it("should load settings passed in parameters", function() {
 			expect(ns.tree.id).toBe(tree.id)
 		});
-		
-		
-		
+
+
+
 	});
 	describe("intializing the structure", function() {
 		var ns;
 		beforeEach(function() {
 		  	ns = new Vtree.NodeStore({
-				tree: tree 
+				tree: tree
 			});
 			spyOn(ns, "_recBuildNodes");
 			spyOn(ns, "getDataSource").andReturn(tree.dataSource.tree);
 			ns.initStructure();
-		});	
+		});
 		it("should get the data source from the tree", function() {
 			expect(ns.getDataSource).toHaveBeenCalled();
 		});
-			
+
 		it("should call _recBuildNodes with correct parameters", function() {
-			expect(ns._recBuildNodes).toHaveBeenCalledWith(ns.rootNode, [ns.rootNode], ns.getDataSource().nodes);
+			expect(ns._recBuildNodes).toHaveBeenCalledWith(null, [], ns.getDataSource().nodes);
 		});
 		it("should store the rootNode as the tree structure", function() {
 			expect(ns.structure.tree.toJson()).toBeObject(ns.rootNode.toJson())
 		});
-		
+
 	});
 	describe("getting the data Source from the tree", function() {
 		var ns;
 		beforeEach(function() {
 		  	ns = new Vtree.NodeStore({
-				tree: tree 
+				tree: tree
 			});
 		});
 		it("should return the json data source", function() {
 			expect(ns.getDataSource()).toBeObject(data.tree)
 		});
-		
+
 	});
 	describe("building the node structure", function() {
 		var ns;
-		beforeEach(function() {	
+		beforeEach(function() {
 		  	ns = new Vtree.NodeStore({
-				tree: tree 
+				tree: tree
 			});
 			ns._recBuildNodes( ns.rootNode, [ns.rootNode], data.tree.nodes);
-		  	
+
 		});
-			
+
 		it("should set the children nodes to the parent", function() {
 			expect(ns.rootNode.children.length).toBe(2);
 			expect(ns.rootNode.children[0]).toBeNode(ns.getNode("test_1"));
@@ -84,7 +84,7 @@ describe("NodeStore core functions", function() {
 		describe("passing the right arguments to the node", function() {
 			it("should pass the isOpen setting", function() {
 				var nodeStore = new Vtree.NodeStore({
-					tree: tree 
+					tree: tree
 				});
 				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
 					"id":"test_4",
@@ -100,7 +100,7 @@ describe("NodeStore core functions", function() {
 					"isOpen": true
 				}]);
 				expect(nodeStore.getNode("test_4").isOpen).toBeTruthy();
-				
+
 			});
 			it("should give nodes reference to the tree", function() {
 				expect(ns.getNode("test_1").tree.id).toBe(tree.id)
@@ -110,7 +110,7 @@ describe("NodeStore core functions", function() {
 			});
 			it("should pass the hasRenderedChildren setting", function() {
 				var nodeStore = new Vtree.NodeStore({
-					tree: tree 
+					tree: tree
 				});
 				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
 					"id":"test",
@@ -119,11 +119,11 @@ describe("NodeStore core functions", function() {
 					"hasRenderedChildren": true
 				}]);
 				expect(nodeStore.getNode("test").hasRenderedChildren).toBeTruthy();
-				
+
 			});
 			it("should pass the hasVisibleChildren setting", function() {
 				var nodeStore = new Vtree.NodeStore({
-					tree: tree 
+					tree: tree
 				});
 				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
 					"id":"test",
@@ -132,25 +132,25 @@ describe("NodeStore core functions", function() {
 					"hasVisibleChildren": true
 				}]);
 				expect(nodeStore.getNode("test").hasVisibleChildren).toBeTruthy();
-				
+
 			});
 			it("should pass the parent node", function() {
 				expect(ns.getNode("test_2").parent.id).toBe("test_1")
 				expect(ns.getNode("test_3").parent.id).toBe("test_2")
 				expect(ns.getNode("test_1").parent.id).toBe("root")
 				expect(ns.getNode("test_4").parent.id).toBe("root")
-				
+
 			});
 			it("should pass the parent nodes in an array", function() {
 				expect(ns.getNode("test_3").parents.length).toBe(3)
 				expect(ns.getNode("test_3").parents[0].id).toBe("root")
 				expect(ns.getNode("test_3").parents[1].id).toBe("test_1")
 				expect(ns.getNode("test_3").parents[2].id).toBe("test_2")
-				
+
 				expect(ns.getNode("test_2").parents.length).toBe(2)
 				expect(ns.getNode("test_2").parents[0].id).toBe("root")
 				expect(ns.getNode("test_2").parents[1].id).toBe("test_1")
-				
+
 				expect(ns.getNode("test_1").parents.length).toBe(1)
 				expect(ns.getNode("test_1").parents[0].id).toBe("root")
 			});
@@ -159,7 +159,7 @@ describe("NodeStore core functions", function() {
 					plugins:["checkbox"]
 				});
 				var nodeStore = new Vtree.NodeStore({
-					tree: tree 
+					tree: tree
 				});
 				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
 					"id":"test",
@@ -168,13 +168,13 @@ describe("NodeStore core functions", function() {
 					"hasVisibleChildren": true
 				}]);
 				expect(nodeStore.getNode("test").plugins[0]).toBe("checkbox");
-			});		
+			});
 		});
-		describe("when the node is in the array 'initially_open' ", function() {
+		describe("when the node is in the array 'initiallyOpen' ", function() {
 			beforeEach(function() {
-				tree = $.extend(tree, {initially_open:["test_2"]})
+				tree = $.extend(tree, {initiallyOpen:["test_2"]})
 			  	ns = new Vtree.NodeStore({
-					tree: tree 
+					tree: tree
 				});
 				ns._recBuildNodes( ns.rootNode, [ns.rootNode], data.tree.nodes);
 			});
@@ -192,68 +192,68 @@ describe("NodeStore core functions", function() {
 				expect(ns.getParents("test_2")[1].hasRenderedChildren).toBeTruthy();
 
 			});
-			
-			
+
+
 		});
 
-		
-		
+
+
 	});
-	
+
 	describe("getting the internal structure", function() {
 		var ns;
 		beforeEach(function() {
 			ns = new Vtree.NodeStore({
-				tree: tree 
+				tree: tree
 			});
 		});
 		it("should return the internal structure", function() {
 			expect(ns.getStructure().id).toBeObject(ns.structure.tree.id)
 		});
-		
-		
+
+
 	});
-	
+
 	describe("traversing tree and getting nodes", function() {
 		var ns;
 		beforeEach(function() {
 			ns = new Vtree.NodeStore({
-				tree: tree 
+				tree: tree
 			});
 		});
 		describe("getting a node", function() {
 
 			it("should return the correct node if you pass a node id", function() {
 				expect(ns.getNode("test_3").toJson()).toBeObject({
-					id : 'test_3', 
+					id : 'test_3',
 					isOpen : false,
-					title : 'title_3', 
-					description : 'title_3', 
-					customClass : '', 
-					hasVisibleChildren : false, 
-					hasRenderedChildren : false, 
-					hasChildren : false, 
-					children : [ ], 
-					iconClass : 'default', 
-					iconPath : { open : '', close : '' }, 
-					customHTML : '' 
+					title : 'title_3',
+					description : 'title_3',
+					customClass : '',
+					hasVisibleChildren : false,
+					hasRenderedChildren : false,
+					hasChildren : false,
+					children : [ ],
+					iconClass : 'default',
+					iconPath : { open : '', close : '' },
+					customHTML : ''
 				})
 			});
 			it("should return the correct node if you pass the node instance", function() {
 				var nodeInstance = ns.getStructure().children[0].children[0].children[0]; // node title_3
 				expect(ns.getNode(nodeInstance).toJson()).toBeObject({
-					id : 'test_3', 
+					id : 'test_3',
 					isOpen : false,
-					title : 'title_3', 
-					description : 'title_3', 
-					customClass : '', 
-					hasVisibleChildren : false, 
-					hasRenderedChildren : false, 
-					hasChildren : false, 
-					children : [ ], 
-					iconClass : 'default', 
-					iconPath : { open : '', close : '' }, 
-					customHTML : '' 
+					title : 'title_3',
+					description : 'title_3',
+					customClass : '',
+					hasVisibleChildren : false,
+					hasRenderedChildren : false,
+					hasChildren : false,
+					children : [ ],
+					iconClass : 'default',
+					iconPath : { open : '', close : '' },
+					customHTML : ''
 				})
 			});
 
@@ -262,30 +262,29 @@ describe("NodeStore core functions", function() {
 			it("should return all siblings without the node itself", function() {
 				expect(ns.getSiblings("test_1")[0].toJson()).toBeObject(ns.getNode("test_4").toJson())
 			});
-			
+
 		});
 		describe("getting the direct parent", function() {
 			it("should return the parent node", function() {
 				expect(ns.getParent("test_3").toJson()).toBeObject(ns.getNode("test_2").toJson())
 			});
-			
+
 		});
 		describe("getting all the parents", function() {
 			it("should return the parent nodes", function() {
 				var parents = ns.getParents("test_3")
-				expect(parents.length).toBe(3);
-				expect(parents[0].id).toBeObject("root")
-				expect(parents[1].toJson()).toBeObject(ns.getNode("test_1").toJson())
-				expect(parents[2].toJson()).toBeObject(ns.getNode("test_2").toJson())
+				expect(parents.length).toBe(2);
+				expect(parents[0].toJson()).toBeObject(ns.getNode("test_1").toJson())
+				expect(parents[1].toJson()).toBeObject(ns.getNode("test_2").toJson())
 			});
-			
+
 		});
-		
+
 		describe("getting children", function() {
 			it("should return all children", function() {
 				expect(ns.getChildren("test_1")[0].toJson()).toBeObject(ns.getNode("test_2").toJson())
 			});
-			
+
 		});
 	});
 });

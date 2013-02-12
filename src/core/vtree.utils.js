@@ -8,3 +8,4 @@ if(typeof console === "undefined") {
 		log:function(){}
 	};
 }
+

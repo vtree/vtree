@@ -1069,12 +1069,12 @@ describe("NodeStore core functions", function() {
 			dataSource: data
 		};
 	});
-	
+
 	describe("intialisation", function() {
 		var ns;
-		beforeEach(function() {	
+		beforeEach(function() {
 		  	ns = new Vtree.NodeStore({
-				tree: tree 
+				tree: tree
 			});
 		});
 		it("should create the root node", function() {
@@ -1083,54 +1083,54 @@ describe("NodeStore core functions", function() {
 		it("should load settings passed in parameters", function() {
 			expect(ns.tree.id).toBe(tree.id)
 		});
-		
-		
-		
+
+
+
 	});
 	describe("intializing the structure", function() {
 		var ns;
 		beforeEach(function() {
 		  	ns = new Vtree.NodeStore({
-				tree: tree 
+				tree: tree
 			});
 			spyOn(ns, "_recBuildNodes");
 			spyOn(ns, "getDataSource").andReturn(tree.dataSource.tree);
 			ns.initStructure();
-		});	
+		});
 		it("should get the data source from the tree", function() {
 			expect(ns.getDataSource).toHaveBeenCalled();
 		});
-			
+
 		it("should call _recBuildNodes with correct parameters", function() {
-			expect(ns._recBuildNodes).toHaveBeenCalledWith(ns.rootNode, [ns.rootNode], ns.getDataSource().nodes);
+			expect(ns._recBuildNodes).toHaveBeenCalledWith(null, [], ns.getDataSource().nodes);
 		});
 		it("should store the rootNode as the tree structure", function() {
 			expect(ns.structure.tree.toJson()).toBeObject(ns.rootNode.toJson())
 		});
-		
+
 	});
 	describe("getting the data Source from the tree", function() {
 		var ns;
 		beforeEach(function() {
 		  	ns = new Vtree.NodeStore({
-				tree: tree 
+				tree: tree
 			});
 		});
 		it("should return the json data source", function() {
 			expect(ns.getDataSource()).toBeObject(data.tree)
 		});
-		
+
 	});
 	describe("building the node structure", function() {
 		var ns;
-		beforeEach(function() {	
+		beforeEach(function() {
 		  	ns = new Vtree.NodeStore({
-				tree: tree 
+				tree: tree
 			});
 			ns._recBuildNodes( ns.rootNode, [ns.rootNode], data.tree.nodes);
-		  	
+
 		});
-			
+
 		it("should set the children nodes to the parent", function() {
 			expect(ns.rootNode.children.length).toBe(2);
 			expect(ns.rootNode.children[0]).toBeNode(ns.getNode("test_1"));
@@ -1145,7 +1145,7 @@ describe("NodeStore core functions", function() {
 		describe("passing the right arguments to the node", function() {
 			it("should pass the isOpen setting", function() {
 				var nodeStore = new Vtree.NodeStore({
-					tree: tree 
+					tree: tree
 				});
 				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
 					"id":"test_4",
@@ -1161,7 +1161,7 @@ describe("NodeStore core functions", function() {
 					"isOpen": true
 				}]);
 				expect(nodeStore.getNode("test_4").isOpen).toBeTruthy();
-				
+
 			});
 			it("should give nodes reference to the tree", function() {
 				expect(ns.getNode("test_1").tree.id).toBe(tree.id)
@@ -1171,7 +1171,7 @@ describe("NodeStore core functions", function() {
 			});
 			it("should pass the hasRenderedChildren setting", function() {
 				var nodeStore = new Vtree.NodeStore({
-					tree: tree 
+					tree: tree
 				});
 				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
 					"id":"test",
@@ -1180,11 +1180,11 @@ describe("NodeStore core functions", function() {
 					"hasRenderedChildren": true
 				}]);
 				expect(nodeStore.getNode("test").hasRenderedChildren).toBeTruthy();
-				
+
 			});
 			it("should pass the hasVisibleChildren setting", function() {
 				var nodeStore = new Vtree.NodeStore({
-					tree: tree 
+					tree: tree
 				});
 				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
 					"id":"test",
@@ -1193,25 +1193,25 @@ describe("NodeStore core functions", function() {
 					"hasVisibleChildren": true
 				}]);
 				expect(nodeStore.getNode("test").hasVisibleChildren).toBeTruthy();
-				
+
 			});
 			it("should pass the parent node", function() {
 				expect(ns.getNode("test_2").parent.id).toBe("test_1")
 				expect(ns.getNode("test_3").parent.id).toBe("test_2")
 				expect(ns.getNode("test_1").parent.id).toBe("root")
 				expect(ns.getNode("test_4").parent.id).toBe("root")
-				
+
 			});
 			it("should pass the parent nodes in an array", function() {
 				expect(ns.getNode("test_3").parents.length).toBe(3)
 				expect(ns.getNode("test_3").parents[0].id).toBe("root")
 				expect(ns.getNode("test_3").parents[1].id).toBe("test_1")
 				expect(ns.getNode("test_3").parents[2].id).toBe("test_2")
-				
+
 				expect(ns.getNode("test_2").parents.length).toBe(2)
 				expect(ns.getNode("test_2").parents[0].id).toBe("root")
 				expect(ns.getNode("test_2").parents[1].id).toBe("test_1")
-				
+
 				expect(ns.getNode("test_1").parents.length).toBe(1)
 				expect(ns.getNode("test_1").parents[0].id).toBe("root")
 			});
@@ -1220,7 +1220,7 @@ describe("NodeStore core functions", function() {
 					plugins:["checkbox"]
 				});
 				var nodeStore = new Vtree.NodeStore({
-					tree: tree 
+					tree: tree
 				});
 				nodeStore._recBuildNodes( nodeStore.rootNode, [nodeStore.rootNode], [{
 					"id":"test",
@@ -1229,13 +1229,13 @@ describe("NodeStore core functions", function() {
 					"hasVisibleChildren": true
 				}]);
 				expect(nodeStore.getNode("test").plugins[0]).toBe("checkbox");
-			});		
+			});
 		});
-		describe("when the node is in the array 'initially_open' ", function() {
+		describe("when the node is in the array 'initiallyOpen' ", function() {
 			beforeEach(function() {
-				tree = $.extend(tree, {initially_open:["test_2"]})
+				tree = $.extend(tree, {initiallyOpen:["test_2"]})
 			  	ns = new Vtree.NodeStore({
-					tree: tree 
+					tree: tree
 				});
 				ns._recBuildNodes( ns.rootNode, [ns.rootNode], data.tree.nodes);
 			});
@@ -1253,68 +1253,68 @@ describe("NodeStore core functions", function() {
 				expect(ns.getParents("test_2")[1].hasRenderedChildren).toBeTruthy();
 
 			});
-			
-			
+
+
 		});
 
-		
-		
+
+
 	});
-	
+
 	describe("getting the internal structure", function() {
 		var ns;
 		beforeEach(function() {
 			ns = new Vtree.NodeStore({
-				tree: tree 
+				tree: tree
 			});
 		});
 		it("should return the internal structure", function() {
 			expect(ns.getStructure().id).toBeObject(ns.structure.tree.id)
 		});
-		
-		
+
+
 	});
-	
+
 	describe("traversing tree and getting nodes", function() {
 		var ns;
 		beforeEach(function() {
 			ns = new Vtree.NodeStore({
-				tree: tree 
+				tree: tree
 			});
 		});
 		describe("getting a node", function() {
 
 			it("should return the correct node if you pass a node id", function() {
 				expect(ns.getNode("test_3").toJson()).toBeObject({
-					id : 'test_3', 
+					id : 'test_3',
 					isOpen : false,
-					title : 'title_3', 
-					description : 'title_3', 
-					customClass : '', 
-					hasVisibleChildren : false, 
-					hasRenderedChildren : false, 
-					hasChildren : false, 
-					children : [ ], 
-					iconClass : 'default', 
-					iconPath : { open : '', close : '' }, 
-					customHTML : '' 
+					title : 'title_3',
+					description : 'title_3',
+					customClass : '',
+					hasVisibleChildren : false,
+					hasRenderedChildren : false,
+					hasChildren : false,
+					children : [ ],
+					iconClass : 'default',
+					iconPath : { open : '', close : '' },
+					customHTML : ''
 				})
 			});
 			it("should return the correct node if you pass the node instance", function() {
 				var nodeInstance = ns.getStructure().children[0].children[0].children[0]; // node title_3
 				expect(ns.getNode(nodeInstance).toJson()).toBeObject({
-					id : 'test_3', 
+					id : 'test_3',
 					isOpen : false,
-					title : 'title_3', 
-					description : 'title_3', 
-					customClass : '', 
-					hasVisibleChildren : false, 
-					hasRenderedChildren : false, 
-					hasChildren : false, 
-					children : [ ], 
-					iconClass : 'default', 
-					iconPath : { open : '', close : '' }, 
-					customHTML : '' 
+					title : 'title_3',
+					description : 'title_3',
+					customClass : '',
+					hasVisibleChildren : false,
+					hasRenderedChildren : false,
+					hasChildren : false,
+					children : [ ],
+					iconClass : 'default',
+					iconPath : { open : '', close : '' },
+					customHTML : ''
 				})
 			});
 
@@ -1323,30 +1323,29 @@ describe("NodeStore core functions", function() {
 			it("should return all siblings without the node itself", function() {
 				expect(ns.getSiblings("test_1")[0].toJson()).toBeObject(ns.getNode("test_4").toJson())
 			});
-			
+
 		});
 		describe("getting the direct parent", function() {
 			it("should return the parent node", function() {
 				expect(ns.getParent("test_3").toJson()).toBeObject(ns.getNode("test_2").toJson())
 			});
-			
+
 		});
 		describe("getting all the parents", function() {
 			it("should return the parent nodes", function() {
 				var parents = ns.getParents("test_3")
-				expect(parents.length).toBe(3);
-				expect(parents[0].id).toBeObject("root")
-				expect(parents[1].toJson()).toBeObject(ns.getNode("test_1").toJson())
-				expect(parents[2].toJson()).toBeObject(ns.getNode("test_2").toJson())
+				expect(parents.length).toBe(2);
+				expect(parents[0].toJson()).toBeObject(ns.getNode("test_1").toJson())
+				expect(parents[1].toJson()).toBeObject(ns.getNode("test_2").toJson())
 			});
-			
+
 		});
-		
+
 		describe("getting children", function() {
 			it("should return all children", function() {
 				expect(ns.getChildren("test_1")[0].toJson()).toBeObject(ns.getNode("test_2").toJson())
 			});
-			
+
 		});
 	});
 });describe("core tree function", function() {
@@ -1613,12 +1612,13 @@ describe("NodeStore core functions", function() {
 	});
 });describe("ajax_loading plugin", function() {
 	var pluginName = "ajax_loading",
-	node1,
+	node1, node1Response
 	ajaxUrl = "my/ajax/url";
 	beforeEach(function() {
 		this.addMatchers(customMatchers);
 		appendSetFixtures(sandbox());
 		data = getJSONFixture('sourceData_ajax.json');
+		node1Response = getJSONFixture('ajaxData_children.json');
 		container = $('#sandbox');
 		tree = Vtree.create({
 			container:container,
@@ -1680,15 +1680,17 @@ describe("NodeStore core functions", function() {
 
 
 					describe("ajax call", function() {
-						var eventSpy, args;
+						var eventSpy, args, successSpy;
 						beforeEach(function() {
 							eventSpy = spyOn(jQuery, "ajax");
+							successSpy = spyOn(node1, "onAjaxResponse");
 							node1.open();
 							args = jQuery.ajax.mostRecentCall.args[0];
 
 						});
 						it("should call node.onAjaxResponse on response", function() {
-							//to do...
+							args.success(node1Response)
+							expect(successSpy).toHaveBeenCalled();
 						});
 						it("should be json as data type", function() {
 							expect(args.dataType).toBe('json');
@@ -1787,7 +1789,7 @@ describe("NodeStore core functions", function() {
 							container:$("#testbox4"),
 							dataSource: data,
 							ajaxUrl: ajaxUrl,
-							initially_open:["test_1"],
+							initiallyOpen:["test_1"],
 							plugins:[pluginName]
 						});
 					});
@@ -1904,7 +1906,7 @@ describe("NodeStore core functions", function() {
 					spy = spyOn(tree, "getAjaxData").andCallThrough();
 					spy2 = spyOn(tree, "addDataToNodeSource");
 					spy3 = spyOn(tree, "continueBuilding");
-					tree.onAjaxResponse(dt);
+					tree.onAjaxResponse({nodes:"test_1"}, dt);
 				});
 				it("should call getAjaxData with the first argument", function() {
 					expect(spy).toHaveBeenCalled();
@@ -1987,6 +1989,7 @@ describe("NodeStore core functions", function() {
 					node1 = tree.getNode("test_1");
 					spy = spyOn(node1.tree, "getAjaxData").andCallThrough();
 					spy2 = spyOn(node1, "continueOpening");
+					spyAfterChildrenLoaded = spyOnEvent('#sandbox6', "afterChildrenLoaded.node");
 				});
 				it("should call to this.tree.getAjaxData with the data received", function() {
 					node1.onAjaxResponse(nodeData);
@@ -2005,320 +2008,24 @@ describe("NodeStore core functions", function() {
 					node1.onAjaxResponse(nodeData);
 					expect(node1.continueOpening).toHaveBeenCalled();
 				});
-			});
-		});
-	});
-});describe("bolding plugin", function() {
-	var pluginName = "bolding",
-		tree,
-		container,
-		data;
-	beforeEach(function() {
-  		this.addMatchers(customMatchers);
-  		appendSetFixtures(sandbox());
-		data = getJSONFixture('sourceData.json');
-		container = $('#sandbox');
-		tree = Vtree.create({
-			container:container,
-			dataSource: data,
-			plugins:[pluginName]
-		});
-	});
-	describe("tree plugin", function() {
-		var className = "tree";
-		it("should set default variables", function() {
-			expect(Vtree.plugins[pluginName][className].defaults).toBeObject({
-				initially_bold: [],
-				cascading_bold: false
-			});
-		});
-		describe("functions", function() {
-			it("should get currently bold nodes", function() {
-				spyOn(tree.nodeStore, "getBoldNodes");
-				expect(tree.getBoldNodes).toBeDefined();
-				expect(typeof tree.getBoldNodes).toBe("function");
-				tree.getBoldNodes()
-				expect(tree.nodeStore.getBoldNodes).toHaveBeenCalled();
-			});
-			describe("attaching new event", function() {
-				it("on click event it should get the node and toggle his bolding state", function() {
-					tree._attachEvents();
-					var node = tree.getNode("test_1");
-					spyOn(node, "toggleBold");
-					tree.getNode("test_1").getEl().click();
-					expect(node.toggleBold).toHaveBeenCalled();
-				});
-				it("should call all functions _attachEvens, the core and the plugin one", function() {
-					spyOn(tree.pluginFns._attachEvents[0], "apply").andCallThrough();
-					spyOn(tree.pluginFns._attachEvents[1], "apply").andCallThrough();
-					tree._attachEvents()
-					expect(tree.pluginFns._attachEvents[0].apply).toHaveBeenCalled();
-					expect(tree.pluginFns._attachEvents[1].apply).toHaveBeenCalled();
-				});
-
-
-			});
-
-		});
-
-	});
-	describe("node plugin", function() {
-		var className = "node",
-			node;
-		beforeEach(function() {
-			node = tree.getNode("test_1")
-		});
-		it("should set default variables", function() {
-			expect(Vtree.plugins[pluginName][className].defaults).toBeObject({
-				isBold:false
-			});
-		});
-		describe("functions", function() {
-			describe("toggling bolding state", function() {
-				beforeEach(function() {
-				  	spyOn(node, 'bold');
-					spyOn(node, 'unbold');
-				});
-				it("should call bold if it is unbold", function() {
-					node.toggleBold();
-					expect(node.bold).toHaveBeenCalled();
-					expect(node.unbold).not.toHaveBeenCalled();
-				});
-
-				it("should call unbold if it is bold", function() {
-					node.isBold = true
-					node.toggleBold();
-					expect(node.unbold).toHaveBeenCalled();
-					expect(node.bold).not.toHaveBeenCalled();
-
-				});
-			});
-			describe("bolding a node", function() {
-				var eventSpy;
-				beforeEach(function() {
-					eventSpy = spyOnEvent('#sandbox', 'bold.node');
-					node.bold();
-				});
-				it("should set a class 'bold' to the li element", function() {
-					expect(node.getEl()[0]).toHaveClass("bold")
-				});
-				it("should set the variable isBold to true", function() {
-					expect(node.isBold).toBeTruthy();
-				});
-				it("should trigger a bold.node event", function() {
-					expect(eventSpy).toHaveBeenTriggered();
-				});
-				it("should bold parents when cascading_bold is set to true", function() {
-					node.tree.cascading_bold = true;
-					node.bold();
-					for (var i=0, parents = node.parents, len = node.parents.length; i < len; i++) {
-						var parent = parents[i];
-						expect(parent.isBold).toBeTruthy();
-						if (parent.id !== "root") {
-							expect(parent.getEl()[0]).toHaveClass("bold");
-						}
-					}
-				});
-				it("should not bold parents when cascading_bold is false", function() {
-					node.tree.cascading_bold = false;
-					for (var i=0, parents = node.parents, len = node.parents.length; i < len; i++) {
-						var parent = parents[i];
-						expect(parent.isBold).toBeFalsy();
-						if (parent.id !== "root") {
-							expect(parent.getEl()[0]).not.toHaveClass("bold");
-						}
-					}
-				});
-			});
-			describe("unbolding a node", function() {
-				var eventSpy;
-				beforeEach(function() {
-					node.bold();
-					eventSpy = spyOnEvent('#sandbox', 'unbold.node');
-					node.open();
-					for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
-						var child = children[i];
-						child.bold();
-					}
-					node.unbold();
-				});
-				it("should remove the class 'bold' to the li element", function() {
-					expect(node.getEl()[0]).not.toHaveClass("bold")
-				});
-				it("should set the variable isBold to false", function() {
-					expect(node.isBold).toBeFalsy();
-				});
-				it("should trigger a unbold.node event", function() {
-					expect(eventSpy).toHaveBeenTriggered();
-				});
-				it("should unbold children when cascading_bold is set to true", function() {
-					node.tree.cascading_bold = true;
-
-					node.unbold();
-					for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
-						var child = children[i];
-						expect(child.isBold).toBeFalsy();
-						expect(child.getEl()[0]).not.toHaveClass("bold");
-					}
-				});
-				it("should not unbold children when cascading_bold is false", function() {
-					node.tree.cascading_bold = false;
-					for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
-						var child = children[i];
-						expect(child.isBold).toBeTruthy();
-						expect(child.getEl()[0]).toHaveClass("bold");
-					}
-				});
-
-			});
-			describe("getting the node html", function() {
-				it("should add a class bold if is_bold is set to true", function() {
-					node.bold();
-					var li = node.getHTML();
-					expect(li[0]).toHaveClass("bold");
-				});
-				it("should not add a class bold if is_bold is set to false", function() {
-					node.unbold();
-					var li = node.getHTML();
-					expect(li[0]).not.toHaveClass("bold");
-				});
-				it("should call all the functions getHTML of the node", function() {
-					spyOn(node.pluginFns.getHTML[0], "apply").andCallThrough();
-					spyOn(node.pluginFns.getHTML[1], "apply").andCallThrough();
-					node.getHTML()
-					expect(node.pluginFns.getHTML[0].apply).toHaveBeenCalled();
-					expect(node.pluginFns.getHTML[1].apply).toHaveBeenCalled();
-				});
-			});
-			describe("testing isOneDescendantBold", function() {
-				describe("when cascading is true", function() {
-					var node,
-						directChild,
-						greatChild;
-					beforeEach(function() {
-						tree = Vtree.create({
-							container:container,
-							dataSource: data,
-							cascading_bold:true,
-							plugins:[pluginName]
-						});
-						node = tree.getNode("test_1");
-						directChild = node.children[0];
-						greatChild = directChild.children[0];
-					});
-					it("should return true when a child is bold", function() {
-						greatChild.bold();
-						expect(node.isOneDescendantBold()).toBeTruthy();
-					});
-					it("should return false when no bold children", function() {
-						expect(node.isOneDescendantBold()).toBeFalsy();
-					});
-				});
-				describe("when cascading is false", function() {
-					var node,
-						directChild,
-						greatChild;
-					beforeEach(function() {
-						tree = Vtree.create({
-							container:container,
-							dataSource: data,
-							cascading_bold:false,
-							plugins:[pluginName]
-						});
-						node = tree.getNode("test_1");
-						directChild = node.children[0];
-						greatChild = directChild.children[0];
-					});
-					it("should return true if a direct child is bold", function() {
-						directChild.bold()
-						expect(node.isOneDescendantBold()).toBeTruthy();
-					});
-					it("should return true if no direct child is bold but a great children is", function() {
-						greatChild.bold();
-						expect(directChild.isBold).toBeFalsy();
-						expect(node.isOneDescendantBold()).toBeTruthy();
-					});
-					it("should return false if none of the ascendent nodes is bold", function() {
-						expect(node.isOneDescendantBold()).toBeFalsy();
-					});
-
-
+				it("should fire 'afterChildrenLoaded.node' event", function() {
+					node1.onAjaxResponse(nodeData);
+					expect(spyAfterChildrenLoaded).toHaveBeenTriggered()
 				});
 			});
 		});
-
-	});
-	describe("nodeStore plugin", function() {
-		var className = "nodeStore";
-		it("should set default variables", function() {
-			expect(Vtree.plugins[pluginName][className].defaults).toBeObject({});
-		});
-		describe("functions", function() {
-			var nodeStore,node;
-			beforeEach(function() {
-				nodeStore = tree.nodeStore;
-				node = "test_2"
-				nodeStore.tree.initially_bold = [node]
-			});
-			describe("initalizing the structure", function() {
-				it("should call all the functions initStructure", function() {
-					spyOn(nodeStore.pluginFns.initStructure[0], "apply").andCallThrough();
-					spyOn(nodeStore.pluginFns.initStructure[1], "apply").andCallThrough();
-					nodeStore.initStructure();
-					expect(nodeStore.pluginFns.initStructure[0].apply).toHaveBeenCalled();
-					expect(nodeStore.pluginFns.initStructure[1].apply).toHaveBeenCalled();
-				});
-				it("should bold the nodes that are in the initially_bold list", function() {
-					expect(tree.getNode(node).isBold).toBeFalsy();
-					nodeStore.initStructure();
-					expect(tree.getNode(node).isBold).toBeTruthy();
-				});
-				it("should also bold the parents of the nodes in the initially_bold list if cascading_bold is set to true", function() {
-					node = nodeStore.getNode("test_2");
-					for (var i=0, parents = node.parents, len = node.parents.length; i < len; i++) {
-						var parent = parents[i];
-						expect(parent.isBold).toBeFalsy();
-					}
-					nodeStore.tree.cascading_bold = true;
-
-					nodeStore.initStructure();
-					node = nodeStore.getNode("test_2");
-					for (var i=0, parents = node.parents, len = node.parents.length; i < len; i++) {
-						var parent = parents[i];
-						expect(parent.isBold).toBeTruthy();
-					}
-				});
-
-
-
-			});
-
-			describe("getting the list of bold nodes", function() {
-				var list;
-				beforeEach(function() {
-					nodeStore.initStructure();
-					list = nodeStore.getBoldNodes();
-				});
-				it("should return a list of bold nodes in the tree", function() {
-					expect(list.length).toBe(1);
-					var node = nodeStore.getNode("test_2");
-					expect(list[0].id).toBe(node.id);
-					expect(list[0] instanceof Vtree.Node).toBeTruthy();
-				});
-
-			});
-		});
-
 	});
 });describe("checkbox plugin", function() {
 	var pluginName = "checkbox",
-		tree,
-		container,
-		data;
+	tree,
+	container,
+	data,
+	ajaxResponse;
 	beforeEach(function() {
-  		this.addMatchers(customMatchers);
-  		appendSetFixtures(sandbox());
+		this.addMatchers(customMatchers);
+		appendSetFixtures(sandbox());
 		data = getJSONFixture('sourceData.json');
+		ajaxResponse = getJSONFixture('ajaxData_children.json');
 		container = $('#sandbox');
 		tree = Vtree.create({
 			container:container,
@@ -2330,25 +2037,244 @@ describe("NodeStore core functions", function() {
 		var className = "tree";
 		it("should set default variables", function() {
 			expect(Vtree.plugins[pluginName][className].defaults).toBeObject({
-				initially_checked: [],
-				disabled_checkboxes: []
+				initiallyChecked: [],
+				disabledCheckboxes: [],
+				checkBehaviour: "checkParents",
+				uncheckBehaviour: "uncheckChildren",
+				displayCheckbox: true,
+				checkedClass: "checked",
+				disableBehaviour: "disableChildren",
+				disabledClass: "disabled"
+			});
+		});
+		describe("on event 'afterChildrenLoaded.node'", function() {
+			describe("if node is checked and checking behaviour is to check children", function() {
+				it("should check the children", function() {
+
+					var id = "sandboxAfterChildren";
+					appendSetFixtures(sandbox({id:id}));
+					var data = getJSONFixture('sourceData_ajax.json');
+					container = $('#'+id);
+					var tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName, "ajax_loading"],
+						initiallyChecked: ["test_1"],
+						checkBehaviour:"checkChildren"
+					});
+					var node1 = tree.getNode("test_1")
+					node1.onAjaxResponse(ajaxResponse);
+					$('#'+id).trigger("afterChildrenLoaded.node",[tree, node1]);
+					expect(node1.children[0].isChecked).toBeTruthy();
+					expect(node1.children[0].getEl().find("input[type=checkbox]").eq(0).prop("checked")).toBeTruthy();
+				});
+			});
+			describe("if node is unchecked and unchecking behaviour is to uncheck children", function() {
+				it("should uncheck the children", function() {
+					var id = "sandboxAfterChildren2";
+					appendSetFixtures(sandbox({id:id}));
+					var data = getJSONFixture('sourceData_ajax.json');
+					container = $('#'+id);
+					var tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName, "ajax_loading"],
+						uncheckBehaviour:"uncheckChildren"
+					});
+					var node1 = tree.getNode("test_1");
+					node1.onAjaxResponse(ajaxResponse);
+					$('#'+id).trigger("afterChildrenLoaded.node",[tree, node1]);
+					expect(node1.children[0].isChecked).toBeFalsy();
+					expect(node1.children[0].getEl().find("input[type=checkbox]").eq(0).prop("checked")).toBeFalsy();
+				});
+			});
+			describe("when a child was on the list initiallyChecked", function() {
+				it("should be checked", function() {
+					var id = "sandboxAfterChildren3";
+					appendSetFixtures(sandbox({id:id}));
+					var data = getJSONFixture('sourceData_ajax.json');
+					container = $('#'+id);
+					var tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName, "ajax_loading"],
+						initiallyChecked:["test_2"],
+						checkChildren:false
+					});
+					var node1 = tree.getNode("test_1");
+					node1.onAjaxResponse(ajaxResponse);
+					$('#'+id).trigger("afterChildrenLoaded.node",[tree, node1]);
+					expect(tree.getNode("test_2").isChecked).toBeTruthy();
+					expect(tree.getNode("test_2").getEl().find("input[type=checkbox]").eq(0).prop("checked")).toBeTruthy();
+				});
+
+			});
+		});
+		describe("on event 'onReady.tree'", function() {
+			var id, tree, spy1, spy2, node1;
+			beforeEach(function() {
+				id = "sandboxOnReady";
+				appendSetFixtures(sandbox({id:id}));
+				container = $('#'+id);
+				tree = Vtree.create({
+					container:container,
+					dataSource: data,
+					id:"tree"+id,
+					plugins:[pluginName, "ajax_loading"]
+				});
+				node1 = tree.getNode("test_1");
+				spy1 = spyOn(tree, "initiateCheckedNodes");
+				spy2 = spyOn(tree, "initiateDisabledNodes");
+				$('#'+id).trigger("onReady.tree",[tree, node1]);
+			});
+			it("should intialize the checked nodes", function() {
+				expect(spy1).toHaveBeenCalled();
+			});
+			it("should intialize the disabled nodes", function() {
+				expect(spy2).toHaveBeenCalled();
 			});
 		});
 		describe("functions", function() {
 			it("should get currently checked nodes", function() {
-				spyOn(tree.nodeStore, "getCheckedNodes");
-				expect(tree.getCheckedNodes).toBeDefined();
-				expect(typeof tree.getCheckedNodes).toBe("function");
-				tree.getCheckedNodes()
-				expect(tree.nodeStore.getCheckedNodes).toHaveBeenCalled();
+				var id = "sandboxgetChecked";
+				appendSetFixtures(sandbox({id:id}));
+				var container = $('#'+id);
+				var tree = Vtree.create({
+					container:container,
+					dataSource: data,
+					plugins:[pluginName],
+
+				});
+				tree.getNode("test_1").check();
+				var res = tree.getCheckedNodes();
+				expect(res.length).toBe(1);
+				expect(res[0].id).toBe("test_1");
+			});
+			describe("initializing the checked nodes", function() {
+				var id, tree, spy1, spy2, node1, node4, spy3;
+				beforeEach(function() {
+					id = "sandboxInitiallyCheckedList";
+					appendSetFixtures(sandbox({id:id}));
+					container = $('#'+id);
+					tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						id:"tree"+id,
+						plugins:[pluginName],
+						initiallyChecked:["test_1", "test_4", "unexistingNode"]
+					});
+					node1 = tree.getNode("test_1");
+					node4 = tree.getNode("test_4");
+					spy1 = spyOn(node1, "check");
+					spy2 = spyOn(node4, "check");
+					spy3 = spyOn(tree, "initiateCheckedNodes").andCallThrough();
+					tree.initiateCheckedNodes();
+				});
+				it("should call function check() on nodes from the initiallyChecked list", function() {
+					expect(spy1).toHaveBeenCalled();
+					expect(spy2).toHaveBeenCalled();
+				});
+
+				it("should check the checkboxes of the nodes in the list", function() {
+					expect(node1.getEl().find("input[type=checkbox]").eq(0).prop("checked")).toBeTruthy();
+					expect(node4.getEl().find("input[type=checkbox]").eq(0).prop("checked")).toBeTruthy();
+
+				});
+
+
+			});
+			describe("initializing the disabled nodes", function() {
+				var id, tree, node1, node4;
+				beforeEach(function() {
+					id = "sandboxInitiallyCheckedList";
+					appendSetFixtures(sandbox({id:id}));
+					container = $('#'+id);
+					tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						disabledClass: "disabledClass",
+						id:"tree"+id,
+						plugins:[pluginName],
+						disableBehaviour: "disableChildren",
+						disabledCheckboxes:["test_1", "test_4", "unexistingNode"],
+						initiallyOpen:["test_1", "test_2"]
+					});
+					node1 = tree.getNode("test_1");
+					node4 = tree.getNode("test_4");
+					tree.initiateDisabledNodes();
+				});
+				it("should set isDisabled to all nodes in the list disabledCheckboxes", function() {
+
+					expect(node1.isDisabled).toBeTruthy();
+					expect(node4.isDisabled).toBeTruthy();
+				});
+				it("should add a class described in tree.disabledClass to all nodes in the list disabledCheckboxes", function() {
+					expect(node1.getEl().hasClass(tree.disabledClass)).toBeTruthy();
+					expect(node4.getEl().hasClass(tree.disabledClass)).toBeTruthy();
+
+				});
+				it("should disable all descendant of the nodes in the list 'initiallyDisabled' if disable behaviour is to disable children", function() {
+					expect(node1.children[0].isDisabled).toBeTruthy();
+					expect(node1.children[0].getEl().hasClass(tree.disabledClass)).toBeTruthy();
+					expect(node1.children[0].children[0].isDisabled).toBeTruthy();
+					expect(node1.children[0].children[0].getEl().hasClass(tree.disabledClass)).toBeTruthy();
+				});
+
+				it("should disable all parents of the nodes in the list if disable behaviour is to disable parents", function() {
+					var id, tree, node;
+					id = "sandboxInitiallyCheckedWithParentList";
+					appendSetFixtures(sandbox({id:id}));
+					container = $('#'+id);
+					tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						disabledClass: "disabledClass",
+						id:"tree"+id,
+						plugins:[pluginName],
+						disableBehaviour: "disableParents",
+						disabledCheckboxes:["test_3"],
+						initiallyOpen:["test_1", "test_2"]
+					});
+					node = tree.getNode("test_3");
+					tree.initiateDisabledNodes();
+					expect(node.isDisabled).toBeTruthy();
+					expect(node.parent.isDisabled).toBeTruthy();
+					expect(node.parent.getEl().hasClass(tree.disabledClass)).toBeTruthy();
+					expect(node.parent.parent.isDisabled).toBeTruthy();
+					expect(node.parent.parent.getEl().hasClass(tree.disabledClass)).toBeTruthy();
+				});
+
 			});
 			describe("attaching new event", function() {
-				it("on click event it should get the node and toggle his checkbox state", function() {
+				it("on click of the checkbox it should get the node and toggle his checkbox state", function() {
 					tree._attachEvents();
 					var node = tree.getNode("test_1");
 					spyOn(node, "toggleCheck");
 					tree.getNode("test_1").getEl().find("input[type=checkbox]").click();
 					expect(node.toggleCheck).toHaveBeenCalled();
+				});
+				it("if displayCheckbox = false, on click of the element it should toggle his checkbox state", function() {
+					var id = "sandboxClickNode";
+					appendSetFixtures(sandbox({id:id}));
+					var container = $('#'+id);
+					var tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName],
+						displayCheckbox: false
+					});
+					var res = tree.getCheckedNodes();
+					var node = tree.getNode("test_1");
+					spyOn(node, "toggleCheck");
+					tree.getNode("test_1").getEl().click();
+					expect(node.toggleCheck).toHaveBeenCalled();
+				});
+				it("if displayCheckbox = true (default), on click of the element it should not toggle his checkbox state", function() {
+					tree._attachEvents();
+					var node = tree.getNode("test_1");
+					spyOn(node, "toggleCheck");
+					tree.getNode("test_1").getEl().click();
+					expect(node.toggleCheck).not.toHaveBeenCalled();
 				});
 				it("should call all functions _attachEvens", function() {
 					spyOn(tree.pluginFns._attachEvents[0], "apply").andCallThrough();
@@ -2361,12 +2287,90 @@ describe("NodeStore core functions", function() {
 
 			});
 
+
+			describe("opening a node", function() {
+				it("should check children if the opened node is check and checking behaviour is to check children", function() {
+					appendSetFixtures(sandbox({id:"sandboxopen1"}));
+					container = $('#sandboxopen1');
+					var tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName],
+						checkBehaviour: "checkChildren",
+						uncheckBehaviour: "false"
+					});
+					tree.getNode("test_1").check();
+					tree.getNode("test_1").open();
+					expect(tree.getNode("test_2").isChecked).toBeTruthy();
+				});
+				it("should not check neither children nor parents if the opened node is check and checking behaviour is set to false", function() {
+					appendSetFixtures(sandbox({id:"sandboxopen2"}));
+					container = $('#sandboxopen2');
+					var tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName],
+						checkBehaviour:false,
+						uncheckBehaviour:false
+					});
+					tree.getNode("test_1").open();
+					tree.getNode("test_2").check();
+					tree.getNode("test_2").open();
+					expect(tree.getNode("test_1").isChecked).toBeFalsy();
+					expect(tree.getNode("test_3").isChecked).toBeFalsy();
+				});
+				it("should not check children if the opened node is uncheck and checking behaviour is to check children", function() {
+					appendSetFixtures(sandbox({id:"sandboxopen3"}));
+					container = $('#sandboxopen3');
+					var tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName],
+						checkBehaviour:"checkChildren",
+						uncheckBehaviour:false
+					});
+					tree.getNode("test_1").uncheck();
+					tree.getNode("test_1").open();
+					expect(tree.getNode("test_2").isChecked).toBeFalsy();
+				});
+				it("should uncheck children if the opened node is uncheck and uncheck behaviour is to uncheck children", function() {
+					appendSetFixtures(sandbox({id:"sandboxopen4"}));
+					container = $('#sandboxopen4');
+					var tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName],
+						checkBehaviour:false,
+						uncheckBehaviour:"uncheckChildren"
+					});
+					tree.getNode("test_2").isChecked = true;
+					tree.getNode("test_1").uncheck();
+					tree.getNode("test_1").open();
+					expect(tree.getNode("test_2").isChecked).toBeFalsy();
+				});
+			});
+
+			describe("generating html", function() {
+				it("should add a class 'noCheckbox' to the top ul element of the tree ", function() {
+					var id = "sandboxnoCheckbox";
+					appendSetFixtures(sandbox({id:id}));
+					var container = $('#'+id);
+					var tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName],
+						displayCheckbox:false
+					});
+					expect(container.children("ul").hasClass("noCheckbox")).toBeTruthy();
+				});
+
+			});
 		});
 
 	});
 	describe("node plugin", function() {
 		var className = "node",
-			node;
+		node;
 		beforeEach(function() {
 			node = tree.getNode("test_1")
 		});
@@ -2376,10 +2380,11 @@ describe("NodeStore core functions", function() {
 				isDisabled: false
 			});
 		});
+
 		describe("functions", function() {
 			describe("toggling checkbox state", function() {
 				beforeEach(function() {
-				  	spyOn(node, 'check');
+					spyOn(node, 'check');
 					spyOn(node, 'uncheck');
 				});
 				it("should call check if it is uncheck", function() {
@@ -2400,20 +2405,79 @@ describe("NodeStore core functions", function() {
 				var eventSpy;
 				beforeEach(function() {
 					eventSpy = spyOnEvent('#sandbox', 'check.node');
-					node.check();
 				});
 
 				it("should set the variable isChecked to true", function() {
+					node.check();
 					expect(node.isChecked).toBeTruthy();
 				});
+
+				it("should set the class passed in parameters to the li element", function() {
+					node.check();
+					expect(node.getEl().hasClass(node.tree.checkedClass)).toBeTruthy();
+				});
+
 				it("should trigger a check.node event", function() {
+					node.check();
 					expect(eventSpy).toHaveBeenTriggered();
 				});
-				it("should check parents", function() {
-					for (var i=0, parents = node.parents, len = node.parents.length; i < len; i++) {
-						var parent = parents[i];
-						expect(parent.isChecked).toBeTruthy();
-					}
+
+				it("should check parents if checking behaviour is to check parents", function() {
+					id = "sandboxcheck1"
+					appendSetFixtures(sandbox({id:id}));
+					container = $('#'+id);
+					var tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName],
+						checkBehaviour:"checkParents"
+					});
+					tree.getNode("test_1").open();
+					tree.getNode("test_2").open();
+					tree.getNode("test_3").check();
+					expect(tree.getNode("test_1").isChecked).toBeTruthy();
+					expect(tree.getNode("test_1").getEl().hasClass(tree.checkedClass)).toBeTruthy();
+					expect(tree.getNode("test_2").isChecked).toBeTruthy();
+					expect(tree.getNode("test_2").getEl().hasClass(tree.checkedClass)).toBeTruthy();
+				});
+
+				it("should not check neither parents nor children if checkingBehaviour is set to false", function() {
+					id = "sandboxcheck2"
+					appendSetFixtures(sandbox({id:id}));
+					container = $('#'+id);
+					var tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName],
+						checkBehaviour:false,
+					});
+					tree.getNode("test_1").open();
+					tree.getNode("test_2").open();
+					tree.getNode("test_2").check();
+					expect(tree.getNode("test_1").isChecked).toBeFalsy();
+					expect(tree.getNode("test_1").getEl().hasClass(tree.checkedClass)).toBeFalsy();
+					expect(tree.getNode("test_2").isChecked).toBeTruthy();
+					expect(tree.getNode("test_2").getEl().hasClass(tree.checkedClass)).toBeTruthy();
+					expect(tree.getNode("test_3").isChecked).toBeFalsy();
+					expect(tree.getNode("test_3").getEl().hasClass(tree.checkedClass)).toBeFalsy();
+				});
+				it("should check children if checking behaviour is to check children", function() {
+					id = "sandboxcheck3"
+					appendSetFixtures(sandbox({id:id}));
+					container = $('#'+id);
+					var tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName],
+						checkBehaviour:"checkChildren"
+					});
+					tree.getNode("test_1").open();
+					tree.getNode("test_2").open();
+					tree.getNode("test_1").check();
+					expect(tree.getNode("test_2").isChecked).toBeTruthy();
+					expect(tree.getNode("test_2").getEl().hasClass(tree.checkedClass)).toBeTruthy();
+					expect(tree.getNode("test_3").isChecked).toBeTruthy();
+					expect(tree.getNode("test_3").getEl().hasClass(tree.checkedClass)).toBeTruthy();
 				});
 			});
 			describe("unchecking a node", function() {
@@ -2432,14 +2496,74 @@ describe("NodeStore core functions", function() {
 				it("should set the variable isChecked to false", function() {
 					expect(node.isChecked).toBeFalsy();
 				});
+				it("should unset the class passed in parameters to the li element", function() {
+					expect(node.getEl().hasClass(node.tree.checkedClass)).toBeFalsy();
+				});
+
 				it("should trigger a uncheck.node event", function() {
 					expect(eventSpy).toHaveBeenTriggered();
 				});
-				it("should uncheck children", function() {
-					for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
-						var child = children[i];
-						expect(child.isChecked).toBeFalsy();
-					}
+				it("should uncheck parents when uncheck behaviour is to uncheck parents", function() {
+					id = "sandboxUncheck1"
+					appendSetFixtures(sandbox({id:id}));
+					container = $('#'+id);
+					var tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName],
+						checkBehaviour:"checkParents",
+						uncheckBehaviour:"uncheckParents"
+					});
+					tree.getNode("test_1").open().check();
+					tree.getNode("test_2").open().check();
+					tree.getNode("test_3").check();
+					tree.getNode("test_3").uncheck();
+					expect(tree.getNode("test_1").isChecked).toBeFalsy();
+					expect(tree.getNode("test_1").getEl().hasClass(tree.checkedClass)).toBeFalsy();
+					expect(tree.getNode("test_2").isChecked).toBeFalsy();
+					expect(tree.getNode("test_2").getEl().hasClass(tree.checkedClass)).toBeFalsy();
+				});
+				it("should not uncheck neither parents nor children if uncheckBehaviour is set to false", function() {
+					id = "sandboxUncheck2"
+					appendSetFixtures(sandbox({id:id}));
+					container = $('#'+id);
+					var tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName],
+						uncheckBehaviour:false
+					});
+					tree.getNode("test_1").open().check();
+					tree.getNode("test_2").open();
+					tree.getNode("test_3").check();
+					tree.getNode("test_2").check();
+					tree.getNode("test_2").uncheck();
+					expect(tree.getNode("test_1").isChecked).toBeTruthy();
+					expect(tree.getNode("test_1").getEl().hasClass(tree.checkedClass)).toBeTruthy();
+					expect(tree.getNode("test_3").isChecked).toBeTruthy();
+					expect(tree.getNode("test_3").getEl().hasClass(tree.checkedClass)).toBeTruthy();
+					expect(tree.getNode("test_2").isChecked).toBeFalsy();
+					expect(tree.getNode("test_2").getEl().hasClass(tree.checkedClass)).toBeFalsy();
+				});
+				it("should uncheck children when unchecking behaviour is set to uncheck children", function() {
+					id = "sandboxUncheck3"
+					appendSetFixtures(sandbox({id:id}));
+					container = $('#'+id);
+					var tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName],
+						checkBehaviour:false,
+						uncheckBehaviour:"uncheckChildren"
+					});
+					tree.getNode("test_1").open().check();
+					tree.getNode("test_2").open().check();
+					tree.getNode("test_3").check();
+					tree.getNode("test_1").uncheck();
+					expect(tree.getNode("test_2").isChecked).toBeFalsy();
+					expect(tree.getNode("test_2").getEl().hasClass(tree.checkedClass)).toBeFalsy();
+					expect(tree.getNode("test_3").isChecked).toBeFalsy();
+					expect(tree.getNode("test_3").getEl().hasClass(tree.checkedClass)).toBeFalsy();
 				});
 
 			});
@@ -2455,9 +2579,44 @@ describe("NodeStore core functions", function() {
 					expect(node.pluginFns.getHTML[0].apply).toHaveBeenCalled();
 					expect(node.pluginFns.getHTML[1].apply).toHaveBeenCalled();
 				});
-				it("should add checkbox", function() {
+				it("should add the checkbox if displayCheckbox = true (default)", function() {
 					expect(li.children("label").children("input[type=checkbox]").length).toBe(1);
 
+				});
+				it("should add the class described in param 'checkedClass' to the li element if the node is checked", function() {
+					expect(node.getEl().hasClass(tree.checkedClass)).toBeFalsy();
+					node.check()
+					expect(node.getEl().hasClass(tree.checkedClass)).toBeTruthy();
+				});
+				it("the li element should not have a class described in param 'disabledClass' if it is not disabled", function() {
+					expect(node.getEl().hasClass(tree.disabledClass)).toBeFalsy();
+				});
+				it("the li element should have a class described in param 'disabledClass' if the node is disabled", function() {
+					id = "sandboxCheckboxDisabledHtml"
+					appendSetFixtures(sandbox({id:id}));
+					container = $('#'+id);
+					var tree = Vtree.create({
+						container:container,
+						id:"disabledCheckboxes",
+						dataSource: data,
+						plugins:[pluginName],
+						disabledClass: "thisIsDisable",
+						disabledCheckboxes:["test_1"]
+					});
+					expect(tree.getNode("test_1").getEl().hasClass(tree.disabledClass)).toBeTruthy();
+				});
+				it("should not add checkbox if displayCheckbox = false", function() {
+					id = "sandboxcheckboxhtml"
+					appendSetFixtures(sandbox({id:id}));
+					container = $('#'+id);
+					var tree = Vtree.create({
+						container:container,
+						id: "treeCheckboxDisabledHtml",
+						dataSource: data,
+						plugins:[pluginName],
+						displayCheckbox:false,
+					});
+					expect(tree.getNode("test_1").getEl().find("input[type=checkbox]").length).toBe(0);
 				});
 				it("should check the checkbox if isChecked is true", function() {
 					var node = tree.getNode("test_4")
@@ -2481,112 +2640,117 @@ describe("NodeStore core functions", function() {
 				it("should replace the a.title tag by a label tag", function() {
 					expect(li.children("label").length).toBe(1);
 				});
-
-
 			});
 			describe("testing isOneDescendantChecked", function() {
-				var node,
-					directChild,
-					greatChild;
-				beforeEach(function() {
-					tree = Vtree.create({
+				it("should return true when a child is checked", function() {
+					id = "sandboxisOneDesc1"
+					appendSetFixtures(sandbox({id:id}));
+					container = $('#'+id);
+					var tree = Vtree.create({
 						container:container,
 						dataSource: data,
-						plugins:[pluginName]
+						plugins:[pluginName],
+						checkChildren:false,
+						checkParents:false,
+						uncheckChildren:false,
+						uncheckParents:false,
 					});
-					node = tree.getNode("test_1");
-					directChild = node.children[0];
-					greatChild = directChild.children[0];
-				});
-				it("should return true when a child is checked", function() {
+					var node = tree.getNode("test_1");
+					var directChild = node.children[0];
+					var greatChild = directChild.children[0];
 					greatChild.check();
 					expect(node.isOneDescendantChecked()).toBeTruthy();
 				});
 				it("should return false when none of the children are checked", function() {
+					id = "sandboxisOneDesc2"
+					appendSetFixtures(sandbox({id:id}));
+					container = $('#'+id);
+					var tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						plugins:[pluginName],
+						checkChildren:false,
+						checkParents:false,
+						uncheckChildren:false,
+						uncheckParents:false,
+					});
+					var node = tree.getNode("test_1");
+					var directChild = node.children[0];
+					var greatChild = directChild.children[0];
 					expect(node.isOneDescendantChecked()).toBeFalsy();
 				});
 			});
 		});
-
 	});
 	describe("nodeStore plugin", function() {
 		var className = "nodeStore";
 		describe("functions", function() {
-			var nodeStore,node;
-			beforeEach(function() {
-				nodeStore = tree.nodeStore;
-				node = "test_2"
-				nodeStore.tree.initially_checked = [node]
-			});
-			describe("initializing the structure", function() {
-				it("should call all the functions initStructure", function() {
-					spyOn(nodeStore.pluginFns.initStructure[0], "apply").andCallThrough();
-					spyOn(nodeStore.pluginFns.initStructure[1], "apply").andCallThrough();
-					nodeStore.initStructure();
-					expect(nodeStore.pluginFns.initStructure[0].apply).toHaveBeenCalled();
-					expect(nodeStore.pluginFns.initStructure[1].apply).toHaveBeenCalled();
-				});
-				it("should check nodes that are in the initially_checked list", function() {
-					expect(tree.getNode(node).isChecked).toBeFalsy();
-					nodeStore.initStructure();
-					expect(tree.getNode(node).isChecked).toBeTruthy();
-				});
-				it("should also check the parents of the nodes in the initially_checked list", function() {
-					node = nodeStore.getNode("test_2");
-					for (var i=0, parents = node.parents, len = node.parents.length; i < len; i++) {
-						var parent = parents[i];
-						expect(parent.isChecked).toBeFalsy();
-					}
-
-					nodeStore.initStructure();
-					node = nodeStore.getNode("test_2");
-					for (var i=0, parents = node.parents, len = node.parents.length; i < len; i++) {
-						var parent = parents[i];
-						expect(parent.isChecked).toBeTruthy();
-					}
-				});
-
-				it("should disable nodes that are in the disabled_checkboxes list", function() {
-					nodeStore.tree.disabled_checkboxes= [node]
-					nodeStore.tree.initially_checked = []
-
-					expect(tree.getNode(node).isDisabled).toBeFalsy();
-					nodeStore.initStructure();
-					expect(tree.getNode(node).isDisabled).toBeTruthy();
-				});
-				it("should also disabled the children of the nodes in the disabled_checkboxes list", function() {
-					nodeStore.tree.disabled_checkboxes= [node]
-					nodeStore.tree.initially_checked = []
-
-					node = nodeStore.getNode(node);
-					for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
-						var child = children[i];
-						expect(child.isDisabled).toBeFalsy();
-					}
-					nodeStore.initStructure();
-					node = nodeStore.getNode("test_2");
-					for (var i=0, children = node.children, len = node.children.length; i < len; i++) {
-						var child = children[i];
-						expect(child.isDisabled).toBeTruthy();
-					}
-				});
-
-
-			});
-
 			describe("getting the list of checked nodes", function() {
-				var list;
+				var id, tree,node, list;
 				beforeEach(function() {
-					nodeStore.initStructure();
-					list = nodeStore.getCheckedNodes();
+					id = "sandboxNodeStore";
+					appendSetFixtures(sandbox({id:id}));
+					container = $('#'+id);
+					tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						id:"tree"+id,
+						plugins:[pluginName],
+						initiallyChecked:["test_2"],
+						checkBehaviour: "checkParents", //by default, but this makes things clear
+						uncheckBehaviour: "uncheckParents"
+					});
+					list = tree.getCheckedNodes();
+					node = tree.getNode("test_2");
 				});
-				it("should return a list of checked nodes in the tree", function() {
+				it("should return the nodes of this list + the one checked automatically depending on the checking behaviour", function() {
 					expect(list.length).toBe(2);
-					var node = nodeStore.getNode("test_2");
 					expect(list[0].id).toBe(node.parent.id);
-					expect(list[0] instanceof Vtree.Node).toBeTruthy();
 					expect(list[1].id).toBe(node.id);
+					expect(list[0] instanceof Vtree.Node).toBeTruthy();
 					expect(list[1] instanceof Vtree.Node).toBeTruthy();
+				});
+				it("should not return nodes after we uncheck them, even if they are in the list initiallyChecked", function() {
+					node.uncheck();
+					list = tree.getCheckedNodes();
+					expect(list.length).toBe(0);
+				});
+				it("should return nodes after we check them", function() {
+					var node4 = tree.getNode("test_4");
+					node4.check();
+					node.uncheck(); //just to remove the other ones
+					list = tree.getCheckedNodes();
+					expect(list.length).toBe(1);
+					expect(list[0].id).toBe(node4.id);
+				});
+			});
+			describe("when used with the ajax loading plugin", function() {
+				var id, tree,node, list, data;
+				beforeEach(function() {
+					id = "sandboxNodeStoreAjax";
+					appendSetFixtures(sandbox({id:id}));
+					container = $('#'+id);
+					data = getJSONFixture('sourceData_ajax.json'); //test_2 not yet loaded
+					tree = Vtree.create({
+						container:container,
+						dataSource: data,
+						id:"tree"+id,
+						plugins:[pluginName, "ajax_loading"],
+						initiallyChecked:["test_1", "test_2"] //test_1 loaded, test_2 not yet loaded
+					});
+					list = tree.getCheckedNodes();
+				});
+				it("should also add the nodes in the list initiallyChecked that are not yet loaded in the page", function() {
+					expect(list.length).toBe(2);
+					expect(list[0].id).toBe("test_1");
+					expect(list[1].id).toBe("test_2");
+					expect(list[0] instanceof Vtree.Node).toBeTruthy();
+
+				});
+				it("should add the node not yet loaded with a 'pseudo instance of Node", function() {
+					expect(list[1].id).toBe("test_2");
+					expect(list[1].loaded).toBeFalsy();
+					expect(list[1].initiallyChecked).toBeTruthy();
 				});
 
 			});
@@ -2636,9 +2800,8 @@ describe("NodeStore core functions", function() {
 								}
 							}
 							expectedCookie.Vtree.trees[tree.id] = {
-								opened: tree.initially_open || [],
-								checked: tree.initially_checked || [],
-								bold: tree.initially_bold || []
+								opened: tree.initiallyOpen || [],
+								checked: tree.initiallyChecked || []
 							}
 							expect(fakeCookie).toBeObject(expectedCookie);
 						});
@@ -2662,12 +2825,11 @@ describe("NodeStore core functions", function() {
 								plugins:[pluginName]
 							});
 						});
-						it("should create the cookie for the current tree and add it the list of initally open, check and bold nodes", function() {
+						it("should create the cookie for the current tree and add it the list of initally open and check and nodes", function() {
 							var expectedCookie = jQuery.extend(true, {}, fakeCookie);
 							expectedCookie.Vtree.trees[tree.id] = {
-								opened: tree.initially_open || [],
-								checked: tree.initially_checked || [],
-								bold: tree.initially_bold || []
+								opened: tree.initiallyOpen || [],
+								checked: tree.initiallyChecked || []
 							};
 							expect(fakeCookie).toBeObject(expectedCookie);
 
@@ -2684,8 +2846,7 @@ describe("NodeStore core functions", function() {
 							};
 							fakeCookie.Vtree.trees[tree.id] = {
 								opened:[1,2],
-								checked:[2,3],
-								bold:[3,4]
+								checked:[2,3]
 							}
 							eventSpy = spyOnEvent('#sandbox', 'OpenNodesFromCookie.tree');
 
@@ -2696,13 +2857,10 @@ describe("NodeStore core functions", function() {
 							});
 						});
 						it("should set the initally_open array from the cookie value", function() {
-							expect(tree.initially_open).toBeArray([1,2]);
+							expect(tree.initiallyOpen).toBeArray([1,2]);
 						});
-						it("should set the initially_bold array from the cookie value", function() {
-							expect(tree.initially_checked).toBeArray([2,3]);
-						});
-						it("should set the initially_checked array from the cookie value", function() {
-							expect(tree.initially_bold).toBeArray([3,4]);
+						it("should set the initiallyChecked array from the cookie value", function() {
+							expect(tree.initiallyChecked).toBeArray([2,3]);
 						});
 						it("should trigger a OpenNodesFromCookie.tree event", function() {
 							expect(eventSpy).toHaveBeenTriggered()
@@ -2730,36 +2888,6 @@ describe("NodeStore core functions", function() {
 					expect(fakeCookie.Vtree.trees[tree.id].opened).toBeArray([node1.id, node2.id]);
 					node1.close();
 					expect(fakeCookie.Vtree.trees[tree.id].opened).toBeArray([]);
-				});
-
-			});
-			describe("closing a node that has a bold child", function() {
-				var node1,
-					node2,
-					node3;
-				beforeEach(function() {
-					fakeCookie = {};
-					tree = Vtree.create({
-						container:container,
-						dataSource: data,
-						plugins:[pluginName, "bolding"]
-					});
-					node1 = tree.getNode("test_1");
-					node2 = tree.getNode("test_2");
-					node3 = tree.getNode("test_3");
-					node1.open();
-					node2.open();
-					node3.bold();
-
-				});
-				it("should not remove it from the opened list", function() {
-					expect(node3.isBold).toBeTruthy();
-					expect(fakeCookie.Vtree.trees[tree.id].opened).toBeArray([node1.id, node2.id]);
-					node2.close();
-					expect(fakeCookie.Vtree.trees[tree.id].opened).toBeArray([node1.id, node2.id]);
-					node2.open();
-					node1.close();
-					expect(fakeCookie.Vtree.trees[tree.id].opened).toBeArray([node1.id, node2.id]);
 				});
 
 			});
@@ -2839,7 +2967,7 @@ describe("NodeStore core functions", function() {
 				it("should add it and his parents to the cookie list of checked nodes", function() {
 					expect(fakeCookie.Vtree.trees[tree.id].checked).toBeArray([]);
 					node3.check();
-					expect(fakeCookie.Vtree.trees[tree.id].checked).toBeArray([node3.id,node1.id,node2.id]);
+					expect(fakeCookie.Vtree.trees[tree.id].checked).toBeArray([node1.id,node2.id,node3.id]);
 				});
 
 			});
@@ -2860,121 +2988,11 @@ describe("NodeStore core functions", function() {
 					node3.check();
 				});
 				it("should remove it and his children from the cookie list of checked nodes", function() {
-					expect(fakeCookie.Vtree.trees[tree.id].checked).toBeArray([node3.id,node1.id,node2.id]);
+					expect(fakeCookie.Vtree.trees[tree.id].checked).toBeArray([node1.id,node2.id,node3.id]);
 					node1.uncheck();
 					expect(fakeCookie.Vtree.trees[tree.id].checked).toBeArray([]);
 				});
-
-
-			});
-			describe("bolding a node", function() {
-				describe("when cascading_bold is false", function() {
-					var node1, node2, node3;
-					beforeEach(function() {
-						fakeCookie = {};
-						tree = Vtree.create({
-							container:container,
-							dataSource: data,
-							cascading_bold: false,
-							plugins:[pluginName, "bolding"]
-						});
-						node1 = tree.getNode("test_1");
-						node2 = tree.getNode("test_2");
-						node3 = tree.getNode("test_3");
-						node1.open();
-						node2.open();
-					});
-					it("should add it to the cookie list of bold nodes (without the parents)", function() {
-						expect(fakeCookie.Vtree.trees[tree.id].bold).toBeArray([]);
-						node3.bold();
-						expect(fakeCookie.Vtree.trees[tree.id].bold).toBeArray([node3.id]);
-					});
-
-				});
-				describe("when cascading_bold is true", function() {
-					var node1, node2, node3;
-					beforeEach(function() {
-						fakeCookie = {};
-						tree = Vtree.create({
-							container:container,
-							dataSource: data,
-							cascading_bold: true,
-							plugins:[pluginName, "bolding"]
-						});
-						node1 = tree.getNode("test_1");
-						node2 = tree.getNode("test_2");
-						node3 = tree.getNode("test_3");
-						node1.open();
-						node2.open();
-					});
-					it("should add it and his parents to the cookie list of bold nodes", function() {
-						expect(fakeCookie.Vtree.trees[tree.id].bold).toBeArray([]);
-						node3.bold();
-						expect(fakeCookie.Vtree.trees[tree.id].bold).toBeArray([node3.id, node1.id, node2.id]);
-					});
-				});
-
-
-
-
-			});
-			describe("unbolding a node", function() {
-				describe("when cascading_bold is set to false", function() {
-					var node1, node2, node3;
-					beforeEach(function() {
-						fakeCookie = {};
-						tree = Vtree.create({
-							container:container,
-							dataSource: data,
-							cascading_bold: false,
-							plugins:[pluginName, "bolding"]
-						});
-						node1 = tree.getNode("test_1");
-						node2 = tree.getNode("test_2");
-						node3 = tree.getNode("test_3");
-						node1.open();
-						node2.open();
-
-						node1.bold();
-						node2.bold();
-						node3.bold();
-					});
-					it("should remove it from the cookie list of bold nodes (without removing the children)", function() {
-						expect(fakeCookie.Vtree.trees[tree.id].bold).toBeArray([node1.id, node2.id, node3.id]);
-						node1.unbold();
-						expect(fakeCookie.Vtree.trees[tree.id].bold).toBeArray([node2.id, node3.id]);
-
-					});
-
-				});
-				describe("when cascading_bold is set to true", function() {
-					var node1, node2, node3;
-					beforeEach(function() {
-						fakeCookie = {};
-						tree = Vtree.create({
-							container:container,
-							dataSource: data,
-							cascading_bold: true,
-							plugins:[pluginName, "bolding"]
-						});
-						node1 = tree.getNode("test_1");
-						node2 = tree.getNode("test_2");
-						node3 = tree.getNode("test_3");
-						node1.open();
-						node2.open();
-						node3.bold(); //should bold 2 and 1
-					});
-					it("should remove a node and his children from the cookie list of bold nodes (without removing the parents)", function() {
-						expect(fakeCookie.Vtree.trees[tree.id].bold).toBeArray([node3.id, node1.id, node2.id]);
-						debugger
-						node1.unbold();
-						expect(fakeCookie.Vtree.trees[tree.id].bold).toBeArray([]);
-
-					});
-				});
-
 			});
 		});
-
 	});
 });

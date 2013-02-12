@@ -1,29 +1,30 @@
 (function ($) {
 	Vtree.NodeStore = function(settings){
 		Vtree.init.apply(this, [settings, "nodeStore"]);
-			
+
 		this.rootNode = new Vtree.Node({
+			isRoot: true,
 			id: "root",
 			title: "root",
 			description: "root",
 			icon: "",
 			hasChildren: true,
-			parent: [],
+			parent: null,
 			parents:[],
 			children:[],
 			isOpen:true,
 			tree: settings.tree,
 			plugins: settings.tree.plugins
 		});
-		
+
 		this.structure = {
 			id2NodeMap: {},
 			tree:{}
 		};
-		
+
 		//load settings passed in param
 		$.extend(true, this, settings);
-		
+
 		if (!this.initStructure(settings)){
 			throw "internal structure not initialised properly";
 		}
@@ -42,7 +43,7 @@
 					var struct = this.structure;
 					var children = dataSource.nodes || dataSource.children;
 					// recursively build the node structure
-					this._recBuildNodes( this.rootNode, [this.rootNode], children);
+					this._recBuildNodes( null, [], children);
 					// keep the tree hierarchy in the internal structure
 					this.structure.tree = this.rootNode;
 
@@ -53,10 +54,10 @@
 			getDataSource: function(){
 				return this.tree.dataSource.tree;
 			},
-			
+
 			_recBuildNodes: function(parent, parents, nodes){
 				var siblings = [];
-				
+
 				var parents_already_opened = false;
 				for (var i=0, len = nodes.length; i < len; i++) {
 					var sourceNode = nodes[i];
@@ -65,7 +66,7 @@
 					var hasRenderedChildren = (typeof sourceNode.hasRenderedChildren != "undefined")? sourceNode.hasRenderedChildren : false;
 					var id = sourceNode.id.replace(" ", "_");
 					// check if node should be initially opened
-					if ($.inArray(sourceNode.id, this.tree.initially_open) !== -1) {
+					if ($.inArray(sourceNode.id, this.tree.initiallyOpen) !== -1) {
 						isOpen = true;
 						hasVisibleChildren = true;
 						hasRenderedChildren = true;
@@ -109,7 +110,11 @@
 					}
 				}
 				// now that we know all children, add them to the parents
-				parent.children = siblings;
+				if (parent) {
+					parent.children = siblings;
+				}else{
+					this.rootNode.children = siblings;
+				}
 			},
 
 
@@ -120,7 +125,7 @@
 			toJson: function(){
 				return this.structure.tree.toJson();
 			},
-			
+
 			getNode: function(mixedNode){
 				var node;
 				//if  mixedNode is a node instance
@@ -138,7 +143,7 @@
 			getSiblings: function(mixedNode){
 				node = this.getNode(mixedNode);
 				// get parent's children
-				siblings = node.parent.children;
+				siblings = (node.parent) ? node.parent.children : this.rootNode.children;
 				// remove the current node
 				for (var i = siblings.length - 1; i >= 0; i--){
 					if (siblings[i].id == node.id){

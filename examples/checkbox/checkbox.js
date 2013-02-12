@@ -45,32 +45,37 @@ jsonSource = {
 var container = jQuery("#treeContainer");
 var settings = {
 	container: container,
-	//disabled_checkboxes: ["test_2"],
-	initially_checked: ["test_5"],
+	disabledCheckboxes: ["test_3"],
+	// initiallyChecked: ["test_4", "test_5"],
+	initiallyOpen: ["test_1", "test_2"],
 	dataSource:jsonSource,
-	plugins:["checkbox"]
+	plugins:["checkbox"],
+	disableBehaviour:"disableParents",
+	uncheckBehaviour: "uncheckChildren",
 };
 
-container.bind("check.node", function(e,tree,node){
-	console.log("node checked", node.id);
-	console.log("all checked nodes:",tree.getCheckedNodes());
+container.bind("check.node", function(e,tree,node, automaticlyTriggered){
+	console.log("node checked", node.id, "automaticlyTriggered:",automaticlyTriggered );
+	console.log("all checked nodes:",tree.getCheckedNodes().map(function(i,e){return i.id}));
 
 });
 
-container.bind("uncheck.node", function(e,tree,node){
-	console.log("node unchecked", node.id);
-});
+container.bind("uncheck.node", function(e,tree,node, automaticlyTriggered){
+	console.log("node unchecked", node.id, "automaticlyTriggered:",automaticlyTriggered);
+	console.log("all checked nodes:",tree.getCheckedNodes().map(function(i,e){return i.id}));
 
-var start = (new Date).getTime();
+})
+
+// var start = (new Date).getTime();
 
 var tree = Vtree.create(settings );
 
-var diff = (new Date).getTime() - start;
+// var diff = (new Date).getTime() - start;
 
-console.log("diff:",diff);
+// console.log("diff:",diff);
 
-var a = Vtree.getTree(container).nodeStore.structure.id2NodeMap;
-var b = 0 ; for (var i in a){b++;}
-console.log("nb nodes:",b);
+// var a = Vtree.getTree(container).nodeStore.structure.id2NodeMap;
+// var b = 0 ; for (var i in a){b++;}
+// console.log("nb nodes:",b);
 
 

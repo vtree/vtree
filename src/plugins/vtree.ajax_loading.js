@@ -14,7 +14,7 @@
 					this.container.on("beforeOpen.node", function(e, tree, node){
 						// when opening a node we get his children from the server
 						// in the case that we force the ajax relaod
-					// or that the list of children is empty
+						// or that the list of children is empty
 						if (node.hasChildren && (!node.children.length || that.forceAjaxReload)) {
 							var data = $.extend(true, {
 								action:"getChildren",
@@ -45,15 +45,14 @@
 					// if some nodes are saved as opened in the cookie, we need to ask for their children using ajax
 					// in order to display also the children and keep the state saved by the cookie
 					.on("OpenNodesFromCookie.tree", function(e, tree){
-						tree.fetchChildren(tree.initially_open);
+						tree.fetchChildren(tree.initiallyOpen);
 					})
 
 					// in the case we use ajax without the cookie plugin, we don't need to wait for the ajax response to
 					// continue the tree building
 					.on("beforeInit.tree", function(e, tree){
 						if ($.inArray("cookie", tree.plugins) == -1) { // the cookie plugin is not in tree
-							tree.fetchChildren(tree.initially_open);
-
+							tree.fetchChildren(tree.initiallyOpen);
 						}
 					});
 
@@ -94,7 +93,7 @@
 							url: this.ajaxUrl,
 							dataType: 'json',
 							data: data,
-							success: $.proxy(this.onAjaxResponse, this)
+							success: $.proxy(this.onAjaxResponse, this, data)
 						});
 					}
 				},
@@ -103,9 +102,14 @@
 					return data;
 				},
 
-				onAjaxResponse: function(data, response, jqXHR){
+				onAjaxResponse: function(request, data, response, jqXHR){
+					// we need to add nodes in the order they were requested
+					// in case a child of child is treated first, adding it to nodeSource will produce a bug
+					// requested nodes should be in the order of hierarchy
 					var nodesData = this.getAjaxData(data);
-					for (var nodeId in nodesData) {
+					requestedNodes = request.nodes.split(",");
+					for (var i = 0; i < requestedNodes.length; i++) {
+						nodeId = requestedNodes[i];
 						var nodeData = nodesData[nodeId];
 						this.addDataToNodeSource(nodeData);
 					}
@@ -168,7 +172,7 @@
 					}
 					this.nodeStore._recBuildNodes( this, this.parents.concat(this), nodeData[this.id].nodes);
 					this.continueOpening();
-
+					this.tree.container.trigger("afterChildrenLoaded.node", [this.tree, this]);
 				}
 			}
 		}

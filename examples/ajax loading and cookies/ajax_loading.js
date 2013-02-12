@@ -75,7 +75,13 @@ jQuery.ajax = function (param) {
 	console.log("mock ajax:",param);
 	mockAjaxOptions = param;
 	if (param.data.action == "getChildren") {
-		data = childrenJsonSource;
+		data = {};
+		nodesRequested = param.data.nodes.split(",");
+		for (var i = 0; i < nodesRequested.length; i++) {
+			nodeId = nodesRequested[i];
+			nodeChildren = childrenJsonSource[nodeId];
+			data[nodeId] = nodeChildren;
+		}
 	}
     //call success handler
 	setTimeout(function() {
