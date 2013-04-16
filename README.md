@@ -31,11 +31,15 @@ v1.1 (11.02.2013)
 	- checkbox plugin: new tree parameter "disableBehaviour". that can be set to "disableParents" or "disableChildren" or false. depending on this state, when disabling a node, it will automatically disabling his parents or children or not do anything else.
 	- checkbox plugin: now the events "check.node" and "uncheck.node" has another boolean parameter called passed to the function handler to let it know if the event has been triggered automatically (set to true) or manually (set to false), i.e. triggered by the user.
 3. unification of attributes to camel case (changes to initially_checked, initially_open)
-4 ajax plugin: handle response in the order they were requested #40
-5 checkbox plugin: deep initial selection #43
+
+4. ajax plugin: handle response in the order they were requested #40
+
+5. checkbox plugin: deep initial selection #43
  - when using checkbox plugin and ajax plugin, if we set a node in the parameter "initiallyChecked" that is not yet loaded, it will be passed into the list of checked nodes when calling tree.getCheckedNodes() and when opening his parent, it will be loaded in a checked state.
-6 ajax loading plugin: new event "afterChildrenLoaded.node" triggered after we open a node that gets it children loaded from the server and they get displayed on the page. the parameters passed to the handler function is the event, the tree and the node just opened.
-7 checkbox plugin: new tree parameter: "disabledClass". set by default to "disabled". this is the class added to the li element when the node is disabled
+
+6. ajax loading plugin: new event "afterChildrenLoaded.node" triggered after we open a node that gets it children loaded from the server and they get displayed on the page. the parameters passed to the handler function is the event, the tree and the node just opened.
+
+7. checkbox plugin: new tree parameter: "disabledClass". set by default to "disabled". this is the class added to the li element when the node is disabled
 
 ###issues solved:
 - #44: uncheck.node event should be triggered after the data structure has changed
