@@ -61,6 +61,7 @@ Vtree.plugins.defaults.core.node = {
 				this.toggleLoading();
 				// fires a "afterOpen" event
 				this.tree.container.trigger("afterOpen.node", [this.tree, this]);
+				return this;
 			},
 
 			close: function (){
@@ -197,6 +198,30 @@ Vtree.plugins.defaults.core.node = {
 					}
 				}
 				return node;
+			},
+
+			recursivityOnChildren: function(fn){
+				if (this.hasChildren) {
+					for (var i=0, children = this.children, len = this.children.length; i < len; i++) {
+						var child = children[i];
+						if (typeof fn == "function") {
+							fn(child);
+							if (child.hasChildren) {
+								child.recursivityOnChildren(fn);
+							}
+						}
+
+					}
+				}
+			},
+
+			recursivityOnParents: function(fn){
+				for (var i=0, parents = this.parents, len = this.parents.length; i < len; i++) {
+					var parent = parents[i];
+					if (typeof fn == "function" && parent) {
+						fn(parent);
+					}
+				}
 			}
 		}
 	};

@@ -1,11 +1,12 @@
 describe("ajax_loading plugin", function() {
 	var pluginName = "ajax_loading",
-	node1,
+	node1, node1Response
 	ajaxUrl = "my/ajax/url";
 	beforeEach(function() {
 		this.addMatchers(customMatchers);
 		appendSetFixtures(sandbox());
 		data = getJSONFixture('sourceData_ajax.json');
+		node1Response = getJSONFixture('ajaxData_children.json');
 		container = $('#sandbox');
 		tree = Vtree.create({
 			container:container,
@@ -67,15 +68,17 @@ describe("ajax_loading plugin", function() {
 
 
 					describe("ajax call", function() {
-						var eventSpy, args;
+						var eventSpy, args, successSpy;
 						beforeEach(function() {
 							eventSpy = spyOn(jQuery, "ajax");
+							successSpy = spyOn(node1, "onAjaxResponse");
 							node1.open();
 							args = jQuery.ajax.mostRecentCall.args[0];
 
 						});
 						it("should call node.onAjaxResponse on response", function() {
-							//to do...
+							args.success(node1Response)
+							expect(successSpy).toHaveBeenCalled();
 						});
 						it("should be json as data type", function() {
 							expect(args.dataType).toBe('json');
@@ -174,7 +177,7 @@ describe("ajax_loading plugin", function() {
 							container:$("#testbox4"),
 							dataSource: data,
 							ajaxUrl: ajaxUrl,
-							initially_open:["test_1"],
+							initiallyOpen:["test_1"],
 							plugins:[pluginName]
 						});
 					});
@@ -291,7 +294,7 @@ describe("ajax_loading plugin", function() {
 					spy = spyOn(tree, "getAjaxData").andCallThrough();
 					spy2 = spyOn(tree, "addDataToNodeSource");
 					spy3 = spyOn(tree, "continueBuilding");
-					tree.onAjaxResponse(dt);
+					tree.onAjaxResponse({nodes:"test_1"}, dt);
 				});
 				it("should call getAjaxData with the first argument", function() {
 					expect(spy).toHaveBeenCalled();
@@ -374,6 +377,7 @@ describe("ajax_loading plugin", function() {
 					node1 = tree.getNode("test_1");
 					spy = spyOn(node1.tree, "getAjaxData").andCallThrough();
 					spy2 = spyOn(node1, "continueOpening");
+					spyAfterChildrenLoaded = spyOnEvent('#sandbox6', "afterChildrenLoaded.node");
 				});
 				it("should call to this.tree.getAjaxData with the data received", function() {
 					node1.onAjaxResponse(nodeData);
@@ -391,6 +395,10 @@ describe("ajax_loading plugin", function() {
 				it("should continueOpening", function() {
 					node1.onAjaxResponse(nodeData);
 					expect(node1.continueOpening).toHaveBeenCalled();
+				});
+				it("should fire 'afterChildrenLoaded.node' event", function() {
+					node1.onAjaxResponse(nodeData);
+					expect(spyAfterChildrenLoaded).toHaveBeenTriggered()
 				});
 			});
 		});

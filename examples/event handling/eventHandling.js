@@ -36,26 +36,26 @@ var fn = function(event, tree, node){
 		console.log(event.type, tree.id, node.id);
 	} else if (tree){
 		console.log(event.type, tree.id);
-	}else{		
+	}else{
 		console.log(event.type);
 	}
-	
+
 }
 
 
 container.bind("click.node", fn)
 	.bind("contextmenu.node", fn)
 	.bind("dblclick.node", fn)
-	.bind("beforeClose.node", fn)
-	.bind("beforeOpen.node", fn)
-	.bind("afterOpen.node", fn)
-	.bind("afterClose.node", fn)
-	.bind("beforeInit.tree", fn)
-	.bind("onReady.tree", fn)
-	.bind("onLoaded.tree", fn)
-	.bind("focus.tree", fn)
-	.bind("unfocus.tree", fn)
-	.bind("rendered.tree", fn)
-	.bind("hover.node", fn)
+	// .bind("beforeClose.node", fn)
+	// .bind("beforeOpen.node", fn)
+	// .bind("afterOpen.node", fn)
+	// .bind("afterClose.node", fn)
+	// .bind("beforeInit.tree", fn)
+	// .bind("onReady.tree", fn)
+	// .bind("onLoaded.tree", fn)
+	// .bind("focus.tree", fn)
+	// .bind("unfocus.tree", fn)
+	// .bind("rendered.tree", fn)
+	// .bind("hover.node", fn)
 
 var tree = Vtree.create(settings)

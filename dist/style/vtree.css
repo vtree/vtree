@@ -30,9 +30,9 @@ ul.tree li {
 position:relative }
 
 
-ul.tree li.bold>a.title,
-ul.tree li.bold>a.title>em,
-ul.tree li.bold>a.title>h3 {
+ul.tree.noCheckbox li.checked>a.title,
+ul.tree.noCheckbox li.checked>a.title>em,
+ul.tree.noCheckbox li.checked>a.title>h3 {
 	font-weight: bold;
 }
 

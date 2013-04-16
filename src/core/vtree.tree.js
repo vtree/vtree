@@ -11,7 +11,7 @@
 	Vtree.plugins.defaults.core.tree = {
 		defaults: {
 			id: "",
-			initially_open: [],
+			initiallyOpen: [],
 			initiallyLoadedNodes: [],
 			nodeStore: null,
 			container: $("body"),
@@ -91,10 +91,11 @@
 			_attachEvents: function(){
 				var that = this;
 				var fn = function(e){
-					var node = that.getNode($(this).attr("data-nodeid"));
+					var target = $(e.target);
+					var li = (target.is("li"))? target : target.parents("li").eq(0);
+					var node = that.getNode(li.attr("data-nodeid"));
 					that.container.trigger(e.type+".node", [that, node]);
 					e.stopPropagation();
-
 				};
 				this.container
 					.delegate("li","click", fn)
@@ -104,7 +105,8 @@
 						try{
 							fn(e);
 						}
-						catch(event){}
+						catch(event){
+						}
 						// prevent from opening the browser context menu
 						e.preventDefault();
 					})

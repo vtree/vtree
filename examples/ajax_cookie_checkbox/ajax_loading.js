@@ -1,6 +1,6 @@
 var dataSource = {
 	tree:{
-		id:"myTree",
+		id:"ajax_cookie_checkbox_tree",
 		nodes:[{
 			id:"xtest_1",
 			title: "xtitle_1",
@@ -57,11 +57,11 @@ var childrenJsonSource = {
 
 
 
+
 //Mock ajax function
 jQuery.ajax = function (param) {
 	console.log("mock ajax:",param);
-	_mockAjaxOptions = param;
-
+	mockAjaxOptions = param;
 	if (param.data.action == "getChildren") {
 		data = {};
 		nodesRequested = param.data.nodes.split(",");
@@ -71,29 +71,37 @@ jQuery.ajax = function (param) {
 			data[nodeId] = nodeChildren;
 		}
 	}
-	//call success handler
+    //call success handler
 	setTimeout(function() {
 		param.success(data, "textStatus", "jqXHR");
-		}, 1000);
+	}, 1000);
 };
 
+var container = jQuery("#treeContainer");
 
 var settings = {
-	container: jQuery("#treeContainer"),
+	container: container,
 	ajaxUrl: "/ajaxUrl",
-	ajaxParameters: {
-		defaultParam: "testing",
-		action: "getChildren"
-	},
-	plugins: ["ajax_loading"],
-	id:"root",
+	plugins: ["ajax_loading", "checkbox", "cookie"],
 	dataSource: dataSource,
-	initiallyOpen : ['xtest_1', 'ptest_2']
+	// initiallyChecked: ["xtest_1", "ptest_2", "atest_3"],
+	checkBehaviour: "checkChildren",
+	uncheckBehaviour: "uncheckChildren"
 };
 
 
+container.bind("check.node", function(e,tree,node, automaticlyTriggered){
+	console.log("node checked", node.id, "automaticlyTriggered:",automaticlyTriggered );
+	console.log("all checked nodes:",tree.getCheckedNodes().map(function(i,e){return i.id}));
+
+});
+
+container.bind("uncheck.node", function(e,tree,node, automaticlyTriggered){
+	console.log("node unchecked", node.id, "automaticlyTriggered:",automaticlyTriggered);
+	console.log("all checked nodes:",tree.getCheckedNodes().map(function(i,e){return i.id}));
+
+});
 
 var tree = Vtree.create(settings);
-
 
 

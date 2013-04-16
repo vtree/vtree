@@ -160,7 +160,7 @@ var container = jQuery("#treeContainer");
 //var container2 = jQuery("#treeContainer2")
 var settings = {
 	container: container,
-	initially_open: ["test_1", "test_4"],
+	initiallyOpen: ["test_1", "test_4"],
 	dataSource: jsonSource
 };
 

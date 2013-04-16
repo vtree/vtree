@@ -45,8 +45,8 @@ jsonSource = {
 var container = jQuery("#treeContainer")
 var settings = {
 	container: container,
-	//disabled_checkboxes: ["test_2"],
-	//initially_checked: ["test_5"],
+	//disabledCheckboxes: ["test_2"],
+	//initiallyChecked: ["test_5"],
 	dataSource:jsonSource,
 	plugins:["checkbox", "cookie"],
 	id:"cookieTree"
