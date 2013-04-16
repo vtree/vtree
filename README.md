@@ -41,6 +41,7 @@ v1.1 (11.02.2013)
 
 7. checkbox plugin: new tree parameter: "disabledClass". set by default to "disabled". this is the class added to the li element when the node is disabled
 
+
 ###issues solved:
 - #44: uncheck.node event should be triggered after the data structure has changed
 - #46: Right click does not send the node
