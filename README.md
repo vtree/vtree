@@ -1,4 +1,3 @@
-
 Vtree.js is a Javascript component for rendering trees in browser.
 It supports, ajax lazy loading, checkboxes and cookies.
 
@@ -43,7 +42,8 @@ produces
 4. #53 in ajax plugin, ignore nodes that haven't been sent back by the server (in the case they are requested by the framework and have been deleted in the server.)
 
 ### smaller issues
-#60, #57, #50, #42, #35, #8
+
+60, #57, #50, #42, #35, #8
 
 
 v1.1 (11.02.2013)
