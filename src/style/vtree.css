@@ -143,6 +143,10 @@ top:1px;
 left:-2px;
 cursor:pointer }
 
+ul.tree li label input[type=checkbox][disabled]{
+  cursor:default;
+}
+
 .tree li.title > h3 {
 cursor:inherit }
 

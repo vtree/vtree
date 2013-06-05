@@ -1,10 +1,30 @@
 {
-  "name"          : "vtree",
-  "description"   : "javascript component for building trees",
-  "homepage"      : "http://vtreejs.com",
-  "keywords"      : ["tree", "component", "plugins", "client", "browser"],
-  "author"        : "Loic Ginoux <lginoux@gmail.com>",
-  "repository"    : {"type": "git", "url": "git://github.com/vtree/vtree.git"},
-  "main"          : "vtree.js",
-  "version"       : "1.1"
+  "name": "vtree",
+  "description": "javascript component for building trees",
+  "version": "1.1.1",
+  "homepage": "https://github.com/vtree/vtree",
+  "keywords": [
+    "tree",
+    "component",
+    "plugins",
+    "client",
+    "browser"
+  ],
+  "author": "Loic Ginoux <lginoux@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vtree/vtree.git"
+  },
+  "main": "vtree.js",
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-jasmine": "~0.4.2",
+    "grunt-contrib-copy": "~0.4.1",
+    "grunt-contrib-uglify": "~0.2.2",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-cssmin": "~0.6.1",
+    "grunt-contrib-clean": "~0.4.1",
+    "grunt-contrib-jshint": "~0.6.0",
+    "grunt-contrib-compress": "~0.5.2"
+  }
 }

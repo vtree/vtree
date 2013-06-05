@@ -66,9 +66,7 @@ jsonSource = {
 			title: "title_1",
 			description: "title_1",
 			customClass: "title",
-			data: {
-				href: "test"
-			},
+			href: "http://www.google.com",
 			hasChildren: true,
 			nodes: [{
 				id: "test_2",
