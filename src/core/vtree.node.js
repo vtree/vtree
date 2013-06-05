@@ -108,11 +108,14 @@ Vtree.plugins.defaults.core.node = {
 				var li = $("<li><a></a></li>")
 					.attr("data-nodeid", this.id)
 					.attr("data-treeid", this.tree.id)
+					.attr("id", this.tree.id+"_"+this.id)
 					.addClass(className);
 
 				var a = li.children("a")
 						.addClass("title")
 						.attr("title", this.description);
+
+				if (this.href) { a.attr("href", this.href); }
 
 				var isIconPathString = !!(typeof this.iconPath === "string" && this.iconPath !== '');
 				var isIconPathObject = !!(typeof this.iconPath !== "undefined" && this.iconPath.close && this.iconPath.open);
@@ -121,7 +124,7 @@ Vtree.plugins.defaults.core.node = {
 					a.append("<i></i><"+titleTag+"></"+titleTag+">")
 						.find("i").addClass(this.iconClass)
 						.end()
-						.find(titleTag).html(this.title);
+						.find(titleTag).text(this.title);
 				}else if (hasIconPath) {
 					var icon;
 					if (this.hasChildren && typeof this.iconPath.close != "undefined" && typeof this.iconPath.open != "undefined") {
@@ -132,7 +135,7 @@ Vtree.plugins.defaults.core.node = {
 					a.append("<i><img/></i><"+titleTag+"></"+titleTag+">")
 						.find("img").attr("src", icon)
 						.end()
-						.find(titleTag).html(this.title);
+						.find(titleTag).text(this.title);
 				}else if (this.customClass.indexOf("title") !== -1){
 					a.append("<"+titleTag+"></"+titleTag+">")
 						.children()
@@ -174,7 +177,7 @@ Vtree.plugins.defaults.core.node = {
 			},
 
 			getEl: function(){
-				this.el = $('li[data-nodeid='+this.id+'][data-treeid='+this.tree.id+']');
+				this.el = $('li#'+this.tree.id+'_'+this.id);
 				return this.el;
 
 			},

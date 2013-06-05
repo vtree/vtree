@@ -1,8 +1,8 @@
-// Vtree 1.1
+// Vtree (javascript tree component)
+// ----------------------------------
+// v1.1.1
 //
-
-
-// Copyright (c) 2012-2013 Loic Ginoux, Vyre ltd.
+// Copyright (c)2013 Loic Ginoux, Vyre ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
+//
 
 if (typeof Vtree === "undefined") {
 	Vtree = {};
@@ -27,6 +27,7 @@ if(typeof console === "undefined") {
 		log:function(){}
 	};
 }
+
 
 
 (function ($) {
@@ -161,6 +162,7 @@ if(typeof console === "undefined") {
 		};
 	})();
 })(jQuery);
+
 
 (function ($) {
 	Vtree.Tree = function(settings) {
@@ -329,238 +331,6 @@ if(typeof console === "undefined") {
 	};
 
 })(jQuery);
-
-(function ($) {
-	Vtree.Node = function(settings){
-		Vtree.init.apply(this, [settings, "node"]);
-
-		//load settings passed in param
-		$.extend(this, settings);
-	};
-
-
-Vtree.plugins.defaults.core.node = {
-		defaults:{
-			id                  : 0,
-			el                  : null,
-			tree                : null,
-			isOpen              : false,
-			title               : "",
-			description         : "",
-			customClass			: "",
-			hasVisibleChildren  : false,
-			hasRenderedChildren : false,
-			hasChildren         : false,
-			parent              : null,
-			parents             : [],
-			children            : [],
-			iconClass           : "",
-			iconPath            : {open:"", close:""},
-			customHTML			: ""
-		},
-		_fn:{
-			open: function (){
-				// if it has children and there are not visible on the page
-				if (this.hasChildren && !this.hasVisibleChildren) {
-					// fires a "beforeOpen" event
-					this.tree.container.trigger("beforeOpen.node", [this.tree, this]);
-					// toggle loading icon
-					this.toggleLoading();
-
-					var el = this.getEl().addClass("open");
-					if (this.iconPath.open) {
-						el.find("img")[0].src = this.iconPath.open;
-					}
-					if (!this.tree.asynchronous){
-						this.continueOpening();
-					}
-
-				}
-				return this;
-			},
-
-			continueOpening: function(){
-				// change open state variable
-				this.isOpen = true;
-				// if it has children but there are not rendered
-				if(this.hasChildren && !this.hasRenderedChildren){
-					// we build the children
-					this.getEl().append(this._getChildrenHTML());
-					this.hasRenderedChildren = true;
-				}
-				this.hasVisibleChildren = true;
-				// toggle loading icon
-				this.toggleLoading();
-				// fires a "afterOpen" event
-				this.tree.container.trigger("afterOpen.node", [this.tree, this]);
-				return this;
-			},
-
-			close: function (){
-				// if there is any children and there are visible
-				if (this.hasChildren && this.hasVisibleChildren) {
-					// fires a "beforeClose" event
-					this.tree.container.trigger("beforeClose.node", [this.tree, this]);
-					// it sets the isOpen to false
-					this.isOpen = false;
-					// change the hasVisibleChildren to false
-					this.hasVisibleChildren = false;
-					// refresh the node
-					var el = this.getEl().removeClass("open");
-					if (this.iconPath.close) {
-						el.find("img")[0].src = this.iconPath.close;
-					}
-
-					// fires a "afterClose" event
-					this.tree.container.trigger("afterClose.node", [this.tree, this]);
-				}
-				return this;
-			},
-
-			toggleOpen: function (){
-				return (this.isOpen)?this.close(): this.open();
-			},
-
-			_getChildrenHTML: function(){
-				var ul = $("<ul>").addClass("children");
-				var nodes = this.children;
-				for (var i=0, len = nodes.length; i < len; i++) {
-					ul.append(nodes[i].getHTML());
-				}
-				return ul;
-			},
-
-			getHTML: function (){
-				var className = (this.isOpen)?" open ":"";
-				className+= (this.hasChildren)? " folder": "";
-				className+= " "+this.customClass;
-
-				var titleTag = (this.customClass.indexOf("title") !== -1)? "h3" : "em";
-
-				var li = $("<li><a></a></li>")
-					.attr("data-nodeid", this.id)
-					.attr("data-treeid", this.tree.id)
-					.addClass(className);
-
-				var a = li.children("a")
-						.addClass("title")
-						.attr("title", this.description);
-
-				var isIconPathString = !!(typeof this.iconPath === "string" && this.iconPath !== '');
-				var isIconPathObject = !!(typeof this.iconPath !== "undefined" && this.iconPath.close && this.iconPath.open);
-				var hasIconPath = (isIconPathObject || isIconPathString);
-				if (this.iconClass) {
-					a.append("<i></i><"+titleTag+"></"+titleTag+">")
-						.find("i").addClass(this.iconClass)
-						.end()
-						.find(titleTag).html(this.title);
-				}else if (hasIconPath) {
-					var icon;
-					if (this.hasChildren && typeof this.iconPath.close != "undefined" && typeof this.iconPath.open != "undefined") {
-						icon = (this.isOpen)?this.iconPath.open: this.iconPath.close;
-					}else{
-						icon = this.iconPath;
-					}
-					a.append("<i><img/></i><"+titleTag+"></"+titleTag+">")
-						.find("img").attr("src", icon)
-						.end()
-						.find(titleTag).html(this.title);
-				}else if (this.customClass.indexOf("title") !== -1){
-					a.append("<"+titleTag+"></"+titleTag+">")
-						.children()
-						.html(this.title);
-				}else {
-					a.html(this.title);
-				}
-
-				if (this.customHTML) {
-					li.append("<div class='custom'>")
-						.children(".custom")
-						.append(this.customHTML);
-				}
-				if (this.hasChildren) {
-					li.prepend("<a class='openClose'/>");
-					if (this.isOpen) {
-						li.append(this._getChildrenHTML());
-					}
-				}else{
-					li.prepend("<a href='#' class='align'></a>");
-				}
-
-				return li;
-			},
-
-			toggleLoading: function (){
-				// var titleTag = (this.customClass.indexOf("title") !== -1)? "h3" : "em";
-				var el = this.getEl();
-				var text = (el.hasClass("loading"))?this.title:"Loading...";
-				var title = el.toggleClass("loading").children("a.title, label");
-				var child = title.children("h3, em, span");
-				if (child.length) {
-					child.text(text);
-				}else{
-					title.text(text);
-				}
-
-
-			},
-
-			getEl: function(){
-				this.el = $('li[data-nodeid='+this.id+'][data-treeid='+this.tree.id+']');
-				return this.el;
-
-			},
-			toJson: function(){
-				var node = jQuery.extend(true, {}, this);
-				for(var i in node){
-					if (typeof node[i] == "function"){
-						delete node[i];
-					}
-				}
-				delete node.tree;
-				delete node.parents;
-				delete node.el;
-				delete node.parent;
-				delete node.nodeStore;
-				delete node.pluginFns;
-				delete node.plugins;
-				if (node.children.length){
-					for (var j=0, len = node.children.length; j < len; j++) {
-						node.children[j] = node.children[j].toJson;
-					}
-				}
-				return node;
-			},
-
-			recursivityOnChildren: function(fn){
-				if (this.hasChildren) {
-					for (var i=0, children = this.children, len = this.children.length; i < len; i++) {
-						var child = children[i];
-						if (typeof fn == "function") {
-							fn(child);
-							if (child.hasChildren) {
-								child.recursivityOnChildren(fn);
-							}
-						}
-
-					}
-				}
-			},
-
-			recursivityOnParents: function(fn){
-				for (var i=0, parents = this.parents, len = this.parents.length; i < len; i++) {
-					var parent = parents[i];
-					if (typeof fn == "function" && parent) {
-						fn(parent);
-					}
-				}
-			}
-		}
-	};
-})(jQuery);
-
-
-
 
 
 (function ($) {
@@ -734,6 +504,244 @@ Vtree.plugins.defaults.core.node = {
 
 })(jQuery);
 
+
+(function ($) {
+	Vtree.Node = function(settings){
+		Vtree.init.apply(this, [settings, "node"]);
+
+		//load settings passed in param
+		$.extend(this, settings);
+	};
+
+
+Vtree.plugins.defaults.core.node = {
+		defaults:{
+			id                  : 0,
+			el                  : null,
+			tree                : null,
+			isOpen              : false,
+			title               : "",
+			description         : "",
+			customClass			: "",
+			hasVisibleChildren  : false,
+			hasRenderedChildren : false,
+			hasChildren         : false,
+			parent              : null,
+			parents             : [],
+			children            : [],
+			iconClass           : "",
+			iconPath            : {open:"", close:""},
+			customHTML			: ""
+		},
+		_fn:{
+			open: function (){
+				// if it has children and there are not visible on the page
+				if (this.hasChildren && !this.hasVisibleChildren) {
+					// fires a "beforeOpen" event
+					this.tree.container.trigger("beforeOpen.node", [this.tree, this]);
+					// toggle loading icon
+					this.toggleLoading();
+
+					var el = this.getEl().addClass("open");
+					if (this.iconPath.open) {
+						el.find("img")[0].src = this.iconPath.open;
+					}
+					if (!this.tree.asynchronous){
+						this.continueOpening();
+					}
+
+				}
+				return this;
+			},
+
+			continueOpening: function(){
+				// change open state variable
+				this.isOpen = true;
+				// if it has children but there are not rendered
+				if(this.hasChildren && !this.hasRenderedChildren){
+					// we build the children
+					this.getEl().append(this._getChildrenHTML());
+					this.hasRenderedChildren = true;
+				}
+				this.hasVisibleChildren = true;
+				// toggle loading icon
+				this.toggleLoading();
+				// fires a "afterOpen" event
+				this.tree.container.trigger("afterOpen.node", [this.tree, this]);
+				return this;
+			},
+
+			close: function (){
+				// if there is any children and there are visible
+				if (this.hasChildren && this.hasVisibleChildren) {
+					// fires a "beforeClose" event
+					this.tree.container.trigger("beforeClose.node", [this.tree, this]);
+					// it sets the isOpen to false
+					this.isOpen = false;
+					// change the hasVisibleChildren to false
+					this.hasVisibleChildren = false;
+					// refresh the node
+					var el = this.getEl().removeClass("open");
+					if (this.iconPath.close) {
+						el.find("img")[0].src = this.iconPath.close;
+					}
+
+					// fires a "afterClose" event
+					this.tree.container.trigger("afterClose.node", [this.tree, this]);
+				}
+				return this;
+			},
+
+			toggleOpen: function (){
+				return (this.isOpen)?this.close(): this.open();
+			},
+
+			_getChildrenHTML: function(){
+				var ul = $("<ul>").addClass("children");
+				var nodes = this.children;
+				for (var i=0, len = nodes.length; i < len; i++) {
+					ul.append(nodes[i].getHTML());
+				}
+				return ul;
+			},
+
+			getHTML: function (){
+				var className = (this.isOpen)?" open ":"";
+				className+= (this.hasChildren)? " folder": "";
+				className+= " "+this.customClass;
+
+				var titleTag = (this.customClass.indexOf("title") !== -1)? "h3" : "em";
+
+				var li = $("<li><a></a></li>")
+					.attr("data-nodeid", this.id)
+					.attr("data-treeid", this.tree.id)
+					.attr("id", this.tree.id+"_"+this.id)
+					.addClass(className);
+
+				var a = li.children("a")
+						.addClass("title")
+						.attr("title", this.description);
+
+				if (this.href) { a.attr("href", this.href); }
+
+				var isIconPathString = !!(typeof this.iconPath === "string" && this.iconPath !== '');
+				var isIconPathObject = !!(typeof this.iconPath !== "undefined" && this.iconPath.close && this.iconPath.open);
+				var hasIconPath = (isIconPathObject || isIconPathString);
+				if (this.iconClass) {
+					a.append("<i></i><"+titleTag+"></"+titleTag+">")
+						.find("i").addClass(this.iconClass)
+						.end()
+						.find(titleTag).text(this.title);
+				}else if (hasIconPath) {
+					var icon;
+					if (this.hasChildren && typeof this.iconPath.close != "undefined" && typeof this.iconPath.open != "undefined") {
+						icon = (this.isOpen)?this.iconPath.open: this.iconPath.close;
+					}else{
+						icon = this.iconPath;
+					}
+					a.append("<i><img/></i><"+titleTag+"></"+titleTag+">")
+						.find("img").attr("src", icon)
+						.end()
+						.find(titleTag).text(this.title);
+				}else if (this.customClass.indexOf("title") !== -1){
+					a.append("<"+titleTag+"></"+titleTag+">")
+						.children()
+						.html(this.title);
+				}else {
+					a.html(this.title);
+				}
+
+				if (this.customHTML) {
+					li.append("<div class='custom'>")
+						.children(".custom")
+						.append(this.customHTML);
+				}
+				if (this.hasChildren) {
+					li.prepend("<a class='openClose'/>");
+					if (this.isOpen) {
+						li.append(this._getChildrenHTML());
+					}
+				}else{
+					li.prepend("<a href='#' class='align'></a>");
+				}
+
+				return li;
+			},
+
+			toggleLoading: function (){
+				// var titleTag = (this.customClass.indexOf("title") !== -1)? "h3" : "em";
+				var el = this.getEl();
+				var text = (el.hasClass("loading"))?this.title:"Loading...";
+				var title = el.toggleClass("loading").children("a.title, label");
+				var child = title.children("h3, em, span");
+				if (child.length) {
+					child.text(text);
+				}else{
+					title.text(text);
+				}
+
+
+			},
+
+			getEl: function(){
+				this.el = $('li#'+this.tree.id+'_'+this.id);
+				return this.el;
+
+			},
+			toJson: function(){
+				var node = jQuery.extend(true, {}, this);
+				for(var i in node){
+					if (typeof node[i] == "function"){
+						delete node[i];
+					}
+				}
+				delete node.tree;
+				delete node.parents;
+				delete node.el;
+				delete node.parent;
+				delete node.nodeStore;
+				delete node.pluginFns;
+				delete node.plugins;
+				if (node.children.length){
+					for (var j=0, len = node.children.length; j < len; j++) {
+						node.children[j] = node.children[j].toJson;
+					}
+				}
+				return node;
+			},
+
+			recursivityOnChildren: function(fn){
+				if (this.hasChildren) {
+					for (var i=0, children = this.children, len = this.children.length; i < len; i++) {
+						var child = children[i];
+						if (typeof fn == "function") {
+							fn(child);
+							if (child.hasChildren) {
+								child.recursivityOnChildren(fn);
+							}
+						}
+
+					}
+				}
+			},
+
+			recursivityOnParents: function(fn){
+				for (var i=0, parents = this.parents, len = this.parents.length; i < len; i++) {
+					var parent = parents[i];
+					if (typeof fn == "function" && parent) {
+						fn(parent);
+					}
+				}
+			}
+		}
+	};
+})(jQuery);
+
+
+
+
+
+
 (function ($) {
 
 	Vtree.plugins.ajax_loading = {
@@ -847,7 +855,9 @@ Vtree.plugins.defaults.core.node = {
 					for (var i = 0; i < requestedNodes.length; i++) {
 						nodeId = requestedNodes[i];
 						var nodeData = nodesData[nodeId];
-						this.addDataToNodeSource(nodeData);
+						if (nodeData){
+							this.addDataToNodeSource(nodeData);
+						}
 					}
 					this.continueBuilding();
 				},
@@ -915,7 +925,8 @@ Vtree.plugins.defaults.core.node = {
 	};
 
 
-})(jQuery);(function ($) {
+})(jQuery);
+(function ($) {
 
 	Vtree.plugins.checkbox = {
 		tree:{
@@ -948,15 +959,13 @@ Vtree.plugins.defaults.core.node = {
 				// if set to 'disableChildren', disabling a node will automatically disable his children
 				disableBehaviour: "disableChildren",
 
-				// disableChildren: true,
-				// // if true, disabling a node will automatically disable his parents
-				// disableParents: false ,
 				// the name of the class added to the element which has his checkbox disabled
 				disabledClass: "disabled"
 			},
 			_fn:{
 				build: function(){
 					var that = this;
+					// triggered by the ajax plugin when we load children from the server after opening a folder
 					this.container.on("afterChildrenLoaded.node", function(e, tree, node){
 						for (var i = 0; i < node.children.length; i++) {
 							var child = node.children[i]
@@ -966,27 +975,33 @@ Vtree.plugins.defaults.core.node = {
 							if (that.uncheckBehaviour === "uncheckChildren" && !node.isChecked){
 								child.uncheck(true);
 							}
+							// if the child was in the list "initiallyChecked", it needs to be checked now
 							if ($.inArray(child.id, tree.initiallyChecked) !== -1){
 								child.check(true);
 							}
 						}
 
 					})
+					// after initialization, we set the initial checked nodes and initial disabled nodes
 					.on("onReady.tree", function(e, tree){
 						tree.initiateCheckedNodes();
 						tree.initiateDisabledNodes();
 					});
 					return this._call_prev();
 				},
+
+				// check the nodes that are in the list initiallyChecked
 				initiateCheckedNodes:function(){
 					var initiallyChecked = this.initiallyChecked,
 					i,id, node;
 					for (i=0, len = initiallyChecked.length; i < len; i++) {
 						id = initiallyChecked[i];
+						// don't throw an error if the node is not found
 						try{ node = this.getNode(id); } catch(event){}
 						if (typeof node != "undefined"){ node.check(true); }
 					}
 				},
+				// disable nodes that are in the list disabledCheckboxes
 				initiateDisabledNodes:function(){
 					var disabledCheckboxes = this.disabledCheckboxes,
 					i,id, node;
@@ -1000,6 +1015,7 @@ Vtree.plugins.defaults.core.node = {
 				_attachEvents: function(){
 					var that  = this;
 					if (this.displayCheckbox) {
+						// when clicking a checkbox, we toggle his check state
 						this.container.delegate("input[type=checkbox]","click",function(e){
 							var node = that.getNode($(this).parents("li").attr("data-nodeid"));
 							node.toggleCheck();
@@ -1007,6 +1023,9 @@ Vtree.plugins.defaults.core.node = {
 						});
 					}
 					if (!this.displayCheckbox) {
+						// if the checkboxes are not displayed
+						// when clicking a node, we need to get the similar behaviour as if they were checkbox
+						// so we toggle his check state
 						this.container.delegate("li","click.node",function(e){
 							var node = that.getNode($(this).attr("data-nodeid"));
 							node.toggleCheck();
@@ -1016,12 +1035,15 @@ Vtree.plugins.defaults.core.node = {
 					return this._call_prev();
 
 				},
+				// get list of checked nodes
+				// i.e. the ones checked on the tree + the ones in the initiallyChecked list that are not yet loaded
 				getCheckedNodes: function(){
 					return this.nodeStore.getCheckedNodes();
 				},
 
 				_generateHTML: function(){
 					ul = this._call_prev();
+					// this is to style the tree when the checkbox is not here
 					if (!this.displayCheckbox){
 						ul.addClass("noCheckbox");
 					}
@@ -1031,14 +1053,17 @@ Vtree.plugins.defaults.core.node = {
 		},
 		node:{
 			defaults:{
+				// check state of a node
 				isChecked:false,
+				// disable state of a node
 				isDisabled: false
 			},
 			_fn:{
+				// toggle his check state
 				toggleCheck: function() {
 					return (this.isChecked)? this.uncheck(): this.check();
 				},
-
+				// disable a node
 				disable: function(){
 					this.isDisabled = true;
 					this.getEl().addClass(this.tree.disabledClass)
@@ -1046,9 +1071,11 @@ Vtree.plugins.defaults.core.node = {
 						this.getEl().find("input[type=checkbox]").eq(0).prop("disabled", "disabled");
 					}
 					if (this.tree.disableBehaviour === "disableParents" && this.parent) {
+						// the parents as well
 						this.parent.disable();
 					}
 					if (this.tree.disableBehaviour === "disableChildren") {
+						// the children as well
 						for (var i = 0; i < this.children.length; i++) {
 							var child = this.children[i];
 							child.disable();
@@ -1056,43 +1083,67 @@ Vtree.plugins.defaults.core.node = {
 					}
 				},
 
+				// check a node
+				// params: - triggeredAutomaticly.
+				// 						type: boolean
+				// 						desc: if true or not defined, this function is directly called from a user's action
+				// 									if set to false, this is called by another action in the tree
+				// 									(usually from a checked parent or child)
+				// 									it will be passed to the event triggered "check.node"
 				check: function(triggeredAutomaticly) {
 					var auto = (typeof triggeredAutomaticly !== "undefined")? triggeredAutomaticly : false;
 					this.isChecked = true;
 					this.getEl().addClass(this.tree.checkedClass);
+					// if the checkbox is displayed and this is triggered automatically
+					// we also check the checkbox input
+					// if it's triggered manually, the user will already have checked the checkbox
 					if (this.tree.displayCheckbox && auto) {
 						this.getEl().find("input[type=checkbox]").eq(0).prop("checked", true);
 					}
+					// parent can be undefined for the first level of the tree
 					if (this.tree.checkBehaviour === "checkParents" && this.parent) {
+						// we check recursively the parents
 						this.parent.check(true)
 					}
+
 					if (this.tree.checkBehaviour === "checkChildren") {
+						// we check recursively the children
 						for (var i = 0; i < this.children.length; i++) {
-							var child = this.children[i];
-							child.check(true);
+							this.children[i].check(true);
 						}
 					}
 					// fire check event
 					this.tree.container.trigger("check.node", [this.tree, this, auto]);
 				},
 
+				// uncheck a node
+				// params: - triggeredAutomaticly.
+				// 						type: boolean
+				// 						desc: if true or not defined, this function is directly called from a user's action
+				// 									if set to false, this is called by another action in the tree
+				// 									(usually from unchecking a parent or a child)
+				// 									it will be passed to the event triggered "uncheck.node"
 				uncheck: function(triggeredAutomaticly) {
 					var auto = (typeof triggeredAutomaticly !== "undefined")? triggeredAutomaticly : false;
 					this.isChecked = false;
 					this.getEl().removeClass(this.tree.checkedClass);
+					// if the checkbox is displayed and this is triggered automatically
+					// we also uncheck the checkbox input
+					// if it's triggered manually, the user will already have unchecked the checkbox
 					if (this.tree.displayCheckbox && auto) {
 						this.getEl().find("input[type=checkbox]").eq(0).prop("checked", false);
 					}
-					// uncheck parents
+					// parent can be undefined for the first level of the tree
 					if (this.tree.uncheckBehaviour == "uncheckParents" && this.parent) {
+						// we uncheck recursively the parents
 						this.parent.uncheck(true)
 					}
 
 					// uncheck all children
 					if (this.tree.uncheckBehaviour == "uncheckChildren") {
 						for (var i = 0; i < this.children.length; i++) {
-							var child = this.children[i];
-							child.uncheck(true);
+							// we uncheck recursively the children
+							this.children[i].uncheck(true);
 						}
 					}
 					// fire uncheck event
@@ -1100,15 +1151,18 @@ Vtree.plugins.defaults.core.node = {
 
 				},
 
+				// basically add the checkbox state of the node
 				getHTML: function(){
-
 					var li = this._call_prev();
+					// add the checked class
 					if (this.isChecked) {
 						li.addClass(this.tree.checkedClass);
 					}
+					// add the disabled class
 					if (this.isDisabled) {
 						li.addClass(this.tree.disabledClass);
 					}
+					//display the checkbox
 					if(this.tree.displayCheckbox){
 						li.children("a.title")
 						.replaceWith(function(){
@@ -1124,6 +1178,8 @@ Vtree.plugins.defaults.core.node = {
 					}
 					return li;
 				},
+				// check if one of his children or great children, etc... is checked
+				// return true if it finds one descendant checked
 				isOneDescendantChecked:function(){
 					var res = false;
 					if (!this.children) return res;
@@ -1145,11 +1201,15 @@ Vtree.plugins.defaults.core.node = {
 		},
 		nodeStore:{
 			_fn:{
+				// returned all checked nodes
+				// desc: it returns nodes checked in the tree and also
+				// the nodes that are in the list "initiallyChecked" that have not yet been loaded (when used with ajax plugin)
 				getCheckedNodes: function(){
 					var that = this,
 					_rec_getCheckedNodes,
 					loadedCheckedNodes,
 					intiallyCheckedAndNotLoadedNodes;
+					// find all nodes in the tree with a checked state
 					_rec_getCheckedNodes = function(nodes){
 						var checkedNodes = [];
 						for (var i=0, len = nodes.length; i < len; i++) {
@@ -1163,7 +1223,19 @@ Vtree.plugins.defaults.core.node = {
 						}
 						return checkedNodes;
 					};
+					// list of all checked nodes in the tree
 					loadedCheckedNodes = _rec_getCheckedNodes(this.structure.tree.children);
+
+					// list of all pseudo nodes in the list initiallyChecked
+					// not yet loaded
+					// for each node we should return an instance of a Node
+					// as this is not possible we return for each of them
+					// something like:
+					// {
+					// 	id: "nodeId",
+					// 	loaded: false,
+					//	initiallyChecked: true
+					// }
 					intiallyCheckedAndNotLoadedNodes = jQuery.grep(this.tree.initiallyChecked, function(nodeId) {
 						var pass = false;
 						try{ var node = that.getNode(nodeId); }catch(e){
@@ -1178,6 +1250,8 @@ Vtree.plugins.defaults.core.node = {
 							initiallyChecked: true
 						};
 					});
+
+					//concatenate the two lists
 					return loadedCheckedNodes.concat(intiallyCheckedAndNotLoadedNodes);
 				}
 			}
@@ -1185,7 +1259,8 @@ Vtree.plugins.defaults.core.node = {
 	};
 
 
-})(jQuery);(function ($) {
+})(jQuery);
+(function ($) {
 	Vtree.setCookie = function(cookieName,cookieValue,nDays) {
 		var today = new Date();
 		var expire = new Date();

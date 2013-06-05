@@ -1,4 +1,4 @@
-customMatchers = {
+window.customMatchers = {
 	toBeObject: function(obj) {
 		return Object.identical(this.actual, obj);
 	},

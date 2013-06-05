@@ -111,7 +111,9 @@
 					for (var i = 0; i < requestedNodes.length; i++) {
 						nodeId = requestedNodes[i];
 						var nodeData = nodesData[nodeId];
-						this.addDataToNodeSource(nodeData);
+						if (nodeData){
+							this.addDataToNodeSource(nodeData);
+						}
 					}
 					this.continueBuilding();
 				},

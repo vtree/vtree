@@ -280,13 +280,17 @@ describe("ajax_loading plugin", function() {
 								iconClass: "customFolder",
 								hasChildren: false,
 								nodes:[	]
-							},
-							{
-								id:"test_3",
-								title: "title_3",
+							}]
+						},
+						"test_5": {
+							id: "test_5",
+							nodes:[{
+								id:"test_6",
+								title: "title_6",
 								description: "desc",
 								iconClass: "customFolder",
-								hasChildren: false
+								hasChildren: false,
+								nodes:[	]
 							}]
 						}
 					};
@@ -294,15 +298,27 @@ describe("ajax_loading plugin", function() {
 					spy = spyOn(tree, "getAjaxData").andCallThrough();
 					spy2 = spyOn(tree, "addDataToNodeSource");
 					spy3 = spyOn(tree, "continueBuilding");
-					tree.onAjaxResponse({nodes:"test_1"}, dt);
+					// here this is like if we sent an ajax request to server
+					// to get children for nodes 1 4 and 5
+					// the response dt only contains response for
+					// 1 and 5. Supposedly node 4 have been deleted on server
+					tree.onAjaxResponse({nodes:"test_5,test_1,test_4"}, dt);
 				});
+
 				it("should call getAjaxData with the first argument", function() {
 					expect(spy).toHaveBeenCalled();
 					expect(spy.mostRecentCall.args[0]).toBeObject(dt)
 				});
-				it("should add the data received for each node to the dataSource", function() {
+
+				it("should add responses to node source in the order they were requested", function() {
+					// and not in the order they were responded!
 					expect(spy2).toHaveBeenCalled();
-					expect(spy2.mostRecentCall.args[0]).toBeObject(dt["test_1"]);
+					expect(spy2.calls[0].args[0]).toBeObject(dt["test_5"]);
+					expect(spy2.calls[1].args[0]).toBeObject(dt["test_1"]);
+				});
+
+				it("should not try to add a node if the server didn't send back a response for this node", function() {
+					expect(spy2).not.toHaveBeenCalledWith(dt["test_4"]);
 				});
 
 				it("should then continue building", function() {

@@ -50,6 +50,7 @@ var settings = {
 	initiallyOpen: ["test_1", "test_2"],
 	dataSource:jsonSource,
 	plugins:["checkbox"],
+	displayCheckbox: true,
 	disableBehaviour:"disableParents",
 	uncheckBehaviour: "uncheckChildren",
 };

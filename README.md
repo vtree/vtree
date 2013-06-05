@@ -1,6 +1,6 @@
 
 Vtree.js is a Javascript component for rendering trees in browser.
-I supports, ajax lazy loading, checkboxes and cookies.
+It supports, ajax lazy loading, checkboxes and cookies.
 
 Many thanks to Vyre ltd. for sponsoring this component
 http://www.vyre.com
@@ -8,17 +8,48 @@ http://www.vyre.com
 
 DOCUMENTATION:
 ==============
-For Docs and downloads (under construction), see:
+For Docs and downloads, see:
 http://loicginoux.github.com/vtree/
 
 
 RELASE NOTES:
 =============
 
+v1.1.1 (5.06.2013)
+-----------------
+
+### new features:
+1. #58 Ability to add href to 'a' link tag on a node. If a HREF attribute exists in the incoming JSON structure it should be supplanted into the A tag to build a link
+
+Eg
+
+```
+{...
+
+'href':'home.html'
+
+...
+}
+```
+
+produces
+
+```
+<a href="home.html">node name</a>
+```
+
+2. #56 Add a unique id for each node
+3. #48 use of text() instead of html() to include the title of the node in order to prevent code injection.
+4. #53 in ajax plugin, ignore nodes that haven't been sent back by the server (in the case they are requested by the framework and have been deleted in the server.)
+
+### smaller issues
+#60, #57, #50, #42, #35, #8
+
+
 v1.1 (11.02.2013)
 -----------------
 
-###new features:
+###  new features:
 
 1. deleted bolding plugin (supported in the checkbox plugin)
 	- checkbox plugin: new tree parameter "displayCheckbox". type: Boolean. this will display or not the checkbox
@@ -42,7 +73,7 @@ v1.1 (11.02.2013)
 7. checkbox plugin: new tree parameter: "disabledClass". set by default to "disabled". this is the class added to the li element when the node is disabled
 
 
-###issues solved:
+### issues solved:
 - #44: uncheck.node event should be triggered after the data structure has changed
 - #46: Right click does not send the node
 
