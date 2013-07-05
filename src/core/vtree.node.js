@@ -7,7 +7,7 @@
 	};
 
 
-Vtree.plugins.defaults.core.node = {
+	Vtree.plugins.defaults.core.node = {
 		defaults:{
 			id                  : 0,
 			el                  : null,
@@ -106,14 +106,14 @@ Vtree.plugins.defaults.core.node = {
 				var titleTag = (this.customClass.indexOf("title") !== -1)? "h3" : "em";
 
 				var li = $("<li><a></a></li>")
-					.attr("data-nodeid", this.id)
-					.attr("data-treeid", this.tree.id)
-					.attr("id", this.tree.id+"_"+this.id)
-					.addClass(className);
+				.attr("data-nodeid", this.id)
+				.attr("data-treeid", this.tree.id)
+				.attr("id", this.tree.id+"_"+this.id)
+				.addClass(className);
 
 				var a = li.children("a")
-						.addClass("title")
-						.attr("title", this.description);
+				.addClass("title")
+				.attr("title", this.description);
 
 				if (this.href) { a.attr("href", this.href); }
 
@@ -122,9 +122,9 @@ Vtree.plugins.defaults.core.node = {
 				var hasIconPath = (isIconPathObject || isIconPathString);
 				if (this.iconClass) {
 					a.append("<i></i><"+titleTag+"></"+titleTag+">")
-						.find("i").addClass(this.iconClass)
-						.end()
-						.find(titleTag).text(this.title);
+					.find("i").addClass(this.iconClass)
+					.end()
+					.find(titleTag).text(this.title);
 				}else if (hasIconPath) {
 					var icon;
 					if (this.hasChildren && typeof this.iconPath.close != "undefined" && typeof this.iconPath.open != "undefined") {
@@ -133,21 +133,21 @@ Vtree.plugins.defaults.core.node = {
 						icon = this.iconPath;
 					}
 					a.append("<i><img/></i><"+titleTag+"></"+titleTag+">")
-						.find("img").attr("src", icon)
-						.end()
-						.find(titleTag).text(this.title);
+					.find("img").attr("src", icon)
+					.end()
+					.find(titleTag).text(this.title);
 				}else if (this.customClass.indexOf("title") !== -1){
 					a.append("<"+titleTag+"></"+titleTag+">")
-						.children()
-						.html(this.title);
+					.children()
+					.html(this.title);
 				}else {
 					a.html(this.title);
 				}
 
 				if (this.customHTML) {
 					li.append("<div class='custom'>")
-						.children(".custom")
-						.append(this.customHTML);
+					.children(".custom")
+					.append(this.customHTML);
 				}
 				if (this.hasChildren) {
 					li.prepend("<a class='openClose'/>");

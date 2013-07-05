@@ -40,7 +40,7 @@
 					// triggered by the ajax plugin when we load children from the server after opening a folder
 					this.container.on("afterChildrenLoaded.node", function(e, tree, node){
 						for (var i = 0; i < node.children.length; i++) {
-							var child = node.children[i]
+							var child = node.children[i];
 							if (that.checkBehaviour === "checkChildren" && node.isChecked){
 								child.check(true);
 							}
@@ -53,9 +53,8 @@
 							}
 						}
 
-					})
 					// after initialization, we set the initial checked nodes and initial disabled nodes
-					.on("onReady.tree", function(e, tree){
+					}).on("onReady.tree", function(e, tree){
 						tree.initiateCheckedNodes();
 						tree.initiateDisabledNodes();
 					});
@@ -114,7 +113,7 @@
 				},
 
 				_generateHTML: function(){
-					ul = this._call_prev();
+					var ul = this._call_prev();
 					// this is to style the tree when the checkbox is not here
 					if (!this.displayCheckbox){
 						ul.addClass("noCheckbox");
@@ -138,7 +137,7 @@
 				// disable a node
 				disable: function(){
 					this.isDisabled = true;
-					this.getEl().addClass(this.tree.disabledClass)
+					this.getEl().addClass(this.tree.disabledClass);
 					if (this.tree.displayCheckbox) {
 						this.getEl().find("input[type=checkbox]").eq(0).prop("disabled", "disabled");
 					}
@@ -175,7 +174,7 @@
 					// parent can be undefined for the first level of the tree
 					if (this.tree.checkBehaviour === "checkParents" && this.parent) {
 						// we check recursively the parents
-						this.parent.check(true)
+						this.parent.check(true);
 					}
 
 					if (this.tree.checkBehaviour === "checkChildren") {
@@ -208,7 +207,7 @@
 					// parent can be undefined for the first level of the tree
 					if (this.tree.uncheckBehaviour == "uncheckParents" && this.parent) {
 						// we uncheck recursively the parents
-						this.parent.uncheck(true)
+						this.parent.uncheck(true);
 					}
 
 					// uncheck all children
@@ -329,6 +328,4 @@
 			}
 		}
 	};
-
-
 })(jQuery);

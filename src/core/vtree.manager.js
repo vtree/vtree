@@ -16,7 +16,10 @@
 				}
 				var plugin = plg[className];
 				if (!plugin) {return;}
-				$.extend(this, plugin.defaults);
+				// we first clone the defaults
+				var pluginDefaults = $.extend(true, {}, plugin.defaults);
+				// and then extends the object with these default
+				$.extend(this, pluginDefaults);
 
 				$.each(plugin._fn, function (fnName, fn) {
 
@@ -69,7 +72,7 @@
 			},
 			create: function (settings) {
 				// remove the previous one if it is using the same container
-				sameContainer = false;
+				var sameContainer = false;
 				for (var i=0, len = trees.length; i < len; i++) {
 					var internalTree = trees[i];
 					if (settings.container.is(internalTree.container)) {

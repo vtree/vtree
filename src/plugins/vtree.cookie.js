@@ -30,8 +30,6 @@
 								// we get the cookie
 								tree.initiallyOpen = treeCookie.opened || [];
 								tree.initiallyChecked = treeCookie.checked || [];
-								tree.container.trigger("OpenNodesFromCookie.tree", [tree]);
-
 							}else{
 								// we create the initial cookie
 								VtreeCookie.trees[tree.id] = {
@@ -49,14 +47,12 @@
 								checked: tree.initiallyChecked || []
 							};
 							Vtree.setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
-							// this is for the tree to continue building when used in conjonction with the ajax plugin
-							tree.container.trigger("OpenNodesFromCookie.tree", [tree]);
-
 						}
+						// we trigger an event to tell that cookie values have been added
+						tree.container.trigger("OpenNodesFromCookie.tree", [tree]);
 
-					})
+					}).bind("afterOpen.node", function(e, tree, node){
 
-					.bind("afterOpen.node", function(e, tree, node){
 						var VtreeCookie = JSON.parse(Vtree.readCookie("Vtree"));
 						var treeCookie = VtreeCookie.trees[tree.id];
 						if ($.inArray(node.id, treeCookie.opened) == -1){
@@ -64,9 +60,8 @@
 						}
 						Vtree.setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
 
-					})
+					}).bind("beforeClose.node", function(e, tree, node){
 
-					.bind("beforeClose.node", function(e, tree, node){
 						var VtreeCookie = JSON.parse(Vtree.readCookie("Vtree"));
 						var treeCookie = VtreeCookie.trees[tree.id];
 						if (typeof node.isOneDescendantChecked === "function" && node.isOneDescendantChecked()) {
@@ -91,9 +86,9 @@
 							return (value != node.id && $.inArray(value, getOpenedChildrenIds(node)) == -1);
 						});
 						Vtree.setCookie("Vtree",  JSON.stringify(VtreeCookie), 7); // stored for a week
-					})
 
-					.bind("check.node", function(e, tree, node){
+					}).bind("check.node", function(e, tree, node){
+
 						var VtreeCookie = JSON.parse(Vtree.readCookie("Vtree"));
 						var treeCookie = VtreeCookie.trees[tree.id];
 
@@ -102,16 +97,14 @@
 						}
 
 						Vtree.setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
-					})
 
-					.bind("uncheck.node", function(e, tree, node){
+					}).bind("uncheck.node", function(e, tree, node){
+
 						var VtreeCookie = JSON.parse(Vtree.readCookie("Vtree"));
 						var treeCookie = VtreeCookie.trees[tree.id];
-
 						treeCookie.checked = jQuery.grep(treeCookie.checked, function(value) {
 							return (value != node.id);
 						});
-
 						Vtree.setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
 					});
 
@@ -120,6 +113,4 @@
 			}
 		}
 	};
-
-
 })(jQuery);
