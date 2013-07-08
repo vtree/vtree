@@ -974,15 +974,15 @@ if(typeof console === "undefined") {
 					this.container.on("afterChildrenLoaded.node", function(e, tree, node){
 						for (var i = 0; i < node.children.length; i++) {
 							var child = node.children[i];
+							// if the child was in the list "initiallyChecked", it needs to be checked now
+							if ($.inArray(child.id, tree.initiallyChecked) !== -1){
+								child.check(true);
+							}
 							if (that.checkBehaviour === "checkChildren" && node.isChecked){
 								child.check(true);
 							}
 							if (that.uncheckBehaviour === "uncheckChildren" && !node.isChecked){
 								child.uncheck(true);
-							}
-							// if the child was in the list "initiallyChecked", it needs to be checked now
-							if ($.inArray(child.id, tree.initiallyChecked) !== -1){
-								child.check(true);
 							}
 						}
 

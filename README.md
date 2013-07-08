@@ -15,6 +15,13 @@ http://loicginoux.github.com/vtree/
 RELASE NOTES:
 =============
 
+v1.1.2 (5.07.2013)
+-----------------
+- issue #67. correction of a corner case behaviour
+- issue #65 ontext menu is not preventing default, this is let to the user to prevent or not
+- correct issue #63 initiallyOpen not working when multiple tree in page
+- correct issue #64 triggerring "OpenNodesFromCookie" the first time trees render
+
 v1.1.1 (5.06.2013)
 -----------------
 
