@@ -166,7 +166,7 @@
 				var el = this.getEl();
 				var text = (el.hasClass("loading"))?this.title:"Loading...";
 				var title = el.toggleClass("loading").children("a.title, label");
-				var child = title.children("h3, em, span");
+				var child = (title.find("h3, em").length)? title.find("h3, em"): title.children("span");
 				if (child.length) {
 					child.text(text);
 				}else{
