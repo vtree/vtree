@@ -83,9 +83,9 @@
 
 			refresh: function(){
 				this.container
-					.empty() // clean the container
-					.append(this._generateHTML())	// add html to container
-					.trigger("rendered.tree", [this]); //fires the rendered event
+				.empty() // clean the container
+				.append(this._generateHTML())	// add html to container
+				.trigger("rendered.tree", [this]); //fires the rendered event
 			},
 
 			_attachEvents: function(){
@@ -94,27 +94,25 @@
 					var target = $(e.target);
 					var li = (target.is("li"))? target : target.parents("li").eq(0);
 					var node = that.getNode(li.attr("data-nodeid"));
-					that.container.trigger(e.type+".node", [that, node]);
+					that.container.trigger(e.type+".node", [that, node, e]);
 					e.stopPropagation();
 				};
 				this.container
-					.delegate("li","click", fn)
-					.delegate("li","dblclick",fn)
-					.delegate("li","hover",fn)
-					.delegate("li","contextmenu",function(e){
-						try{
-							fn(e);
-						}
-						catch(event){
-						}
-						// prevent from opening the browser context menu
-						e.preventDefault();
-					})
-					.delegate(".openClose","click",function(e){
-						var node = that.getNode($(this).parent().attr("data-nodeid"));
-						node.toggleOpen();
-						e.stopPropagation();
-					});
+				.delegate("li","click", fn)
+				.delegate("li","dblclick",fn)
+				.delegate("li","hover",fn)
+				.delegate("li","contextmenu",function(event){
+					try{
+						fn(event);
+					}
+					catch(event){
+					}
+				})
+				.delegate(".openClose","click",function(e){
+					var node = that.getNode($(this).parent().attr("data-nodeid"));
+					node.toggleOpen();
+					e.stopPropagation();
+				});
 				return this.container;
 			},
 
@@ -137,9 +135,9 @@
 
 			destroy: function(){
 				this.container
-					.unbind(".node") // remove the events attach to the container
-					.undelegate() // remove the events attach to the container
-					.empty();	// delete everything inside the container
+				.unbind(".node") // remove the events attach to the container
+				.undelegate() // remove the events attach to the container
+				.empty();	// delete everything inside the container
 			},
 
 			toJson: function(){

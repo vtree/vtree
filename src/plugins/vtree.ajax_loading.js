@@ -103,14 +103,19 @@
 				},
 
 				onAjaxResponse: function(request, data, response, jqXHR){
+					var nodesData,
+							requestedNodes,
+							i,
+							nodeId,
+							nodeData;
 					// we need to add nodes in the order they were requested
 					// in case a child of child is treated first, adding it to nodeSource will produce a bug
 					// requested nodes should be in the order of hierarchy
-					var nodesData = this.getAjaxData(data);
+					nodesData = this.getAjaxData(data);
 					requestedNodes = request.nodes.split(",");
-					for (var i = 0; i < requestedNodes.length; i++) {
+					for (i = 0; i < requestedNodes.length; i++) {
 						nodeId = requestedNodes[i];
-						var nodeData = nodesData[nodeId];
+						nodeData = nodesData[nodeId];
 						if (nodeData){
 							this.addDataToNodeSource(nodeData);
 						}
@@ -134,7 +139,7 @@
 					}
 					if (nodeData.id) {
 						try{
-							nodeSource = this.getNode(nodeData.id);
+							var nodeSource = this.getNode(nodeData.id);
 							this.nodeStore._recBuildNodes( nodeSource, nodeSource.parents.concat(nodeSource), nodeData.nodes);
 						}catch(e){
 							// this is the case where we can't find the node in the nodeStore
@@ -148,7 +153,7 @@
 							var that = this;
 							var fn = function (nodes, nodeId, children){
 								for (var i = 0; i < nodes.length; i++) {
-									node = nodes[i];
+									var node = nodes[i];
 									if (node.id === nodeId){
 										node.nodes = children;
 									}else if (node.hasChildren && node.nodes && node.nodes.length > 0 ){
@@ -179,6 +184,4 @@
 			}
 		}
 	};
-
-
 })(jQuery);

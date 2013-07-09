@@ -95,10 +95,19 @@ var settings = {
 	ajaxUrl: "/ajaxUrl",
 	plugins: ["ajax_loading", "cookie"],
 	id:"ajaxTree",
+	dataSource: dataSource,
+
+};
+
+var settings2 = {
+	container: jQuery("#treeContainer2"),
+	ajaxUrl: "/ajaxUrl",
+	plugins: ["ajax_loading", "cookie"],
+	id:"ajaxTree2",
 	dataSource: dataSource
 };
 
-
 var tree = Vtree.create(settings);
+var tree = Vtree.create(settings2);
 
 

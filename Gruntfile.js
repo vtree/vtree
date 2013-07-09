@@ -62,10 +62,7 @@ module.exports = function (grunt) {
     uglify: {
       dist: {
         files: {
-          'dist/js/vtree.min.js': [
-            'test/spec/custom_matchers.js',
-            'dist/js/vtree.js'
-          ]
+          'dist/js/vtree.min.js': ['dist/js/vtree.js']
         }
       }
     },
@@ -114,7 +111,15 @@ module.exports = function (grunt) {
           'src/plugins/vtree.cookie.js',
         ],
         options : {
+          // uncomment this option to debug the tests
+          // when running grunt test, go to localhost:9000 to get
+          // a web inspector
+          // running __run() in console will run tests
+          // see https://github.com/ekonijn/grunt-require-demo/blob/master/doc/debugging-jasmine.md
           // '--remote-debugger-port': 9000,
+          //
+          // this will log the console.log in the specs
+          // debug: true,
           specs : [
             'test/spec/utils.js',
             'test/spec/custom_matchers.js',

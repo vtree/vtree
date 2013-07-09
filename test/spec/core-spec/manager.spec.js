@@ -41,9 +41,8 @@ describe("Vtree manager functions", function() {
 				 var attrVal = coreDefaults[attr];
 				 expect(testObject[attr]).toBeDefined();
 				 if (testObject[attr] && typeof testObject[attr].is != "function" ) {
-				 	expect(testObject[attr]).toBe(attrVal);
+				 	expect(testObject[attr]).toEqual(attrVal);
 				 }
-
 			}
 
 		});

@@ -141,9 +141,9 @@
 			},
 
 			getSiblings: function(mixedNode){
-				node = this.getNode(mixedNode);
+				var node = this.getNode(mixedNode);
 				// get parent's children
-				siblings = (node.parent) ? node.parent.children : this.rootNode.children;
+				var siblings = (node.parent) ? node.parent.children : this.rootNode.children;
 				// remove the current node
 				for (var i = siblings.length - 1; i >= 0; i--){
 					if (siblings[i].id == node.id){

@@ -1,6 +1,6 @@
 // Vtree (javascript tree component)
 // ----------------------------------
-// v1.1.1
+// v1.1.2
 //
 // Copyright (c)2013 Loic Ginoux, Vyre ltd.
 //
@@ -47,7 +47,10 @@ if(typeof console === "undefined") {
 				}
 				var plugin = plg[className];
 				if (!plugin) {return;}
-				$.extend(this, plugin.defaults);
+				// we first clone the defaults
+				var pluginDefaults = $.extend(true, {}, plugin.defaults);
+				// and then extends the object with these default
+				$.extend(this, pluginDefaults);
 
 				$.each(plugin._fn, function (fnName, fn) {
 
@@ -100,7 +103,7 @@ if(typeof console === "undefined") {
 			},
 			create: function (settings) {
 				// remove the previous one if it is using the same container
-				sameContainer = false;
+				var sameContainer = false;
 				for (var i=0, len = trees.length; i < len; i++) {
 					var internalTree = trees[i];
 					if (settings.container.is(internalTree.container)) {
@@ -249,9 +252,9 @@ if(typeof console === "undefined") {
 
 			refresh: function(){
 				this.container
-					.empty() // clean the container
-					.append(this._generateHTML())	// add html to container
-					.trigger("rendered.tree", [this]); //fires the rendered event
+				.empty() // clean the container
+				.append(this._generateHTML())	// add html to container
+				.trigger("rendered.tree", [this]); //fires the rendered event
 			},
 
 			_attachEvents: function(){
@@ -260,27 +263,25 @@ if(typeof console === "undefined") {
 					var target = $(e.target);
 					var li = (target.is("li"))? target : target.parents("li").eq(0);
 					var node = that.getNode(li.attr("data-nodeid"));
-					that.container.trigger(e.type+".node", [that, node]);
+					that.container.trigger(e.type+".node", [that, node, e]);
 					e.stopPropagation();
 				};
 				this.container
-					.delegate("li","click", fn)
-					.delegate("li","dblclick",fn)
-					.delegate("li","hover",fn)
-					.delegate("li","contextmenu",function(e){
-						try{
-							fn(e);
-						}
-						catch(event){
-						}
-						// prevent from opening the browser context menu
-						e.preventDefault();
-					})
-					.delegate(".openClose","click",function(e){
-						var node = that.getNode($(this).parent().attr("data-nodeid"));
-						node.toggleOpen();
-						e.stopPropagation();
-					});
+				.delegate("li","click", fn)
+				.delegate("li","dblclick",fn)
+				.delegate("li","hover",fn)
+				.delegate("li","contextmenu",function(event){
+					try{
+						fn(event);
+					}
+					catch(event){
+					}
+				})
+				.delegate(".openClose","click",function(e){
+					var node = that.getNode($(this).parent().attr("data-nodeid"));
+					node.toggleOpen();
+					e.stopPropagation();
+				});
 				return this.container;
 			},
 
@@ -303,9 +304,9 @@ if(typeof console === "undefined") {
 
 			destroy: function(){
 				this.container
-					.unbind(".node") // remove the events attach to the container
-					.undelegate() // remove the events attach to the container
-					.empty();	// delete everything inside the container
+				.unbind(".node") // remove the events attach to the container
+				.undelegate() // remove the events attach to the container
+				.empty();	// delete everything inside the container
 			},
 
 			toJson: function(){
@@ -476,9 +477,9 @@ if(typeof console === "undefined") {
 			},
 
 			getSiblings: function(mixedNode){
-				node = this.getNode(mixedNode);
+				var node = this.getNode(mixedNode);
 				// get parent's children
-				siblings = (node.parent) ? node.parent.children : this.rootNode.children;
+				var siblings = (node.parent) ? node.parent.children : this.rootNode.children;
 				// remove the current node
 				for (var i = siblings.length - 1; i >= 0; i--){
 					if (siblings[i].id == node.id){
@@ -514,7 +515,7 @@ if(typeof console === "undefined") {
 	};
 
 
-Vtree.plugins.defaults.core.node = {
+	Vtree.plugins.defaults.core.node = {
 		defaults:{
 			id                  : 0,
 			el                  : null,
@@ -613,14 +614,14 @@ Vtree.plugins.defaults.core.node = {
 				var titleTag = (this.customClass.indexOf("title") !== -1)? "h3" : "em";
 
 				var li = $("<li><a></a></li>")
-					.attr("data-nodeid", this.id)
-					.attr("data-treeid", this.tree.id)
-					.attr("id", this.tree.id+"_"+this.id)
-					.addClass(className);
+				.attr("data-nodeid", this.id)
+				.attr("data-treeid", this.tree.id)
+				.attr("id", this.tree.id+"_"+this.id)
+				.addClass(className);
 
 				var a = li.children("a")
-						.addClass("title")
-						.attr("title", this.description);
+				.addClass("title")
+				.attr("title", this.description);
 
 				if (this.href) { a.attr("href", this.href); }
 
@@ -629,9 +630,9 @@ Vtree.plugins.defaults.core.node = {
 				var hasIconPath = (isIconPathObject || isIconPathString);
 				if (this.iconClass) {
 					a.append("<i></i><"+titleTag+"></"+titleTag+">")
-						.find("i").addClass(this.iconClass)
-						.end()
-						.find(titleTag).text(this.title);
+					.find("i").addClass(this.iconClass)
+					.end()
+					.find(titleTag).text(this.title);
 				}else if (hasIconPath) {
 					var icon;
 					if (this.hasChildren && typeof this.iconPath.close != "undefined" && typeof this.iconPath.open != "undefined") {
@@ -640,21 +641,21 @@ Vtree.plugins.defaults.core.node = {
 						icon = this.iconPath;
 					}
 					a.append("<i><img/></i><"+titleTag+"></"+titleTag+">")
-						.find("img").attr("src", icon)
-						.end()
-						.find(titleTag).text(this.title);
+					.find("img").attr("src", icon)
+					.end()
+					.find(titleTag).text(this.title);
 				}else if (this.customClass.indexOf("title") !== -1){
 					a.append("<"+titleTag+"></"+titleTag+">")
-						.children()
-						.html(this.title);
+					.children()
+					.html(this.title);
 				}else {
 					a.html(this.title);
 				}
 
 				if (this.customHTML) {
 					li.append("<div class='custom'>")
-						.children(".custom")
-						.append(this.customHTML);
+					.children(".custom")
+					.append(this.customHTML);
 				}
 				if (this.hasChildren) {
 					li.prepend("<a class='openClose'/>");
@@ -673,7 +674,7 @@ Vtree.plugins.defaults.core.node = {
 				var el = this.getEl();
 				var text = (el.hasClass("loading"))?this.title:"Loading...";
 				var title = el.toggleClass("loading").children("a.title, label");
-				var child = title.children("h3, em, span");
+				var child = (title.find("h3, em").length)? title.find("h3, em"): title.children("span");
 				if (child.length) {
 					child.text(text);
 				}else{
@@ -847,14 +848,19 @@ Vtree.plugins.defaults.core.node = {
 				},
 
 				onAjaxResponse: function(request, data, response, jqXHR){
+					var nodesData,
+							requestedNodes,
+							i,
+							nodeId,
+							nodeData;
 					// we need to add nodes in the order they were requested
 					// in case a child of child is treated first, adding it to nodeSource will produce a bug
 					// requested nodes should be in the order of hierarchy
-					var nodesData = this.getAjaxData(data);
+					nodesData = this.getAjaxData(data);
 					requestedNodes = request.nodes.split(",");
-					for (var i = 0; i < requestedNodes.length; i++) {
+					for (i = 0; i < requestedNodes.length; i++) {
 						nodeId = requestedNodes[i];
-						var nodeData = nodesData[nodeId];
+						nodeData = nodesData[nodeId];
 						if (nodeData){
 							this.addDataToNodeSource(nodeData);
 						}
@@ -878,7 +884,7 @@ Vtree.plugins.defaults.core.node = {
 					}
 					if (nodeData.id) {
 						try{
-							nodeSource = this.getNode(nodeData.id);
+							var nodeSource = this.getNode(nodeData.id);
 							this.nodeStore._recBuildNodes( nodeSource, nodeSource.parents.concat(nodeSource), nodeData.nodes);
 						}catch(e){
 							// this is the case where we can't find the node in the nodeStore
@@ -892,7 +898,7 @@ Vtree.plugins.defaults.core.node = {
 							var that = this;
 							var fn = function (nodes, nodeId, children){
 								for (var i = 0; i < nodes.length; i++) {
-									node = nodes[i];
+									var node = nodes[i];
 									if (node.id === nodeId){
 										node.nodes = children;
 									}else if (node.hasChildren && node.nodes && node.nodes.length > 0 ){
@@ -923,9 +929,8 @@ Vtree.plugins.defaults.core.node = {
 			}
 		}
 	};
-
-
 })(jQuery);
+
 (function ($) {
 
 	Vtree.plugins.checkbox = {
@@ -968,22 +973,21 @@ Vtree.plugins.defaults.core.node = {
 					// triggered by the ajax plugin when we load children from the server after opening a folder
 					this.container.on("afterChildrenLoaded.node", function(e, tree, node){
 						for (var i = 0; i < node.children.length; i++) {
-							var child = node.children[i]
+							var child = node.children[i];
+							// if the child was in the list "initiallyChecked", it needs to be checked now
+							if ($.inArray(child.id, tree.initiallyChecked) !== -1){
+								child.check(true);
+							}
 							if (that.checkBehaviour === "checkChildren" && node.isChecked){
 								child.check(true);
 							}
 							if (that.uncheckBehaviour === "uncheckChildren" && !node.isChecked){
 								child.uncheck(true);
 							}
-							// if the child was in the list "initiallyChecked", it needs to be checked now
-							if ($.inArray(child.id, tree.initiallyChecked) !== -1){
-								child.check(true);
-							}
 						}
 
-					})
 					// after initialization, we set the initial checked nodes and initial disabled nodes
-					.on("onReady.tree", function(e, tree){
+					}).on("onReady.tree", function(e, tree){
 						tree.initiateCheckedNodes();
 						tree.initiateDisabledNodes();
 					});
@@ -1042,7 +1046,7 @@ Vtree.plugins.defaults.core.node = {
 				},
 
 				_generateHTML: function(){
-					ul = this._call_prev();
+					var ul = this._call_prev();
 					// this is to style the tree when the checkbox is not here
 					if (!this.displayCheckbox){
 						ul.addClass("noCheckbox");
@@ -1066,7 +1070,7 @@ Vtree.plugins.defaults.core.node = {
 				// disable a node
 				disable: function(){
 					this.isDisabled = true;
-					this.getEl().addClass(this.tree.disabledClass)
+					this.getEl().addClass(this.tree.disabledClass);
 					if (this.tree.displayCheckbox) {
 						this.getEl().find("input[type=checkbox]").eq(0).prop("disabled", "disabled");
 					}
@@ -1103,7 +1107,7 @@ Vtree.plugins.defaults.core.node = {
 					// parent can be undefined for the first level of the tree
 					if (this.tree.checkBehaviour === "checkParents" && this.parent) {
 						// we check recursively the parents
-						this.parent.check(true)
+						this.parent.check(true);
 					}
 
 					if (this.tree.checkBehaviour === "checkChildren") {
@@ -1136,7 +1140,7 @@ Vtree.plugins.defaults.core.node = {
 					// parent can be undefined for the first level of the tree
 					if (this.tree.uncheckBehaviour == "uncheckParents" && this.parent) {
 						// we uncheck recursively the parents
-						this.parent.uncheck(true)
+						this.parent.uncheck(true);
 					}
 
 					// uncheck all children
@@ -1257,9 +1261,8 @@ Vtree.plugins.defaults.core.node = {
 			}
 		}
 	};
-
-
 })(jQuery);
+
 (function ($) {
 	Vtree.setCookie = function(cookieName,cookieValue,nDays) {
 		var today = new Date();
@@ -1292,8 +1295,6 @@ Vtree.plugins.defaults.core.node = {
 								// we get the cookie
 								tree.initiallyOpen = treeCookie.opened || [];
 								tree.initiallyChecked = treeCookie.checked || [];
-								tree.container.trigger("OpenNodesFromCookie.tree", [tree]);
-
 							}else{
 								// we create the initial cookie
 								VtreeCookie.trees[tree.id] = {
@@ -1311,14 +1312,12 @@ Vtree.plugins.defaults.core.node = {
 								checked: tree.initiallyChecked || []
 							};
 							Vtree.setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
-							// this is for the tree to continue building when used in conjonction with the ajax plugin
-							tree.container.trigger("OpenNodesFromCookie.tree", [tree]);
-
 						}
+						// we trigger an event to tell that cookie values have been added
+						tree.container.trigger("OpenNodesFromCookie.tree", [tree]);
 
-					})
+					}).bind("afterOpen.node", function(e, tree, node){
 
-					.bind("afterOpen.node", function(e, tree, node){
 						var VtreeCookie = JSON.parse(Vtree.readCookie("Vtree"));
 						var treeCookie = VtreeCookie.trees[tree.id];
 						if ($.inArray(node.id, treeCookie.opened) == -1){
@@ -1326,9 +1325,8 @@ Vtree.plugins.defaults.core.node = {
 						}
 						Vtree.setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
 
-					})
+					}).bind("beforeClose.node", function(e, tree, node){
 
-					.bind("beforeClose.node", function(e, tree, node){
 						var VtreeCookie = JSON.parse(Vtree.readCookie("Vtree"));
 						var treeCookie = VtreeCookie.trees[tree.id];
 						if (typeof node.isOneDescendantChecked === "function" && node.isOneDescendantChecked()) {
@@ -1353,9 +1351,9 @@ Vtree.plugins.defaults.core.node = {
 							return (value != node.id && $.inArray(value, getOpenedChildrenIds(node)) == -1);
 						});
 						Vtree.setCookie("Vtree",  JSON.stringify(VtreeCookie), 7); // stored for a week
-					})
 
-					.bind("check.node", function(e, tree, node){
+					}).bind("check.node", function(e, tree, node){
+
 						var VtreeCookie = JSON.parse(Vtree.readCookie("Vtree"));
 						var treeCookie = VtreeCookie.trees[tree.id];
 
@@ -1364,16 +1362,14 @@ Vtree.plugins.defaults.core.node = {
 						}
 
 						Vtree.setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
-					})
 
-					.bind("uncheck.node", function(e, tree, node){
+					}).bind("uncheck.node", function(e, tree, node){
+
 						var VtreeCookie = JSON.parse(Vtree.readCookie("Vtree"));
 						var treeCookie = VtreeCookie.trees[tree.id];
-
 						treeCookie.checked = jQuery.grep(treeCookie.checked, function(value) {
 							return (value != node.id);
 						});
-
 						Vtree.setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
 					});
 
@@ -1382,6 +1378,4 @@ Vtree.plugins.defaults.core.node = {
 			}
 		}
 	};
-
-
 })(jQuery);
