@@ -14,6 +14,9 @@ http://loicginoux.github.com/vtree/
 
 RELASE NOTES:
 =============
+v1.1.3 (4.09.2013)
+-----------------
+- added reset function to tree. it remove cookies and rebuild tree on its initial state
 
 v1.1.2 (5.07.2013)
 -----------------
@@ -21,6 +24,7 @@ v1.1.2 (5.07.2013)
 - issue #65 ontext menu is not preventing default, this is let to the user to prevent or not
 - correct issue #63 initiallyOpen not working when multiple tree in page
 - correct issue #64 triggerring "OpenNodesFromCookie" the first time trees render
+- issue #62: display icon after ajax loading
 
 v1.1.1 (5.06.2013)
 -----------------

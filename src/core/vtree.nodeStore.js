@@ -52,7 +52,10 @@
 			},
 
 			getDataSource: function(){
-				return this.tree.dataSource.tree;
+				if (!this.dataSource){
+					this.dataSource = this.tree.dataSource.tree;
+				}
+				return this.dataSource;
 			},
 
 			_recBuildNodes: function(parent, parents, nodes){
