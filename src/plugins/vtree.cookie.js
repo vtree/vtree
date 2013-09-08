@@ -109,6 +109,24 @@
 					});
 
 					return this._call_prev();
+				},
+
+				reset: function(){
+					var cookie = Vtree.readCookie("Vtree");
+					if (cookie) {
+						VtreeCookie = JSON.parse(cookie);
+						var treeCookie = VtreeCookie.trees[this.id];
+						if (treeCookie){
+							VtreeCookie.trees[this.id] = {
+								opened: tree.initiallyOpen || [],
+								checked: tree.initiallyChecked || []
+							};
+							console.log("cookie reset!")
+							Vtree.setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
+						}
+					}
+					return this._call_prev();
+
 				}
 			}
 		}

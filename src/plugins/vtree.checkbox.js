@@ -51,15 +51,18 @@
 							if (that.uncheckBehaviour === "uncheckChildren" && !node.isChecked){
 								child.uncheck(true);
 							}
+							if (that.disableBehaviour === "disableChildren" && node.isDisabled){
+								child.disable();
+							}
 						}
 
 					// after initialization, we set the initial checked nodes and initial disabled nodes
-					}).on("onReady.tree", function(e, tree){
-						tree.initiateCheckedNodes();
-						tree.initiateDisabledNodes();
-					});
-					return this._call_prev();
-				},
+				}).on("onReady.tree", function(e, tree){
+					tree.initiateCheckedNodes();
+					tree.initiateDisabledNodes();
+				});
+				return this._call_prev();
+			},
 
 				// check the nodes that are in the list initiallyChecked
 				initiateCheckedNodes:function(){
@@ -307,20 +310,23 @@
 					// 	loaded: false,
 					//	initiallyChecked: true
 					// }
-					intiallyCheckedAndNotLoadedNodes = jQuery.grep(this.tree.initiallyChecked, function(nodeId) {
+					intiallyCheckedAndNotLoadedNodes = jQuery.map(jQuery.grep(this.tree.initiallyChecked, function(nodeId) {
 						var pass = false;
-						try{ var node = that.getNode(nodeId); }catch(e){
+						try{ 
+							var node = that.getNode(nodeId); 
+						}catch(e){
 							// we can't find the node in the tree
 							pass = true;
+								}
+								return pass;
+						}), function(id){
+							return {
+								id:id,
+								loaded: false,
+								initiallyChecked: true
+							};
 						}
-						return pass;
-					}).map(function(id){
-						return {
-							id:id,
-							loaded: false,
-							initiallyChecked: true
-						};
-					});
+					);
 
 					//concatenate the two lists
 					return loadedCheckedNodes.concat(intiallyCheckedAndNotLoadedNodes);

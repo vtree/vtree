@@ -13,6 +13,11 @@ http://loicginoux.github.com/vtree/
 
 RELASE NOTES:
 =============
+v1.1.3 (4.09.2013)
+-----------------
+- added reset function to tree. it remove cookies and rebuild tree on its initial state.
+- issue #69:  Disable new child if parent is disabled and disableBehaviour === "disableChidlren"
+- issue #72: getCheckedNodes() doesn't work in IE version < 9 
 
 v1.1.2 (5.07.2013)
 -----------------
@@ -20,6 +25,7 @@ v1.1.2 (5.07.2013)
 - issue #65 ontext menu is not preventing default, this is let to the user to prevent or not
 - correct issue #63 initiallyOpen not working when multiple tree in page
 - correct issue #64 triggerring "OpenNodesFromCookie" the first time trees render
+- issue #62: display icon after ajax loading
 
 v1.1.1 (5.06.2013)
 -----------------
@@ -87,6 +93,20 @@ v1.1 (11.02.2013)
 v1.0 (15.09.2013)
 -----------------
 first edition
+
+
+
+How To make changes and fixes:
+==============================
+- fork the repository
+- make your change under the src repository
+- the directory examples are here to test quickly different configuration, you are welcome to use it.
+- write tests depending on the changes you have made and make sure that none of your changes have broken anything
+- use grunt to build and regenerate the framework
+  - "grunt" in your shell will minify, concatenate, copy to the dist folder and run the tests
+  - "grunt test" for running tests only.
+- make a pull request.
+
 
 
 LICENSE:

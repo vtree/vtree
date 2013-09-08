@@ -1,6 +1,6 @@
 // Vtree (javascript tree component)
 // ----------------------------------
-// v1.1.2
+// v1.1.3
 //
 // Copyright (c)2013 Loic Ginoux, Vyre ltd.
 //
@@ -221,6 +221,12 @@ if(typeof console === "undefined") {
 				this.container.trigger("onReady.tree", [this]);
 			},
 
+			// set tree in its initial state
+			reset: function(){
+				this.destroy();
+				this.build();
+			},
+
 			setId: function(){
 				//give tree an id
 				if (!this.id) {
@@ -305,6 +311,7 @@ if(typeof console === "undefined") {
 			destroy: function(){
 				this.container
 				.unbind(".node") // remove the events attach to the container
+				.unbind(".tree")
 				.undelegate() // remove the events attach to the container
 				.empty();	// delete everything inside the container
 			},
@@ -388,7 +395,10 @@ if(typeof console === "undefined") {
 			},
 
 			getDataSource: function(){
-				return this.tree.dataSource.tree;
+				if (!this.dataSource){
+					this.dataSource = this.tree.dataSource.tree;
+				}
+				return this.dataSource;
 			},
 
 			_recBuildNodes: function(parent, parents, nodes){
@@ -984,15 +994,18 @@ if(typeof console === "undefined") {
 							if (that.uncheckBehaviour === "uncheckChildren" && !node.isChecked){
 								child.uncheck(true);
 							}
+							if (that.disableBehaviour === "disableChildren" && node.isDisabled){
+								child.disable();
+							}
 						}
 
 					// after initialization, we set the initial checked nodes and initial disabled nodes
-					}).on("onReady.tree", function(e, tree){
-						tree.initiateCheckedNodes();
-						tree.initiateDisabledNodes();
-					});
-					return this._call_prev();
-				},
+				}).on("onReady.tree", function(e, tree){
+					tree.initiateCheckedNodes();
+					tree.initiateDisabledNodes();
+				});
+				return this._call_prev();
+			},
 
 				// check the nodes that are in the list initiallyChecked
 				initiateCheckedNodes:function(){
@@ -1240,20 +1253,23 @@ if(typeof console === "undefined") {
 					// 	loaded: false,
 					//	initiallyChecked: true
 					// }
-					intiallyCheckedAndNotLoadedNodes = jQuery.grep(this.tree.initiallyChecked, function(nodeId) {
+					intiallyCheckedAndNotLoadedNodes = jQuery.map(jQuery.grep(this.tree.initiallyChecked, function(nodeId) {
 						var pass = false;
-						try{ var node = that.getNode(nodeId); }catch(e){
+						try{ 
+							var node = that.getNode(nodeId); 
+						}catch(e){
 							// we can't find the node in the tree
 							pass = true;
+								}
+								return pass;
+						}), function(id){
+							return {
+								id:id,
+								loaded: false,
+								initiallyChecked: true
+							};
 						}
-						return pass;
-					}).map(function(id){
-						return {
-							id:id,
-							loaded: false,
-							initiallyChecked: true
-						};
-					});
+					);
 
 					//concatenate the two lists
 					return loadedCheckedNodes.concat(intiallyCheckedAndNotLoadedNodes);
@@ -1374,6 +1390,24 @@ if(typeof console === "undefined") {
 					});
 
 					return this._call_prev();
+				},
+
+				reset: function(){
+					var cookie = Vtree.readCookie("Vtree");
+					if (cookie) {
+						VtreeCookie = JSON.parse(cookie);
+						var treeCookie = VtreeCookie.trees[this.id];
+						if (treeCookie){
+							VtreeCookie.trees[this.id] = {
+								opened: tree.initiallyOpen || [],
+								checked: tree.initiallyChecked || []
+							};
+							console.log("cookie reset!")
+							Vtree.setCookie("Vtree", JSON.stringify(VtreeCookie), 7); // stored for a week
+						}
+					}
+					return this._call_prev();
+
 				}
 			}
 		}

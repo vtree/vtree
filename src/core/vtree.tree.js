@@ -52,6 +52,12 @@
 				this.container.trigger("onReady.tree", [this]);
 			},
 
+			// set tree in its initial state
+			reset: function(){
+				this.destroy();
+				this.build();
+			},
+
 			setId: function(){
 				//give tree an id
 				if (!this.id) {
@@ -136,6 +142,7 @@
 			destroy: function(){
 				this.container
 				.unbind(".node") // remove the events attach to the container
+				.unbind(".tree")
 				.undelegate() // remove the events attach to the container
 				.empty();	// delete everything inside the container
 			},
