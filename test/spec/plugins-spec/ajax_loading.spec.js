@@ -152,6 +152,7 @@ describe("ajax_loading plugin", function() {
 							expect(nodeEl.children("ul.children").length).not.toBe(0);
 							node1.close();
 							expect(nodeEl.children("ul.children").length).toBe(0);
+							expect(node1.hasRenderedChildren).toBeFalsy();
 						});
 
 					});
@@ -163,6 +164,7 @@ describe("ajax_loading plugin", function() {
 							expect(nodeEl.children("ul.children").length).not.toBe(0);
 							node1.close();
 							expect(nodeEl.children("ul.children").length).not.toBe(0);
+							expect(node1.hasRenderedChildren).not.toBeFalsy();
 						});
 
 					});

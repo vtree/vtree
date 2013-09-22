@@ -38,6 +38,7 @@
 					.on("afterClose.node", function(e, tree, node){
 						if (that.forceAjaxReload) {
 							node.getEl().children("ul.children").remove();
+							node.hasRenderedChildren = false;
 						}
 					})
 
