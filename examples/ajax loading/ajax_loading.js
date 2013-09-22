@@ -88,6 +88,7 @@ var settings = {
 	plugins: ["ajax_loading"],
 	id:"root",
 	dataSource: dataSource,
+	forceAjaxReload: true,
 	initiallyOpen : ['xtest_1', 'ptest_2']
 };
 
